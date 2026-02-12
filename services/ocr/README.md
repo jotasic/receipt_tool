@@ -1,154 +1,324 @@
-# OCR 서비스
+# OCR Service - Error Handling & Logging
 
-이미지에서 텍스트를 추출하는 OCR 서비스입니다.
+영수증 OCR 처리 서비스의 에러 처리 및 로깅 시스템 문서
 
-## 라이브러리
+## 목차
 
-`@react-native-ml-kit/text-recognition` 사용
+- [개요](#개요)
+- [에러 타입](#에러-타입)
+- [로깅 시스템](#로깅-시스템)
+- [사용 예시](#사용-예시)
+- [디버깅](#디버깅)
+- [정규식 패턴](#정규식-패턴)
 
-### 장점
-- 오프라인 동작 (기기 내 ML 모델)
-- 무료
-- 한글 및 영어 지원
-- 빠른 처리 속도
+## 개요
 
-### 제약사항
-- 네이티브 모듈이므로 웹에서 동작하지 않음
-- Expo Go에서 테스트 불가 (개발 빌드 필요)
+OCR 서비스는 다음 기능을 제공합니다:
 
-## 사용법
+- **상세 에러 처리**: 에러 타입별 분류 및 사용자 친화적 메시지
+- **로깅 시스템**: 모든 OCR 처리 과정 기록
+- **자동 복구**: 재시도 가능 여부 판단 및 대안 제시
+- **확장된 정규식 패턴**: 다양한 영수증 형식 지원
 
-### 기본 사용
+## 에러 타입
 
-```typescript
-import { extractText } from '@/services/ocr';
-
-// 이미지에서 텍스트 추출
-const text = await extractText('file:///path/to/image.jpg');
-console.log(text);
-```
-
-### 상세 정보 포함
+### OcrErrorType
 
 ```typescript
-import { extractTextDetailed } from '@/services/ocr';
-
-// 블록/라인/요소 단위로 구조화된 결과
-const result = await extractTextDetailed('file:///path/to/image.jpg');
-
-console.log('전체 텍스트:', result.text);
-console.log('블록 수:', result.blocks.length);
-
-// 각 블록 순회
-result.blocks.forEach((block, i) => {
-  console.log(`블록 ${i}:`, block.text);
-  block.lines.forEach((line, j) => {
-    console.log(`  라인 ${j}:`, line.text);
-  });
-});
-```
-
-### 영수증 텍스트 추출
-
-```typescript
-import { extractReceiptText } from '@/services/ocr';
-
-// 영수증 특화 추출 (현재는 기본 extractText와 동일)
-const receiptText = await extractReceiptText('file:///path/to/receipt.jpg');
-```
-
-## 이미지 URI 형식
-
-지원되는 URI 형식:
-- `file:///absolute/path/to/image.jpg` (iOS/Android 파일 시스템)
-- `content://...` (Android Content Provider)
-- `/absolute/path/to/image.jpg` (절대 경로)
-
-expo-camera나 expo-image-picker에서 반환하는 URI를 그대로 사용 가능합니다.
-
-## 예제: 카메라 촬영 후 OCR
-
-```typescript
-import { Camera } from 'expo-camera';
-import { extractText } from '@/services/ocr';
-
-// 사진 촬영
-const photo = await cameraRef.current?.takePictureAsync();
-
-// OCR 실행
-if (photo?.uri) {
-  const text = await extractText(photo.uri);
-  console.log('추출된 텍스트:', text);
+enum OcrErrorType {
+  IMAGE_ACCESS_ERROR = 'IMAGE_ACCESS_ERROR',      // 이미지 접근 실패
+  ML_KIT_INIT_ERROR = 'ML_KIT_INIT_ERROR',       // ML Kit 초기화 실패
+  NO_TEXT_DETECTED = 'NO_TEXT_DETECTED',         // 텍스트 미감지
+  TIMEOUT_ERROR = 'TIMEOUT_ERROR',               // 타임아웃
+  POOR_IMAGE_QUALITY = 'POOR_IMAGE_QUALITY',     // 이미지 품질 문제
+  PARSING_ERROR = 'PARSING_ERROR',               // 파싱 실패
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',               // 알 수 없는 에러
 }
 ```
 
-## 예제: 갤러리에서 이미지 선택 후 OCR
+### 에러별 처리 방법
+
+| 에러 타입 | 복구 가능 | 재시도 가능 | 권장 조치 |
+|----------|---------|----------|---------|
+| `IMAGE_ACCESS_ERROR` | O | O | 다른 이미지 선택 또는 재촬영 |
+| `ML_KIT_INIT_ERROR` | X | O | 앱 재시작 |
+| `NO_TEXT_DETECTED` | O | O | 선명하게 재촬영 |
+| `TIMEOUT_ERROR` | O | O | 네트워크 확인 후 재시도 |
+| `POOR_IMAGE_QUALITY` | O | O | 조명 개선 후 재촬영 |
+| `PARSING_ERROR` | O | X | 수동 입력 |
+| `UNKNOWN_ERROR` | O | O | 재시도 또는 수동 입력 |
+
+## 로깅 시스템
+
+### 로그 레벨
 
 ```typescript
-import * as ImagePicker from 'expo-image-picker';
-import { extractText } from '@/services/ocr';
-
-// 이미지 선택
-const result = await ImagePicker.launchImageLibraryAsync({
-  mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  quality: 1,
-});
-
-// OCR 실행
-if (!result.canceled && result.assets[0]) {
-  const text = await extractText(result.assets[0].uri);
-  console.log('추출된 텍스트:', text);
+enum OcrLogLevel {
+  DEBUG = 'DEBUG',    // 상세 디버깅 정보
+  INFO = 'INFO',      // 일반 정보
+  WARN = 'WARN',      // 경고
+  ERROR = 'ERROR',    // 에러
 }
 ```
 
-## 에러 처리
+### 로그 사용 예시
 
 ```typescript
-import { extractText } from '@/services/ocr';
+import { ocrLogger } from '@/services/ocr';
+
+// 정보 로그
+ocrLogger.info('OCR 처리 시작', { imageUri });
+
+// 경고 로그
+ocrLogger.warn('일부 필드 추출 실패', { missingFields: ['금액'] });
+
+// 에러 로그
+ocrLogger.error('OCR 실패', error, { imageUri });
+
+// 디버그 로그
+ocrLogger.debug('정규식 매칭', { pattern: '합계', matched: true });
+```
+
+### 로그 조회
+
+```typescript
+// 최근 로그 10개 조회
+const recentLogs = ocrLogger.getRecentLogs(10);
+
+// 에러 로그만 조회
+const errorLogs = ocrLogger.getErrorLogs();
+
+// 전체 로그 JSON으로 내보내기
+const logsJson = ocrLogger.exportLogs();
+```
+
+## 사용 예시
+
+### 기본 OCR 처리
+
+```typescript
+import { extractReceiptData, OcrErrorType } from '@/services/ocr';
+import type { OcrError } from '@/services/ocr';
 
 try {
-  const text = await extractText(imageUri);
-  console.log(text);
+  const receipt = await extractReceiptData(imageUri);
+
+  console.log('상호명:', receipt.storeName);
+  console.log('금액:', receipt.amount);
+  console.log('날짜:', receipt.date);
+  console.log('신뢰도:', receipt.confidence);
+
+  // 경고 처리
+  if (receipt.warnings && receipt.warnings.length > 0) {
+    console.warn('경고:', receipt.warnings);
+  }
 } catch (error) {
-  console.error('OCR 실패:', error);
-  // 사용자에게 에러 메시지 표시
+  if (error && typeof error === 'object' && 'type' in error) {
+    const ocrError = error as OcrError;
+
+    // 에러 타입별 처리
+    switch (ocrError.type) {
+      case OcrErrorType.NO_TEXT_DETECTED:
+        alert('영수증이 선명하게 보이도록 다시 촬영해주세요');
+        break;
+
+      case OcrErrorType.PARSING_ERROR:
+        alert('정보를 수동으로 입력해주세요');
+        break;
+
+      default:
+        if (ocrError.retryable) {
+          // 재시도 옵션 제공
+          alert(`${ocrError.userMessage}\n\n다시 시도하시겠습니까?`);
+        } else {
+          alert(ocrError.userMessage);
+        }
+    }
+  }
 }
 ```
 
-## 개발 빌드
+### 에러 처리 with Alert
 
-ML Kit은 네이티브 모듈이므로 Expo Go에서 동작하지 않습니다.
-테스트를 위해서는 개발 빌드가 필요합니다.
+```typescript
+const handleOcrError = (error: OcrError) => {
+  const buttons = [];
 
-```bash
-# iOS 개발 빌드
-npx expo run:ios
+  if (error.retryable) {
+    buttons.push({
+      text: '다시 시도',
+      onPress: () => runOCR(),
+    });
+  }
 
-# Android 개발 빌드
-npx expo run:android
+  if (
+    error.type === OcrErrorType.NO_TEXT_DETECTED ||
+    error.type === OcrErrorType.POOR_IMAGE_QUALITY
+  ) {
+    buttons.push({
+      text: '다시 촬영',
+      onPress: () => router.back(),
+    });
+  }
+
+  buttons.push({
+    text: '수동 입력',
+    style: 'cancel',
+  });
+
+  Alert.alert(
+    'OCR 처리 실패',
+    `${error.userMessage}\n\n${error.suggestedAction || ''}`,
+    buttons
+  );
+};
 ```
 
-또는 EAS Build를 사용하여 개발 빌드 생성:
+## 디버깅
 
-```bash
-eas build --profile development --platform ios
-eas build --profile development --platform android
+### 디버그 정보 출력
+
+```typescript
+import { printOcrDebugInfo, getOcrStatistics } from '@/services/ocr';
+
+// 콘솔에 디버그 정보 출력
+printOcrDebugInfo();
+
+// 통계 정보 가져오기
+const stats = getOcrStatistics();
+console.log('성공률:', `${stats.successRate * 100}%`);
+console.log('에러 분포:', stats.errorDistribution);
 ```
 
-## 향후 개선 사항
+### 로그 파일로 내보내기
 
-1. **이미지 전처리**
-   - 회전 보정
-   - 대비 조정
-   - 노이즈 제거
-   - 원근 보정
+```typescript
+import { exportOcrLogs } from '@/services/ocr';
 
-2. **영수증 파싱**
-   - 날짜 추출
-   - 금액 추출
-   - 상점명 추출
-   - 카테고리 자동 분류
+// 로그를 파일로 저장
+const filePath = await exportOcrLogs();
+console.log('로그 저장 위치:', filePath);
+```
 
-3. **Fallback API**
-   - Google Cloud Vision API
-   - 네트워크 오류 시 재시도 로직
+### 로그 초기화
+
+```typescript
+import { clearOcrLogs } from '@/services/ocr';
+
+// 로그 초기화 (테스트용)
+clearOcrLogs();
+```
+
+## 정규식 패턴
+
+### 금액 추출 패턴 (우선순위 순)
+
+1. **합계/총액/결제금액** (가장 신뢰도 높음)
+   - `합계: 5,000`
+   - `총액 10000`
+   - `결제금액: 3,500`
+
+2. **카드/현금 결제**
+   - `카드: 15,000`
+   - `현금 20000`
+
+3. **영문 패턴**
+   - `TOTAL: 8,000`
+   - `AMOUNT 12000`
+
+4. **통화 기호**
+   - `₩ 6,000`
+   - `\ 9,500`
+
+5. **원 단위**
+   - `5,000원`
+   - `10000 원`
+
+### 날짜 추출 패턴
+
+1. **YYYY-MM-DD 형식**
+   - `2024-01-15`
+   - `2024.01.15`
+   - `2024/01/15`
+
+2. **한글 포함**
+   - `2024년 1월 15일`
+   - `24년1월15일`
+
+3. **YY-MM-DD 형식**
+   - `24-01-15`
+   - `24.1.15`
+
+4. **시간 포함** (날짜 부분만 추출)
+   - `2024-01-15 14:30`
+
+### 상호명 추출 방법
+
+1. **첫 줄 추출** (가장 일반적)
+2. **키워드 찾기** (`상호:`, `사업자:`)
+3. **두 번째 줄** (첫 줄이 로고인 경우)
+
+## 성능 모니터링
+
+### 신뢰도 점수
+
+파싱된 영수증의 `confidence` 필드는 0-1 사이 값으로 계산됩니다:
+
+- **0.7 이상**: 높은 신뢰도 (모든 필드 추출 성공)
+- **0.4 ~ 0.7**: 중간 신뢰도 (일부 필드 추출)
+- **0.4 미만**: 낮은 신뢰도 (대부분 수동 입력 필요)
+
+### 경고 메시지
+
+파싱 중 발생한 경고는 `warnings` 배열에 저장됩니다:
+
+```typescript
+const result = await extractReceiptData(imageUri);
+
+if (result.warnings && result.warnings.length > 0) {
+  result.warnings.forEach(warning => {
+    console.warn(warning);
+    // 예: "금액을 찾을 수 없습니다"
+  });
+}
+```
+
+## 문제 해결
+
+### 자주 발생하는 문제
+
+1. **텍스트 미감지**
+   - 원인: 이미지가 흐리거나 어두움
+   - 해결: 조명이 밝은 곳에서 재촬영
+
+2. **금액 추출 실패**
+   - 원인: 특이한 포맷 (예: "5천원")
+   - 해결: parser.ts의 정규식 패턴 추가
+
+3. **날짜 형식 인식 실패**
+   - 원인: 비표준 날짜 형식
+   - 해결: parser.ts의 datePatterns 확장
+
+### 패턴 추가 방법
+
+`/services/ocr/parser.ts` 파일의 정규식 배열에 새 패턴 추가:
+
+```typescript
+const amountPatterns = [
+  // 기존 패턴...
+  { pattern: /새로운패턴[:\s]*([0-9,]+)/i, name: '새패턴' },
+];
+```
+
+## 파일 구조
+
+```
+services/ocr/
+├── index.ts           # 메인 OCR 서비스
+├── types.ts           # 타입 정의 및 OcrError 클래스
+├── parser.ts          # 영수증 텍스트 파싱 로직
+├── logger.ts          # 로깅 시스템
+├── errorHandler.ts    # 에러 처리 유틸리티
+├── debug.ts           # 디버깅 도구
+└── README.md          # 문서
+```

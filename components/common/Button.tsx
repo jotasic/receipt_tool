@@ -1,4 +1,5 @@
 import { TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
+import { ReactNode } from 'react';
 
 interface ButtonProps {
   title: string;
@@ -7,6 +8,7 @@ interface ButtonProps {
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   loading?: boolean;
+  icon?: ReactNode;
 }
 
 export function Button({
@@ -15,7 +17,8 @@ export function Button({
   variant = 'primary',
   size = 'md',
   disabled = false,
-  loading = false
+  loading = false,
+  icon
 }: ButtonProps) {
   // Variant styles
   const variantStyles = {
@@ -75,6 +78,11 @@ export function Button({
             size="small"
             color={variant === 'outline' ? '#2563eb' : '#ffffff'}
           />
+        </View>
+      )}
+      {!loading && icon && (
+        <View className="mr-2">
+          {icon}
         </View>
       )}
       <Text

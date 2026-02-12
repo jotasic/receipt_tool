@@ -1,14 +1,19 @@
 import { useState } from 'react';
-import { View, Text, Image, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, Image, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/common';
 
 export default function AddReceiptScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [originalUri, setOriginalUri] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   // 카메라 촬영
   const takePhoto = async () => {
@@ -28,12 +33,12 @@ export default function AddReceiptScreen() {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ['images'],
         quality: 0.8,
-        allowsEditing: true,
-        aspect: [3, 4],
       });
 
       if (!result.canceled && result.assets[0]) {
-        setImageUri(result.assets[0].uri);
+        const uri = result.assets[0].uri;
+        setPreviewUri(uri);
+        setOriginalUri(uri);
       }
     } catch (error) {
       console.error('Camera error:', error);
@@ -61,18 +66,126 @@ export default function AddReceiptScreen() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         quality: 0.8,
-        allowsEditing: true,
-        aspect: [3, 4],
       });
 
       if (!result.canceled && result.assets[0]) {
-        setImageUri(result.assets[0].uri);
+        const uri = result.assets[0].uri;
+        setPreviewUri(uri);
+        setOriginalUri(uri);
       }
     } catch (error) {
       console.error('Image picker error:', error);
       Alert.alert('오류', '이미지를 선택할 수 없습니다.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // 편집 모드 시작
+  const startEditMode = () => {
+    setEditMode(true);
+  };
+
+  // 편집 완료
+  const finishEdit = () => {
+    setEditMode(false);
+  };
+
+  // 편집 취소 (원본으로 복원)
+  const cancelEdit = () => {
+    if (originalUri) {
+      setPreviewUri(originalUri);
+    }
+    setEditMode(false);
+  };
+
+  // 90도 회전
+  const rotateImage = async () => {
+    if (!previewUri) return;
+
+    try {
+      setIsEditing(true);
+      const result = await ImageManipulator.manipulateAsync(
+        previewUri,
+        [{ rotate: 90 }],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      setPreviewUri(result.uri);
+    } catch (error) {
+      console.error('Rotate error:', error);
+      Alert.alert('오류', '이미지를 회전할 수 없습니다.');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  // 좌우 반전
+  const flipHorizontal = async () => {
+    if (!previewUri) return;
+
+    try {
+      setIsEditing(true);
+      const result = await ImageManipulator.manipulateAsync(
+        previewUri,
+        [{ flip: ImageManipulator.FlipType.Horizontal }],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      setPreviewUri(result.uri);
+    } catch (error) {
+      console.error('Flip horizontal error:', error);
+      Alert.alert('오류', '이미지를 반전할 수 없습니다.');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  // 상하 반전
+  const flipVertical = async () => {
+    if (!previewUri) return;
+
+    try {
+      setIsEditing(true);
+      const result = await ImageManipulator.manipulateAsync(
+        previewUri,
+        [{ flip: ImageManipulator.FlipType.Vertical }],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      setPreviewUri(result.uri);
+    } catch (error) {
+      console.error('Flip vertical error:', error);
+      Alert.alert('오류', '이미지를 반전할 수 없습니다.');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  // 자르기 (자유 비율)
+  const cropImage = async () => {
+    if (!previewUri) return;
+
+    try {
+      setIsEditing(true);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setPreviewUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Crop error:', error);
+      Alert.alert('오류', '이미지를 자를 수 없습니다.');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  // 이미지 사용 확정
+  const handleUseImage = () => {
+    if (previewUri) {
+      setImageUri(previewUri);
     }
   };
 
@@ -89,6 +202,9 @@ export default function AddReceiptScreen() {
   // 이미지 재선택
   const handleRetake = () => {
     setImageUri(null);
+    setPreviewUri(null);
+    setOriginalUri(null);
+    setEditMode(false);
   };
 
   return (
@@ -110,7 +226,7 @@ export default function AddReceiptScreen() {
 
       {/* Content */}
       {imageUri ? (
-        // 이미지 미리보기 화면
+        // 최종 확정된 이미지 - 폼으로 이동
         <View className="flex-1 p-4">
           <View className="flex-1 bg-gray-100 rounded-lg overflow-hidden">
             <Image
@@ -137,6 +253,142 @@ export default function AddReceiptScreen() {
                 disabled={isLoading}
               />
             </View>
+          </View>
+        </View>
+      ) : previewUri ? (
+        // 이미지 미리보기 및 편집 화면
+        <View className="flex-1 p-4">
+          <View className="flex-1 bg-gray-100 rounded-lg overflow-hidden relative">
+            <Image
+              source={{ uri: previewUri }}
+              className="flex-1"
+              resizeMode="contain"
+            />
+            {isEditing && (
+              <View className="absolute inset-0 bg-black/50 items-center justify-center">
+                <ActivityIndicator size="large" color="#fff" />
+              </View>
+            )}
+          </View>
+
+          <View className="mt-4">
+            {editMode ? (
+              // 편집 모드 UI
+              <>
+                <Text className="text-sm text-gray-600 text-center mb-4">
+                  이미지를 편집하세요
+                </Text>
+
+                {/* 편집 버튼 그리드 */}
+                <View className="flex-row gap-3 mb-4">
+                  <TouchableOpacity
+                    onPress={rotateImage}
+                    disabled={isEditing}
+                    className="flex-1 items-center justify-center py-4 bg-white border-2 border-blue-500 rounded-lg"
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="reload-outline" size={24} color="#3B82F6" />
+                    <Text className="text-sm font-medium text-blue-500 mt-1">
+                      회전
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={cropImage}
+                    disabled={isEditing}
+                    className="flex-1 items-center justify-center py-4 bg-white border-2 border-blue-500 rounded-lg"
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="crop-outline" size={24} color="#3B82F6" />
+                    <Text className="text-sm font-medium text-blue-500 mt-1">
+                      자르기
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View className="flex-row gap-3 mb-4">
+                  <TouchableOpacity
+                    onPress={flipHorizontal}
+                    disabled={isEditing}
+                    className="flex-1 items-center justify-center py-4 bg-white border-2 border-blue-500 rounded-lg"
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="swap-horizontal-outline" size={24} color="#3B82F6" />
+                    <Text className="text-sm font-medium text-blue-500 mt-1">
+                      좌우 반전
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={flipVertical}
+                    disabled={isEditing}
+                    className="flex-1 items-center justify-center py-4 bg-white border-2 border-blue-500 rounded-lg"
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="swap-vertical-outline" size={24} color="#3B82F6" />
+                    <Text className="text-sm font-medium text-blue-500 mt-1">
+                      상하 반전
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* 편집 완료/취소 버튼 */}
+                <View className="flex-row gap-3">
+                  <View className="flex-1">
+                    <Button
+                      title="취소"
+                      variant="outline"
+                      onPress={cancelEdit}
+                      disabled={isEditing}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Button
+                      title="완료"
+                      variant="primary"
+                      onPress={finishEdit}
+                      disabled={isEditing}
+                    />
+                  </View>
+                </View>
+              </>
+            ) : (
+              // 일반 모드 UI
+              <>
+                <Text className="text-sm text-gray-600 text-center mb-4">
+                  이미지를 확인하고 필요시 편집하세요
+                </Text>
+
+                <View className="gap-3">
+                  <Button
+                    title="편집하기"
+                    variant="outline"
+                    onPress={startEditMode}
+                    disabled={isLoading}
+                    icon={<Ionicons name="create-outline" size={20} color="#2563eb" />}
+                  />
+
+                  <View className="flex-row gap-3">
+                    <View className="flex-1">
+                      <Button
+                        title="다시 선택"
+                        variant="outline"
+                        onPress={handleRetake}
+                        disabled={isLoading}
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Button
+                        title="사용하기"
+                        variant="primary"
+                        onPress={handleUseImage}
+                        disabled={isLoading}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </>
+            )}
           </View>
         </View>
       ) : (

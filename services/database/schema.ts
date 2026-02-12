@@ -106,6 +106,41 @@ export const SCHEMA = {
       FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
     )
   `,
+
+  custom_fields: `
+    CREATE TABLE IF NOT EXISTS custom_fields (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      field_type TEXT NOT NULL CHECK(field_type IN ('text', 'number', 'date', 'select')),
+      options TEXT,
+      is_required INTEGER DEFAULT 0,
+      entity_type TEXT NOT NULL CHECK(entity_type IN ('receipt', 'document', 'both')),
+      display_order INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL
+    )
+  `,
+
+  receipt_custom_values: `
+    CREATE TABLE IF NOT EXISTS receipt_custom_values (
+      receipt_id TEXT NOT NULL,
+      field_id TEXT NOT NULL,
+      value TEXT,
+      PRIMARY KEY (receipt_id, field_id),
+      FOREIGN KEY (receipt_id) REFERENCES receipts(id) ON DELETE CASCADE,
+      FOREIGN KEY (field_id) REFERENCES custom_fields(id) ON DELETE CASCADE
+    )
+  `,
+
+  document_custom_values: `
+    CREATE TABLE IF NOT EXISTS document_custom_values (
+      document_id TEXT NOT NULL,
+      field_id TEXT NOT NULL,
+      value TEXT,
+      PRIMARY KEY (document_id, field_id),
+      FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+      FOREIGN KEY (field_id) REFERENCES custom_fields(id) ON DELETE CASCADE
+    )
+  `,
 };
 
 /**
@@ -170,6 +205,31 @@ export const INDEXES = {
   document_tags_tag: `
     CREATE INDEX IF NOT EXISTS idx_document_tags_tag
     ON document_tags(tag_id)
+  `,
+
+  custom_fields_entity: `
+    CREATE INDEX IF NOT EXISTS idx_custom_fields_entity
+    ON custom_fields(entity_type)
+  `,
+
+  receipt_custom_values_receipt: `
+    CREATE INDEX IF NOT EXISTS idx_receipt_custom_values_receipt
+    ON receipt_custom_values(receipt_id)
+  `,
+
+  receipt_custom_values_field: `
+    CREATE INDEX IF NOT EXISTS idx_receipt_custom_values_field
+    ON receipt_custom_values(field_id)
+  `,
+
+  document_custom_values_document: `
+    CREATE INDEX IF NOT EXISTS idx_document_custom_values_document
+    ON document_custom_values(document_id)
+  `,
+
+  document_custom_values_field: `
+    CREATE INDEX IF NOT EXISTS idx_document_custom_values_field
+    ON document_custom_values(field_id)
   `,
 };
 

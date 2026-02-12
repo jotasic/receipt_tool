@@ -41,6 +41,9 @@ export type {
   TagRow,
   ReceiptTagRow,
   DocumentTagRow,
+  CustomFieldRow,
+  ReceiptCustomValueRow,
+  DocumentCustomValueRow,
 } from './types';
 
 // Receipt service operations
@@ -121,6 +124,24 @@ export {
   getDocumentsByTag,
   setTagsForDocument,
 } from './tagService';
+
+// Custom field service operations
+export {
+  createCustomField,
+  getCustomFields,
+  getCustomFieldsByEntityType,
+  getCustomFieldById,
+  updateCustomField,
+  deleteCustomField,
+  setReceiptCustomValue,
+  getReceiptCustomValues,
+  deleteReceiptCustomValue,
+  setReceiptCustomValues,
+  setDocumentCustomValue,
+  getDocumentCustomValues,
+  deleteDocumentCustomValue,
+  setDocumentCustomValues,
+} from './customFieldService';
 
 // Database utility functions
 export {

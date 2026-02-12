@@ -7,7 +7,7 @@
 import * as SQLite from 'expo-sqlite';
 import { getDatabaseInstance } from './init';
 
-const CURRENT_VERSION = 3;
+const CURRENT_VERSION = 4;
 
 /**
  * Migration definition interface
@@ -271,6 +271,67 @@ const MIGRATIONS: Migration[] = [
       await db.execAsync('DROP TABLE IF EXISTS receipt_tags');
       await db.execAsync('DROP TABLE IF EXISTS tags');
       console.log('Dropped tags tables');
+    },
+  },
+
+  // Version 4: Add custom fields tables
+  {
+    version: 4,
+    up: async (db) => {
+      // Create custom_fields table
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS custom_fields (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          field_type TEXT NOT NULL CHECK(field_type IN ('text', 'number', 'date', 'select')),
+          options TEXT,
+          is_required INTEGER DEFAULT 0,
+          entity_type TEXT NOT NULL CHECK(entity_type IN ('receipt', 'document', 'both')),
+          display_order INTEGER DEFAULT 0,
+          created_at TEXT NOT NULL
+        )
+      `);
+      console.log('Created custom_fields table');
+
+      // Create receipt_custom_values table
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS receipt_custom_values (
+          receipt_id TEXT NOT NULL,
+          field_id TEXT NOT NULL,
+          value TEXT,
+          PRIMARY KEY (receipt_id, field_id),
+          FOREIGN KEY (receipt_id) REFERENCES receipts(id) ON DELETE CASCADE,
+          FOREIGN KEY (field_id) REFERENCES custom_fields(id) ON DELETE CASCADE
+        )
+      `);
+      console.log('Created receipt_custom_values table');
+
+      // Create document_custom_values table
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS document_custom_values (
+          document_id TEXT NOT NULL,
+          field_id TEXT NOT NULL,
+          value TEXT,
+          PRIMARY KEY (document_id, field_id),
+          FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+          FOREIGN KEY (field_id) REFERENCES custom_fields(id) ON DELETE CASCADE
+        )
+      `);
+      console.log('Created document_custom_values table');
+
+      // Create indexes for custom fields
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_custom_fields_entity ON custom_fields(entity_type)`);
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_receipt_custom_values_receipt ON receipt_custom_values(receipt_id)`);
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_receipt_custom_values_field ON receipt_custom_values(field_id)`);
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_document_custom_values_document ON document_custom_values(document_id)`);
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_document_custom_values_field ON document_custom_values(field_id)`);
+      console.log('Created indexes for custom fields');
+    },
+    down: async (db) => {
+      await db.execAsync('DROP TABLE IF EXISTS document_custom_values');
+      await db.execAsync('DROP TABLE IF EXISTS receipt_custom_values');
+      await db.execAsync('DROP TABLE IF EXISTS custom_fields');
+      console.log('Dropped custom fields tables');
     },
   },
 ];

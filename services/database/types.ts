@@ -129,3 +129,35 @@ export interface DocumentTagRow {
   document_id: string;
   tag_id: string;
 }
+
+/**
+ * Database row type for custom_fields table
+ */
+export interface CustomFieldRow {
+  id: string;
+  name: string;
+  field_type: 'text' | 'number' | 'date' | 'select';
+  options: string | null;
+  is_required: number;
+  entity_type: 'receipt' | 'document' | 'both';
+  display_order: number;
+  created_at: string;
+}
+
+/**
+ * Database row type for receipt_custom_values table
+ */
+export interface ReceiptCustomValueRow {
+  receipt_id: string;
+  field_id: string;
+  value: string | null;
+}
+
+/**
+ * Database row type for document_custom_values table
+ */
+export interface DocumentCustomValueRow {
+  document_id: string;
+  field_id: string;
+  value: string | null;
+}

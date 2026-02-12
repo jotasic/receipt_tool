@@ -159,27 +159,13 @@ export default function AddReceiptScreen() {
     }
   };
 
-  // 자르기 (자유 비율)
+  // 자르기 (향후 구현 예정)
   const cropImage = async () => {
-    if (!previewUri) return;
-
-    try {
-      setIsEditing(true);
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        setPreviewUri(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('Crop error:', error);
-      Alert.alert('오류', '이미지를 자를 수 없습니다.');
-    } finally {
-      setIsEditing(false);
-    }
+    Alert.alert(
+      '자르기 기능',
+      '자르기 기능은 촬영/선택 시 기본 편집 도구를 사용해주세요.\n\n회전 및 반전 기능으로 이미지를 조정할 수 있습니다.',
+      [{ text: '확인' }]
+    );
   };
 
   // 이미지 사용 확정
@@ -295,13 +281,16 @@ export default function AddReceiptScreen() {
 
                   <TouchableOpacity
                     onPress={cropImage}
-                    disabled={isEditing}
-                    className="flex-1 items-center justify-center py-4 bg-white border-2 border-blue-500 rounded-lg"
+                    disabled={true}
+                    className="flex-1 items-center justify-center py-4 bg-gray-100 border-2 border-gray-300 rounded-lg opacity-50"
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="crop-outline" size={24} color="#3B82F6" />
-                    <Text className="text-sm font-medium text-blue-500 mt-1">
+                    <Ionicons name="crop-outline" size={24} color="#9CA3AF" />
+                    <Text className="text-sm font-medium text-gray-400 mt-1">
                       자르기
+                    </Text>
+                    <Text className="text-xs text-gray-400 mt-0.5">
+                      (준비중)
                     </Text>
                   </TouchableOpacity>
                 </View>

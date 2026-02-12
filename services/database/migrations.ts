@@ -7,7 +7,7 @@
 import * as SQLite from 'expo-sqlite';
 import { getDatabaseInstance } from './init';
 
-const CURRENT_VERSION = 2;
+const CURRENT_VERSION = 3;
 
 /**
  * Migration definition interface
@@ -216,6 +216,61 @@ const MIGRATIONS: Migration[] = [
     down: async (db) => {
       // SQLite doesn't support DROP COLUMN, would need to recreate table
       throw new Error('Cannot rollback Version 2 migration');
+    },
+  },
+
+  // Version 3: Add tags and tag junction tables
+  {
+    version: 3,
+    up: async (db) => {
+      // Create tags table
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS tags (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL UNIQUE,
+          color TEXT DEFAULT '#6B7280',
+          created_at TEXT NOT NULL
+        )
+      `);
+      console.log('Created tags table');
+
+      // Create receipt_tags junction table
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS receipt_tags (
+          receipt_id TEXT NOT NULL,
+          tag_id TEXT NOT NULL,
+          PRIMARY KEY (receipt_id, tag_id),
+          FOREIGN KEY (receipt_id) REFERENCES receipts(id) ON DELETE CASCADE,
+          FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+        )
+      `);
+      console.log('Created receipt_tags table');
+
+      // Create document_tags junction table
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS document_tags (
+          document_id TEXT NOT NULL,
+          tag_id TEXT NOT NULL,
+          PRIMARY KEY (document_id, tag_id),
+          FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+          FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+        )
+      `);
+      console.log('Created document_tags table');
+
+      // Create indexes for tags
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name)`);
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_receipt_tags_receipt ON receipt_tags(receipt_id)`);
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_receipt_tags_tag ON receipt_tags(tag_id)`);
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_document_tags_document ON document_tags(document_id)`);
+      await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_document_tags_tag ON document_tags(tag_id)`);
+      console.log('Created indexes for tags');
+    },
+    down: async (db) => {
+      await db.execAsync('DROP TABLE IF EXISTS document_tags');
+      await db.execAsync('DROP TABLE IF EXISTS receipt_tags');
+      await db.execAsync('DROP TABLE IF EXISTS tags');
+      console.log('Dropped tags tables');
     },
   },
 ];

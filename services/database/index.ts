@@ -38,6 +38,9 @@ export type {
   ReceiptFullRow,
   ReportWithReceiptsRow,
   DocumentRow,
+  TagRow,
+  ReceiptTagRow,
+  DocumentTagRow,
 } from './types';
 
 // Receipt service operations
@@ -97,6 +100,27 @@ export {
   deleteDocument,
   searchDocuments,
 } from './documentService';
+
+// Tag service operations
+export {
+  createTag,
+  getTags,
+  getTagById,
+  getTagByName,
+  updateTag,
+  deleteTag,
+  searchTags,
+  addTagToReceipt,
+  removeTagFromReceipt,
+  getTagsForReceipt,
+  getReceiptsByTag,
+  setTagsForReceipt,
+  addTagToDocument,
+  removeTagFromDocument,
+  getTagsForDocument,
+  getDocumentsByTag,
+  setTagsForDocument,
+} from './tagService';
 
 // Database utility functions
 export {

@@ -77,6 +77,35 @@ export const SCHEMA = {
       updated_at TEXT NOT NULL
     )
   `,
+
+  tags: `
+    CREATE TABLE IF NOT EXISTS tags (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      color TEXT DEFAULT '#6B7280',
+      created_at TEXT NOT NULL
+    )
+  `,
+
+  receipt_tags: `
+    CREATE TABLE IF NOT EXISTS receipt_tags (
+      receipt_id TEXT NOT NULL,
+      tag_id TEXT NOT NULL,
+      PRIMARY KEY (receipt_id, tag_id),
+      FOREIGN KEY (receipt_id) REFERENCES receipts(id) ON DELETE CASCADE,
+      FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+    )
+  `,
+
+  document_tags: `
+    CREATE TABLE IF NOT EXISTS document_tags (
+      document_id TEXT NOT NULL,
+      tag_id TEXT NOT NULL,
+      PRIMARY KEY (document_id, tag_id),
+      FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+      FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+    )
+  `,
 };
 
 /**
@@ -116,6 +145,31 @@ export const INDEXES = {
   documents_created: `
     CREATE INDEX IF NOT EXISTS idx_documents_created
     ON documents(created_at DESC)
+  `,
+
+  tags_name: `
+    CREATE INDEX IF NOT EXISTS idx_tags_name
+    ON tags(name)
+  `,
+
+  receipt_tags_receipt: `
+    CREATE INDEX IF NOT EXISTS idx_receipt_tags_receipt
+    ON receipt_tags(receipt_id)
+  `,
+
+  receipt_tags_tag: `
+    CREATE INDEX IF NOT EXISTS idx_receipt_tags_tag
+    ON receipt_tags(tag_id)
+  `,
+
+  document_tags_document: `
+    CREATE INDEX IF NOT EXISTS idx_document_tags_document
+    ON document_tags(document_id)
+  `,
+
+  document_tags_tag: `
+    CREATE INDEX IF NOT EXISTS idx_document_tags_tag
+    ON document_tags(tag_id)
   `,
 };
 

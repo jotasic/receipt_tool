@@ -103,3 +103,29 @@ export interface DocumentRow {
   created_at: string;
   updated_at: string;
 }
+
+/**
+ * Database row type for tags table
+ */
+export interface TagRow {
+  id: string;
+  name: string;
+  color: string;
+  created_at: string;
+}
+
+/**
+ * Database row type for receipt_tags junction table
+ */
+export interface ReceiptTagRow {
+  receipt_id: string;
+  tag_id: string;
+}
+
+/**
+ * Database row type for document_tags junction table
+ */
+export interface DocumentTagRow {
+  document_id: string;
+  tag_id: string;
+}

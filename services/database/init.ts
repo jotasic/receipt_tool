@@ -99,9 +99,13 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     await db.execAsync(INDEXES.reports_status);
     await db.execAsync(INDEXES.reports_created);
 
-    // Document indexes
-    await db.execAsync(INDEXES.documents_created);
-    await db.execAsync(INDEXES.documents_type);
+    // Document indexes (legacy - may fail if columns don't exist)
+    try {
+      await db.execAsync(INDEXES.documents_created);
+      await db.execAsync(INDEXES.documents_type);
+    } catch (error) {
+      console.log('[Init] Skipping document indexes (columns may not exist in legacy DB)');
+    }
 
     // Report-Document indexes
     await db.execAsync(INDEXES.report_documents_report);

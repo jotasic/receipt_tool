@@ -37,6 +37,17 @@ export async function migrateDocumentTypes(
       return;
     }
 
+    // Check if document_type column exists
+    const columnInfo = await db.getAllAsync<{ name: string }>(
+      `PRAGMA table_info(documents)`
+    );
+    const hasDocumentTypeColumn = columnInfo.some(col => col.name === 'document_type');
+
+    if (!hasDocumentTypeColumn) {
+      console.log('[Migration] document_type column does not exist, skipping migration');
+      return;
+    }
+
     // Count documents with deprecated types
     const deprecatedTypesCount = await db.getFirstAsync<{ count: number }>(
       `SELECT COUNT(*) as count FROM documents

@@ -294,6 +294,17 @@ async function migrateDocuments(db: SQLite.SQLiteDatabase): Promise<number> {
 
   console.log(`[UnifyMigration] Found ${count} documents to migrate`);
 
+  // Check if document_type column exists
+  const columnInfo = await db.getAllAsync<{ name: string }>(
+    `PRAGMA table_info(documents)`
+  );
+  const hasDocumentTypeColumn = columnInfo.some(col => col.name === 'document_type');
+
+  // Build the usage_purpose expression based on column existence
+  const usagePurposeExpr = hasDocumentTypeColumn
+    ? `CASE document_type WHEN 'medical' THEN 'medical' ELSE 'other' END`
+    : `'other'`;
+
   // Migrate documents to items
   const result = await db.runAsync(
     `INSERT INTO items (
@@ -314,10 +325,7 @@ async function migrateDocuments(db: SQLite.SQLiteDatabase): Promise<number> {
       id,
       title,
       'proof_document' as classification,
-      CASE document_type
-        WHEN 'medical' THEN 'medical'
-        ELSE 'other'
-      END as usage_purpose,
+      ${usagePurposeExpr} as usage_purpose,
       NULL as amount,
       created_at as date,
       file_path,

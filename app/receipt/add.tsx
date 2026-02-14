@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
-import { ImageEditor } from 'expo-image-crop-editor';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/common';
 
@@ -15,7 +14,6 @@ export default function AddReceiptScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [cropEditorVisible, setCropEditorVisible] = useState(false);
 
   // 카메라 촬영
   const takePhoto = async () => {
@@ -161,16 +159,40 @@ export default function AddReceiptScreen() {
     }
   };
 
-  // 자르기 (expo-image-crop-editor 사용)
-  const cropImage = () => {
+  // 자르기 - 이미지 다시 선택 (편집 모드로)
+  const cropImage = async () => {
     if (!previewUri) return;
-    setCropEditorVisible(true);
-  };
 
-  // 자르기 완료 핸들러
-  const handleCropComplete = (result: { uri: string }) => {
-    setPreviewUri(result.uri);
-    setCropEditorVisible(false);
+    Alert.alert(
+      '자르기',
+      '갤러리에서 이미지를 다시 선택하면 자르기 도구가 활성화됩니다.',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '갤러리에서 선택',
+          onPress: async () => {
+            try {
+              setIsEditing(true);
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                allowsEditing: true,
+                quality: 0.8,
+              });
+
+              if (!result.canceled && result.assets[0]) {
+                setPreviewUri(result.assets[0].uri);
+                setOriginalUri(result.assets[0].uri);
+              }
+            } catch (error) {
+              console.error('Crop error:', error);
+              Alert.alert('오류', '이미지를 선택할 수 없습니다.');
+            } finally {
+              setIsEditing(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   // 이미지 사용 확정
@@ -445,18 +467,6 @@ export default function AddReceiptScreen() {
         </View>
       )}
 
-      {/* 이미지 자르기 편집기 */}
-      {previewUri && (
-        <ImageEditor
-          visible={cropEditorVisible}
-          onCloseEditor={() => setCropEditorVisible(false)}
-          imageUri={previewUri}
-          lockAspectRatio={false}
-          minimumCropDimensions={{ width: 100, height: 100 }}
-          onEditingComplete={handleCropComplete}
-          mode="crop-only"
-        />
-      )}
     </SafeAreaView>
   );
 }

@@ -1,11 +1,16 @@
 import type { Category } from '@/types';
 
+/**
+ * 기본 카테고리 목록
+ * ID는 /services/database/schema.ts의 DEFAULT_CATEGORIES와 일치해야 합니다.
+ */
 export const DEFAULT_CATEGORIES: Category[] = [
-  { id: '1', name: '교통비', icon: 'car', color: '#3B82F6' },
-  { id: '2', name: '식비', icon: 'restaurant', color: '#10B981' },
-  { id: '3', name: '숙박비', icon: 'bed', color: '#8B5CF6' },
-  { id: '4', name: '회의비', icon: 'people', color: '#F59E0B' },
-  { id: '5', name: '사무용품', icon: 'briefcase', color: '#6B7280' },
-  { id: '6', name: '통신비', icon: 'phone-portrait', color: '#06B6D4' },
-  { id: '7', name: '기타', icon: 'ellipsis-horizontal', color: '#9CA3AF' },
+  { id: 'food', name: '식비', icon: 'restaurant', color: '#FF6B6B' },
+  { id: 'transport', name: '교통비', icon: 'car', color: '#4ECDC4' },
+  { id: 'shopping', name: '쇼핑', icon: 'cart', color: '#95E1D3' },
+  { id: 'entertainment', name: '엔터테인먼트', icon: 'film', color: '#F38181' },
+  { id: 'utilities', name: '공과금', icon: 'home', color: '#AA96DA' },
+  { id: 'medical', name: '의료', icon: 'medkit', color: '#FCBAD3' },
+  { id: 'education', name: '교육', icon: 'book', color: '#A8D8EA' },
+  { id: 'other', name: '기타', icon: 'ellipsis-horizontal', color: '#C7CEEA' },
 ];

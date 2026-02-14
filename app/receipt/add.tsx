@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { View, Text, Image, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, Image, Alert, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import ImageCropPicker from 'react-native-image-crop-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/common';
 
@@ -159,40 +160,37 @@ export default function AddReceiptScreen() {
     }
   };
 
-  // 자르기 - 이미지 다시 선택 (편집 모드로)
+  // 자르기 - 네이티브 크롭 도구 사용
   const cropImage = async () => {
     if (!previewUri) return;
 
-    Alert.alert(
-      '자르기',
-      '갤러리에서 이미지를 다시 선택하면 자르기 도구가 활성화됩니다.',
-      [
-        { text: '취소', style: 'cancel' },
-        {
-          text: '갤러리에서 선택',
-          onPress: async () => {
-            try {
-              setIsEditing(true);
-              const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ['images'],
-                allowsEditing: true,
-                quality: 0.8,
-              });
+    try {
+      setIsEditing(true);
 
-              if (!result.canceled && result.assets[0]) {
-                setPreviewUri(result.assets[0].uri);
-                setOriginalUri(result.assets[0].uri);
-              }
-            } catch (error) {
-              console.error('Crop error:', error);
-              Alert.alert('오류', '이미지를 선택할 수 없습니다.');
-            } finally {
-              setIsEditing(false);
-            }
-          }
-        }
-      ]
-    );
+      // react-native-image-crop-picker로 자르기
+      const croppedImage = await ImageCropPicker.openCropper({
+        path: previewUri,
+        mediaType: 'photo',
+        freeStyleCropEnabled: true, // 자유 비율 자르기
+        cropperToolbarTitle: '영수증 자르기',
+        cropperChooseText: '완료',
+        cropperCancelText: '취소',
+        includeBase64: false,
+        compressImageQuality: 0.8,
+      });
+
+      if (croppedImage && croppedImage.path) {
+        setPreviewUri(croppedImage.path);
+      }
+    } catch (error: any) {
+      // 사용자가 취소한 경우 무시
+      if (error?.code !== 'E_PICKER_CANCELLED') {
+        console.error('Crop error:', error);
+        Alert.alert('오류', '이미지를 자를 수 없습니다.');
+      }
+    } finally {
+      setIsEditing(false);
+    }
   };
 
   // 이미지 사용 확정
@@ -221,7 +219,7 @@ export default function AddReceiptScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
       {/* Header */}
       <View className="flex-row items-center px-4 py-3 border-b border-gray-200">
         <TouchableOpacity
@@ -270,8 +268,12 @@ export default function AddReceiptScreen() {
         </View>
       ) : previewUri ? (
         // 이미지 미리보기 및 편집 화면
-        <View className="flex-1 p-4">
-          <View className="flex-1 bg-gray-100 rounded-lg overflow-hidden relative">
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ flexGrow: 1, padding: 16, paddingBottom: 32 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="flex-1 bg-gray-100 rounded-lg overflow-hidden relative" style={{ minHeight: 300 }}>
             <Image
               source={{ uri: previewUri }}
               className="flex-1"
@@ -284,7 +286,7 @@ export default function AddReceiptScreen() {
             )}
           </View>
 
-          <View className="mt-4">
+          <View className="mt-4 pb-4">
             {editMode ? (
               // 편집 모드 UI
               <>
@@ -403,10 +405,13 @@ export default function AddReceiptScreen() {
               </>
             )}
           </View>
-        </View>
+        </ScrollView>
       ) : (
         // 이미지 선택 화면
-        <View className="flex-1 items-center justify-center p-6">
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, paddingBottom: 48 }}
+          showsVerticalScrollIndicator={false}
+        >
           <View className="items-center mb-12">
             <View className="bg-blue-50 rounded-full p-6 mb-6">
               <Ionicons name="camera-outline" size={80} color="#2563eb" />
@@ -464,7 +469,7 @@ export default function AddReceiptScreen() {
               </Text>
             </View>
           </View>
-        </View>
+        </ScrollView>
       )}
 
     </SafeAreaView>

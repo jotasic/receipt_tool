@@ -1,4 +1,3 @@
-import TextRecognition from '@react-native-ml-kit/text-recognition';
 import type { OcrResult } from './types';
 import { parseReceiptText, type ParsedReceipt } from './parser';
 import { ocrLogger } from './logger';
@@ -9,16 +8,25 @@ import {
   createParsingError,
 } from './errorHandler';
 import { OcrErrorType } from './types';
+import {
+  getAvailableProvider,
+  mockExtractText,
+  mockExtractTextDetailed,
+  googleVisionExtractText,
+  googleVisionExtractTextDetailed,
+  type OcrProvider,
+} from './providers';
 
 /**
  * OCR 서비스
- * @react-native-ml-kit/text-recognition을 사용하여 이미지에서 텍스트 추출
  *
- * 특징:
- * - 오프라인 동작 (기기 내 ML Kit 모델 사용)
- * - 무료
- * - 한글 및 영어 지원
- * - 상세 에러 처리 및 로깅
+ * 프로바이더 우선순위:
+ * 1. ML Kit (Development Build에서만 작동)
+ * 2. Google Vision API (API 키 설정 시)
+ * 3. Mock (개발/테스트용)
+ *
+ * Expo Go에서는 ML Kit가 작동하지 않으므로
+ * Google Vision API 또는 Mock 모드로 자동 전환됩니다.
  */
 
 // 타입 및 유틸리티 export
@@ -27,6 +35,43 @@ export type { ParsedReceipt } from './parser';
 export { OcrErrorType } from './types';
 export { ocrLogger } from './logger';
 export * from './debug';
+
+// 현재 사용 중인 프로바이더
+let currentProvider: OcrProvider | null = null;
+
+/**
+ * 현재 사용 중인 OCR 프로바이더 반환
+ */
+export function getCurrentProvider(): OcrProvider {
+  if (!currentProvider) {
+    currentProvider = getAvailableProvider();
+    ocrLogger.info('OCR 프로바이더 선택됨', { provider: currentProvider });
+  }
+  return currentProvider;
+}
+
+/**
+ * ML Kit 사용 가능 여부 확인 (Development Build 전용)
+ */
+async function tryMlKit(imageUri: string): Promise<string | null> {
+  try {
+    // 동적 import로 ML Kit 사용 시도
+    const TextRecognitionModule = await import('@react-native-ml-kit/text-recognition');
+    const TextRecognition = TextRecognitionModule.default;
+    const { TextRecognitionScript } = TextRecognitionModule;
+
+    // 한글 인식을 위해 KOREAN 스크립트 사용
+    const result = await TextRecognition.recognize(imageUri, TextRecognitionScript.KOREAN);
+    currentProvider = 'mlkit';
+    return result.text;
+  } catch (error) {
+    // ML Kit 사용 불가 (Expo Go 등)
+    ocrLogger.debug('ML Kit 사용 불가, 폴백 프로바이더 사용', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+}
 
 /**
  * 이미지에서 텍스트 추출
@@ -43,22 +88,41 @@ export async function extractText(imageUri: string): Promise<string> {
       throw createImageAccessError(new Error('Image URI is empty'));
     }
 
-    // ML Kit Text Recognition 실행
     const startTime = Date.now();
-    const result = await TextRecognition.recognize(imageUri);
+    let text: string;
+
+    // 1. 먼저 ML Kit 시도 (Development Build에서만 작동)
+    const mlKitResult = await tryMlKit(imageUri);
+    if (mlKitResult !== null) {
+      text = mlKitResult;
+    } else {
+      // 2. 폴백 프로바이더 사용
+      const provider = getCurrentProvider();
+
+      if (provider === 'googleVision') {
+        text = await googleVisionExtractText(imageUri);
+      } else {
+        // Mock 프로바이더
+        text = await mockExtractText(imageUri);
+        ocrLogger.warn('Mock OCR 사용 중 - 실제 이미지 분석이 아닙니다', { imageUri });
+      }
+    }
+
     const duration = Date.now() - startTime;
 
     ocrLogger.info('OCR 텍스트 추출 완료', {
       imageUri,
-      textLength: result.text.length,
-      blockCount: result.blocks.length,
+      textLength: text.length,
       duration: `${duration}ms`,
+      provider: currentProvider,
     });
 
-    // 결과 검증
-    validateOcrResult(result.text, imageUri);
+    // 결과 검증 (Mock 모드에서는 검증 스킵)
+    if (currentProvider !== 'mock') {
+      validateOcrResult(text, imageUri);
+    }
 
-    return result.text;
+    return text;
   } catch (error) {
     const ocrError = handleOcrError(error, 'extractText');
     ocrLogger.error('OCR 텍스트 추출 실패', error instanceof Error ? error : undefined, {
@@ -84,21 +148,46 @@ export async function extractTextDetailed(imageUri: string): Promise<OcrResult> 
     }
 
     const startTime = Date.now();
-    const result = await TextRecognition.recognize(imageUri);
-    const duration = Date.now() - startTime;
+    let ocrResult: OcrResult;
 
-    const ocrResult: OcrResult = {
-      text: result.text,
-      blocks: result.blocks.map(block => ({
-        text: block.text,
-        lines: block.lines.map(line => ({
-          text: line.text,
-          elements: line.elements.map(element => ({
-            text: element.text,
+    // ML Kit 먼저 시도
+    try {
+      const TextRecognitionModule = await import('@react-native-ml-kit/text-recognition');
+      const TextRecognition = TextRecognitionModule.default;
+      const { TextRecognitionScript } = TextRecognitionModule;
+
+      // 한글 인식을 위해 KOREAN 스크립트 사용
+      const result = await TextRecognition.recognize(imageUri, TextRecognitionScript.KOREAN);
+      currentProvider = 'mlkit';
+
+      ocrResult = {
+        text: result.text,
+        blocks: result.blocks.map(block => ({
+          text: block.text,
+          frame: block.frame,
+          lines: block.lines.map(line => ({
+            text: line.text,
+            frame: line.frame,
+            elements: line.elements.map(element => ({
+              text: element.text,
+              frame: element.frame,
+            })),
           })),
         })),
-      })),
-    };
+      };
+    } catch {
+      // 폴백 프로바이더 사용
+      const provider = getCurrentProvider();
+
+      if (provider === 'googleVision') {
+        ocrResult = await googleVisionExtractTextDetailed(imageUri);
+      } else {
+        ocrResult = await mockExtractTextDetailed(imageUri);
+        ocrLogger.warn('Mock OCR 사용 중 - 실제 이미지 분석이 아닙니다', { imageUri });
+      }
+    }
+
+    const duration = Date.now() - startTime;
 
     ocrLogger.info('OCR 상세 추출 완료', {
       imageUri,
@@ -106,9 +195,12 @@ export async function extractTextDetailed(imageUri: string): Promise<OcrResult> 
       blockCount: ocrResult.blocks.length,
       lineCount: ocrResult.blocks.reduce((sum, b) => sum + b.lines.length, 0),
       duration: `${duration}ms`,
+      provider: currentProvider,
     });
 
-    validateOcrResult(ocrResult.text, imageUri);
+    if (currentProvider !== 'mock') {
+      validateOcrResult(ocrResult.text, imageUri);
+    }
 
     return ocrResult;
   } catch (error) {
@@ -133,11 +225,6 @@ export async function extractReceiptText(imageUri: string): Promise<string> {
   ocrLogger.info('영수증 텍스트 추출 시작', { imageUri });
 
   try {
-    // 현재는 기본 extractText와 동일
-    // 향후 영수증 전처리 로직 추가 가능:
-    // - 이미지 회전 보정
-    // - 대비 조정
-    // - 노이즈 제거
     const text = await extractText(imageUri);
 
     ocrLogger.info('영수증 텍스트 추출 완료', {
@@ -195,8 +282,8 @@ export async function extractReceiptData(imageUri: string): Promise<ParsedReceip
         confidence: parsedReceipt.confidence,
       });
 
-      // 필수 필드(금액, 날짜) 모두 없으면 파싱 에러
-      if (!parsedReceipt.amount && !parsedReceipt.date) {
+      // Mock 모드에서는 파싱 에러 던지지 않음
+      if (currentProvider !== 'mock' && !parsedReceipt.amount && !parsedReceipt.date) {
         throw createParsingError(missingFields);
       }
     }
@@ -208,6 +295,7 @@ export async function extractReceiptData(imageUri: string): Promise<ParsedReceip
       hasAmount: !!parsedReceipt.amount,
       confidence: parsedReceipt.confidence,
       warnings: parsedReceipt.warnings?.length || 0,
+      provider: currentProvider,
     });
 
     return parsedReceipt;

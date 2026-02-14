@@ -3,10 +3,25 @@
  */
 
 /**
+ * OCR 바운딩 박스 프레임
+ */
+export interface OcrFrame {
+  /** 너비 (픽셀) */
+  width: number;
+  /** 높이 (픽셀) */
+  height: number;
+  /** 상단 좌표 (픽셀) */
+  top: number;
+  /** 좌측 좌표 (픽셀) */
+  left: number;
+}
+
+/**
  * OCR 텍스트 요소 (단어/문자)
  */
 export interface OcrElement {
   text: string;
+  frame?: OcrFrame;
 }
 
 /**
@@ -15,6 +30,7 @@ export interface OcrElement {
 export interface OcrLine {
   text: string;
   elements: OcrElement[];
+  frame?: OcrFrame;
 }
 
 /**
@@ -23,6 +39,7 @@ export interface OcrLine {
 export interface OcrBlock {
   text: string;
   lines: OcrLine[];
+  frame?: OcrFrame;
 }
 
 /**

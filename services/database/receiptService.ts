@@ -48,47 +48,85 @@ function generateId(): string {
 }
 
 /**
+ * Validate category ID exists in database
+ * @param categoryId - Category ID to validate
+ * @returns Promise<string | null> - Valid category ID or null if not found
+ */
+async function validateCategoryId(categoryId: string | undefined | null): Promise<string | null> {
+  if (!categoryId) return null;
+
+  const db = await getDatabase();
+  const result = await db.getFirstAsync<{ id: string }>(
+    'SELECT id FROM categories WHERE id = ?',
+    [categoryId]
+  );
+
+  if (!result) {
+    console.warn(`Category '${categoryId}' not found in database, setting to null`);
+    return null;
+  }
+
+  return result.id;
+}
+
+/**
  * Create a new receipt
  *
  * @param receipt - Receipt data without id, createdAt, updatedAt
  * @returns Promise<Receipt> - The created receipt with generated fields
+ * @throws Error with [Database] prefix if database operation fails
  */
 export async function createReceipt(
   receipt: Omit<Receipt, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<Receipt> {
-  const db = await getDatabase();
-  const id = generateId();
-  const now = new Date().toISOString();
+  try {
+    const db = await getDatabase();
+    const id = generateId();
+    const now = new Date().toISOString();
 
-  await db.runAsync(
-    `
-    INSERT INTO receipts (id, title, store_name, amount, date, category_id, image_path, ocr_text, receipt_type, memo, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `,
-    [
-      id,
-      receipt.title,
-      receipt.storeName || null,
-      receipt.amount,
-      receipt.date,
-      receipt.category || null,
-      receipt.imagePath || null,
-      receipt.ocrText || null,
-      receipt.receiptType || 'corporate',
-      receipt.memo || null,
-      now,
-      now,
-    ]
-  );
+    // Validate category exists to avoid FK constraint error
+    const validCategoryId = await validateCategoryId(receipt.category);
 
-  // Create items if provided
-  if (receipt.items && receipt.items.length > 0) {
-    for (const item of receipt.items) {
-      await createReceiptItem(id, item);
+    await db.runAsync(
+      `
+      INSERT INTO receipts (id, title, store_name, amount, date, category_id, image_path, ocr_text, receipt_type, memo, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+      [
+        id,
+        receipt.title,
+        receipt.storeName || null,
+        receipt.amount,
+        receipt.date,
+        validCategoryId,
+        receipt.imagePath || null,
+        receipt.ocrText || null,
+        receipt.receiptType || 'corporate',
+        receipt.memo || null,
+        now,
+        now,
+      ]
+    );
+
+    // Create items if provided
+    if (receipt.items && receipt.items.length > 0) {
+      for (const item of receipt.items) {
+        await createReceiptItem(id, item);
+      }
     }
-  }
 
-  return { ...receipt, id, createdAt: now, updatedAt: now, receiptType: receipt.receiptType || 'corporate' };
+    return {
+      ...receipt,
+      id,
+      category: validCategoryId || '',
+      createdAt: now,
+      updatedAt: now,
+      receiptType: receipt.receiptType || 'corporate',
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    throw new Error(`[Database] Failed to create receipt: ${errorMessage}`);
+  }
 }
 
 /**
@@ -172,8 +210,9 @@ export async function updateReceipt(
     values.push(updates.date);
   }
   if (updates.category !== undefined) {
+    const validCategoryId = await validateCategoryId(updates.category);
     fields.push('category_id = ?');
-    values.push(updates.category);
+    values.push(validCategoryId);
   }
   if (updates.imagePath !== undefined) {
     fields.push('image_path = ?');

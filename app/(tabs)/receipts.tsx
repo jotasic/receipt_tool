@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, RefreshControl, SafeAreaView, ScrollView } from 'react-native';
 import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useReceiptStore } from '@/store';
 import { DEFAULT_CATEGORIES } from '@/constants';
@@ -111,9 +112,12 @@ export default function ReceiptsScreen() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadReceipts();
-  }, [loadReceipts]);
+  // Auto-reload receipts when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadReceipts();
+    }, [loadReceipts])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

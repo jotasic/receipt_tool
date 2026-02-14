@@ -36,8 +36,10 @@ async function saveReceiptImage(sourceUri: string): Promise<string> {
 
     return destUri;
   } catch (error) {
+    // Throw with specific error type for better error handling in UI
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     throw new Error(
-      `Failed to save receipt image: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `[FileSystem] Failed to save receipt image: ${errorMessage}`
     );
   }
 }
@@ -63,9 +65,11 @@ export async function saveReceipt(data: {
   memo?: string;
   receiptType?: ReceiptType;
 }): Promise<Receipt> {
+  let savedImagePath: string | null = null;
+
   try {
     // 1. Save image to file system
-    const savedImagePath = await saveReceiptImage(data.imageUri);
+    savedImagePath = await saveReceiptImage(data.imageUri);
 
     // 2. Save receipt to database
     const receipt = await createReceipt({
@@ -86,10 +90,26 @@ export async function saveReceipt(data: {
     return receipt;
   } catch (error) {
     // If database save fails after image save, try to clean up image
-    // Note: We don't throw here to avoid masking the original error
-    throw new Error(
-      `Failed to save receipt: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
+    if (savedImagePath && error instanceof Error && error.message.includes('database')) {
+      try {
+        await FileSystem.deleteAsync(savedImagePath, { idempotent: true });
+        console.log('Cleaned up image after database error:', savedImagePath);
+      } catch (cleanupError) {
+        console.error('Failed to cleanup image after error:', cleanupError);
+      }
+    }
+
+    // Re-throw the original error with proper categorization
+    if (error instanceof Error) {
+      // If error already has a category tag, re-throw as is
+      if (error.message.includes('[FileSystem]') || error.message.includes('[Database]')) {
+        throw error;
+      }
+      // Otherwise, tag it as database error
+      throw new Error(`[Database] Failed to save receipt: ${error.message}`);
+    }
+
+    throw new Error('[Unknown] Failed to save receipt: Unknown error');
   }
 }
 

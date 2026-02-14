@@ -4,10 +4,11 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { initDatabase } from '@/services/database';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -27,6 +28,25 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
+  const [dbInitialized, setDbInitialized] = useState(false);
+  const [dbError, setDbError] = useState<Error | null>(null);
+
+  // Initialize database on app start
+  useEffect(() => {
+    async function setupDatabase() {
+      try {
+        console.log('Initializing database...');
+        await initDatabase();
+        console.log('Database initialized successfully');
+        setDbInitialized(true);
+      } catch (err) {
+        console.error('Database initialization failed:', err);
+        setDbError(err instanceof Error ? err : new Error('Unknown database error'));
+      }
+    }
+
+    setupDatabase();
+  }, []);
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -34,12 +54,16 @@ export default function RootLayout() {
   }, [error]);
 
   useEffect(() => {
-    if (loaded) {
+    if (dbError) throw dbError;
+  }, [dbError]);
+
+  useEffect(() => {
+    if (loaded && dbInitialized) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [loaded, dbInitialized]);
 
-  if (!loaded) {
+  if (!loaded || !dbInitialized) {
     return null;
   }
 

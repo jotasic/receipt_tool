@@ -68,6 +68,14 @@ export interface ReportReceiptRow {
 }
 
 /**
+ * Database row type for report_documents junction table
+ */
+export interface ReportDocumentRow {
+  report_id: string;
+  document_id: string;
+}
+
+/**
  * Extended receipt row with category information
  */
 export interface ReceiptWithCategoryRow extends ReceiptRow {
@@ -99,6 +107,7 @@ export interface DocumentRow {
   description: string | null;
   file_path: string | null;
   file_type: string | null;
+  document_type: string | null;
   memo: string | null;
   created_at: string;
   updated_at: string;
@@ -160,4 +169,31 @@ export interface DocumentCustomValueRow {
   document_id: string;
   field_id: string;
   value: string | null;
+}
+
+/**
+ * Database row type for items table (unified model)
+ */
+export interface ItemRow {
+  id: string;
+  title: string;
+  classification: 'personal_card' | 'corporate_card' | 'proof_document';
+  usage_purpose: 'meal' | 'transportation' | 'medical' | 'other';
+  amount: number | null;
+  date: string;
+  store_name: string | null;
+  file_path: string | null;
+  file_type: string | null;
+  ocr_text: string | null;
+  memo: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Database row type for report_items junction table (unified model)
+ */
+export interface ReportItemRow {
+  report_id: string;
+  item_id: string;
 }

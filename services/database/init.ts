@@ -6,6 +6,8 @@
 
 import * as SQLite from 'expo-sqlite';
 import { SCHEMA, INDEXES, DEFAULT_CATEGORIES } from './schema';
+import { migrateDocumentTypes } from './migrations/migrateDocumentTypes';
+import { migrateToUnifiedModel, MigrationResult } from './migrations/unifyModels';
 
 export const DB_NAME = 'receipt_tool.db';
 
@@ -53,6 +55,9 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     await db.execAsync(SCHEMA.documents);
     console.log('Created documents table');
 
+    await db.execAsync(SCHEMA.report_documents);
+    console.log('Created report_documents table');
+
     // Tag system tables
     await db.execAsync(SCHEMA.tags);
     console.log('Created tags table');
@@ -73,6 +78,16 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     await db.execAsync(SCHEMA.document_custom_values);
     console.log('Created document_custom_values table');
 
+    // Unified model tables
+    await db.execAsync(SCHEMA.usage_purposes);
+    console.log('Created usage_purposes table');
+
+    await db.execAsync(SCHEMA.items);
+    console.log('Created items table');
+
+    await db.execAsync(SCHEMA.report_items);
+    console.log('Created report_items table');
+
     // Create indexes for performance optimization
     // Receipt indexes
     await db.execAsync(INDEXES.receipts_date);
@@ -86,6 +101,11 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
 
     // Document indexes
     await db.execAsync(INDEXES.documents_created);
+    await db.execAsync(INDEXES.documents_type);
+
+    // Report-Document indexes
+    await db.execAsync(INDEXES.report_documents_report);
+    await db.execAsync(INDEXES.report_documents_document);
 
     // Tag indexes
     await db.execAsync(INDEXES.tags_name);
@@ -101,10 +121,34 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     await db.execAsync(INDEXES.document_custom_values_document);
     await db.execAsync(INDEXES.document_custom_values_field);
 
+    // Unified items indexes
+    await db.execAsync(INDEXES.items_classification);
+    await db.execAsync(INDEXES.items_usage_purpose);
+    await db.execAsync(INDEXES.items_date);
+    await db.execAsync(INDEXES.report_items_report);
+    await db.execAsync(INDEXES.report_items_item);
+
     console.log('Created all indexes');
 
     // Seed default categories
     await seedDefaultCategories(db);
+
+    // Run data migrations
+    await migrateDocumentTypes(db);
+
+    // Run unified model migration
+    console.log('Starting unified model migration...');
+    const migrationResult = await migrateToUnifiedModel(db);
+
+    if (migrationResult.success) {
+      console.log('Unified model migration completed:', {
+        receipts: migrationResult.receiptsCount,
+        documents: migrationResult.documentsCount,
+        reportLinks: migrationResult.reportLinksCount,
+      });
+    } else {
+      console.error('Unified model migration failed:', migrationResult.errors);
+    }
 
     dbInstance = db;
     return db;
@@ -203,12 +247,18 @@ export async function resetDatabase(): Promise<SQLite.SQLiteDatabase> {
     await db.execAsync('DROP TABLE IF EXISTS receipt_tags');
     await db.execAsync('DROP TABLE IF EXISTS tags');
 
-    // Report relations
+    // Report relations (including unified model)
+    await db.execAsync('DROP TABLE IF EXISTS report_items');
+    await db.execAsync('DROP TABLE IF EXISTS report_documents');
     await db.execAsync('DROP TABLE IF EXISTS report_receipts');
     await db.execAsync('DROP TABLE IF EXISTS reports');
 
     // Receipt items
     await db.execAsync('DROP TABLE IF EXISTS receipt_items');
+
+    // Unified model tables
+    await db.execAsync('DROP TABLE IF EXISTS items');
+    await db.execAsync('DROP TABLE IF EXISTS usage_purposes');
 
     // Core tables
     await db.execAsync('DROP TABLE IF EXISTS receipts');

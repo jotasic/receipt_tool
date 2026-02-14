@@ -56,6 +56,16 @@ export const SCHEMA = {
     )
   `,
 
+  report_documents: `
+    CREATE TABLE IF NOT EXISTS report_documents (
+      report_id TEXT NOT NULL,
+      document_id TEXT NOT NULL,
+      PRIMARY KEY (report_id, document_id),
+      FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,
+      FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+    )
+  `,
+
   categories: `
     CREATE TABLE IF NOT EXISTS categories (
       id TEXT PRIMARY KEY,
@@ -72,6 +82,7 @@ export const SCHEMA = {
       description TEXT,
       file_path TEXT,
       file_type TEXT,
+      document_type TEXT DEFAULT 'other',
       memo TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
@@ -141,6 +152,57 @@ export const SCHEMA = {
       FOREIGN KEY (field_id) REFERENCES custom_fields(id) ON DELETE CASCADE
     )
   `,
+
+  // New unified items table with 2D classification
+  items: `
+    CREATE TABLE IF NOT EXISTS items (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+
+      -- 2D Classification
+      classification TEXT NOT NULL
+        CHECK(classification IN ('personal_card', 'corporate_card', 'proof_document')),
+      usage_purpose TEXT NOT NULL
+        CHECK(usage_purpose IN ('meal', 'transportation', 'medical', 'other')),
+
+      -- Financial (nullable for proof documents)
+      amount REAL,
+      date TEXT NOT NULL,
+      store_name TEXT,
+
+      -- File/Image
+      file_path TEXT,
+      file_type TEXT,
+      ocr_text TEXT,
+
+      -- Metadata
+      memo TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `,
+
+  usage_purposes: `
+    CREATE TABLE IF NOT EXISTS usage_purposes (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      name_en TEXT,
+      icon TEXT,
+      color TEXT,
+      is_active INTEGER DEFAULT 1,
+      display_order INTEGER DEFAULT 0
+    )
+  `,
+
+  report_items: `
+    CREATE TABLE IF NOT EXISTS report_items (
+      report_id TEXT NOT NULL,
+      item_id TEXT NOT NULL,
+      PRIMARY KEY (report_id, item_id),
+      FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,
+      FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
+    )
+  `,
 };
 
 /**
@@ -180,6 +242,21 @@ export const INDEXES = {
   documents_created: `
     CREATE INDEX IF NOT EXISTS idx_documents_created
     ON documents(created_at DESC)
+  `,
+
+  documents_type: `
+    CREATE INDEX IF NOT EXISTS idx_documents_type
+    ON documents(document_type)
+  `,
+
+  report_documents_report: `
+    CREATE INDEX IF NOT EXISTS idx_report_documents_report
+    ON report_documents(report_id)
+  `,
+
+  report_documents_document: `
+    CREATE INDEX IF NOT EXISTS idx_report_documents_document
+    ON report_documents(document_id)
   `,
 
   tags_name: `
@@ -231,6 +308,32 @@ export const INDEXES = {
     CREATE INDEX IF NOT EXISTS idx_document_custom_values_field
     ON document_custom_values(field_id)
   `,
+
+  // Indexes for new unified items table
+  items_classification: `
+    CREATE INDEX IF NOT EXISTS idx_items_classification
+    ON items(classification)
+  `,
+
+  items_usage_purpose: `
+    CREATE INDEX IF NOT EXISTS idx_items_usage_purpose
+    ON items(usage_purpose)
+  `,
+
+  items_date: `
+    CREATE INDEX IF NOT EXISTS idx_items_date
+    ON items(date DESC)
+  `,
+
+  report_items_report: `
+    CREATE INDEX IF NOT EXISTS idx_report_items_report
+    ON report_items(report_id)
+  `,
+
+  report_items_item: `
+    CREATE INDEX IF NOT EXISTS idx_report_items_item
+    ON report_items(item_id)
+  `,
 };
 
 /**
@@ -246,3 +349,48 @@ export const DEFAULT_CATEGORIES = [
   { id: 'education', name: '교육', icon: 'book', color: '#A8D8EA' },
   { id: 'other', name: '기타', icon: 'ellipsis-horizontal', color: '#C7CEEA' },
 ];
+
+/**
+ * Default usage purposes for the new items table
+ */
+export const DEFAULT_USAGE_PURPOSES = [
+  { id: 'meal', name: '식대', name_en: 'Meal', icon: 'restaurant', color: '#FF6B6B', display_order: 1 },
+  { id: 'transportation', name: '교통비', name_en: 'Transportation', icon: 'car', color: '#4ECDC4', display_order: 2 },
+  { id: 'medical', name: '의료비', name_en: 'Medical', icon: 'medical', color: '#FCBAD3', display_order: 3 },
+  { id: 'other', name: '기타', name_en: 'Other', icon: 'ellipsis-horizontal', color: '#C7CEEA', display_order: 4 },
+];
+
+/**
+ * TypeScript types for database rows
+ */
+
+export interface ItemRow {
+  id: string;
+  title: string;
+  classification: 'personal_card' | 'corporate_card' | 'proof_document';
+  usage_purpose: 'meal' | 'transportation' | 'medical' | 'other';
+  amount: number | null;
+  date: string;
+  store_name: string | null;
+  file_path: string | null;
+  file_type: string | null;
+  ocr_text: string | null;
+  memo: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UsagePurposeRow {
+  id: string;
+  name: string;
+  name_en: string | null;
+  icon: string | null;
+  color: string | null;
+  is_active: number;
+  display_order: number;
+}
+
+export interface ReportItemRow {
+  report_id: string;
+  item_id: string;
+}

@@ -19,13 +19,26 @@ export { getDatabase } from './getDatabase';
 // Schema definitions
 export { SCHEMA, INDEXES, DEFAULT_CATEGORIES } from './schema';
 
-// Database migrations
+// Database migrations (schema migrations)
 export {
   runMigrations,
   rollbackToVersion,
   checkMigrationsNeeded,
   getMigrationStatus,
 } from './migrations';
+
+// Data migrations
+export {
+  migrateDocumentTypes,
+  verifyDocumentTypeMigration,
+} from './migrations/migrateDocumentTypes';
+
+export {
+  migrateToUnifiedModel,
+  verifyUnifiedModelMigration,
+  getMigrationStatistics,
+  type MigrationResult,
+} from './migrations/unifyModels';
 
 // Database types
 export type {
@@ -34,6 +47,7 @@ export type {
   ReceiptItemRow,
   ReportRow,
   ReportReceiptRow,
+  ReportDocumentRow,
   ReceiptWithCategoryRow,
   ReceiptFullRow,
   ReportWithReceiptsRow,
@@ -44,6 +58,8 @@ export type {
   CustomFieldRow,
   ReceiptCustomValueRow,
   DocumentCustomValueRow,
+  ItemRow,
+  ReportItemRow,
 } from './types';
 
 // Receipt service operations
@@ -75,12 +91,25 @@ export {
   approveReport,
   rejectReport,
   revertReportToDraft,
+  // New unified item operations
+  linkItemToReport,
+  unlinkItemFromReport,
+  getReportItemIds,
+  getReportItems,
+  getReportsByItemId,
+  recalculateReportTotalFromItems,
+  // Legacy receipt operations (deprecated)
   linkReceiptToReport,
   unlinkReceiptFromReport,
   getReportReceiptIds,
   getReportsByReceiptId,
   recalculateReportTotal,
   getReportStatistics,
+  // Legacy document operations (deprecated)
+  linkDocumentToReport,
+  unlinkDocumentFromReport,
+  getReportDocumentIds,
+  getReportsByDocumentId,
 } from './reportService';
 
 // Category service operations
@@ -102,6 +131,7 @@ export {
   updateDocument,
   deleteDocument,
   searchDocuments,
+  getDocumentsByType,
 } from './documentService';
 
 // Tag service operations

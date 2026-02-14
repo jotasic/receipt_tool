@@ -5,23 +5,59 @@
  */
 
 import { getDatabase } from './getDatabase';
-import type { ReportRow, ReportReceiptRow } from './types';
+import type { ReportRow, ReportReceiptRow, ReportDocumentRow } from './types';
+import type { ReportItemRow, ItemRow } from './schema';
 import type { Report, ReportStatus } from '@/types';
+import type { Item } from '@/types/item';
+
+/**
+ * Convert database ItemRow to Item type
+ */
+function rowToItem(row: ItemRow): Item {
+  return {
+    id: row.id,
+    title: row.title,
+    classification: row.classification,
+    usagePurpose: row.usage_purpose,
+    amount: row.amount ?? undefined,
+    date: row.date,
+    storeName: row.store_name ?? undefined,
+    filePath: row.file_path ?? undefined,
+    fileType: row.file_type ?? undefined,
+    ocrText: row.ocr_text ?? undefined,
+    memo: row.memo ?? undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
 
 /**
  * Convert database row to Report type
  */
-function rowToReport(row: ReportRow, receiptIds: string[] = []): Report {
-  return {
+function rowToReport(
+  row: ReportRow,
+  receiptIds: string[] = [],
+  documentIds: string[] = [],
+  items?: Item[]
+): Report {
+  const report: Report = {
     id: row.id,
     title: row.title,
     receiptIds,
+    documentIds,
     totalAmount: row.total_amount,
     status: row.status,
     submittedAt: row.submitted_at || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+
+  // Add items if provided (new unified model)
+  if (items !== undefined) {
+    (report as any).items = items;
+  }
+
+  return report;
 }
 
 /**
@@ -68,6 +104,13 @@ export async function createReport(
     }
   }
 
+  // Link documents to report
+  if (report.documentIds && report.documentIds.length > 0) {
+    for (const documentId of report.documentIds) {
+      await linkDocumentToReport(id, documentId);
+    }
+  }
+
   return {
     ...report,
     id,
@@ -90,7 +133,8 @@ export async function getReports(): Promise<Report[]> {
   const reports: Report[] = [];
   for (const row of rows) {
     const receiptIds = await getReportReceiptIds(row.id);
-    reports.push(rowToReport(row, receiptIds));
+    const documentIds = await getReportDocumentIds(row.id);
+    reports.push(rowToReport(row, receiptIds, documentIds));
   }
 
   return reports;
@@ -114,7 +158,12 @@ export async function getReportById(id: string): Promise<Report | null> {
   }
 
   const receiptIds = await getReportReceiptIds(id);
-  return rowToReport(row, receiptIds);
+  const documentIds = await getReportDocumentIds(id);
+
+  // Get items (new unified model)
+  const items = await getReportItems(id);
+
+  return rowToReport(row, receiptIds, documentIds, items);
 }
 
 /**
@@ -180,6 +229,17 @@ export async function updateReport(
       await linkReceiptToReport(id, receiptId);
     }
   }
+
+  // Update document associations if provided
+  if (updates.documentIds !== undefined) {
+    // Remove all existing associations
+    await db.runAsync('DELETE FROM report_documents WHERE report_id = ?', [id]);
+
+    // Add new associations
+    for (const documentId of updates.documentIds) {
+      await linkDocumentToReport(id, documentId);
+    }
+  }
 }
 
 /**
@@ -211,7 +271,8 @@ export async function getReportsByStatus(status: ReportStatus): Promise<Report[]
   const reports: Report[] = [];
   for (const row of rows) {
     const receiptIds = await getReportReceiptIds(row.id);
-    reports.push(rowToReport(row, receiptIds));
+    const documentIds = await getReportDocumentIds(row.id);
+    reports.push(rowToReport(row, receiptIds, documentIds));
   }
 
   return reports;
@@ -268,12 +329,191 @@ export async function revertReportToDraft(id: string): Promise<void> {
 }
 
 // ============================================================================
-// Report-Receipt Association Operations
+// Report-Item Association Operations (Unified Model)
+// ============================================================================
+
+/**
+ * Link an item to a report
+ *
+ * @param reportId - Report ID
+ * @param itemId - Item ID
+ * @returns Promise<void>
+ * @throws Error with [Database] prefix if database operation fails
+ */
+export async function linkItemToReport(
+  reportId: string,
+  itemId: string
+): Promise<void> {
+  try {
+    const db = await getDatabase();
+
+    // Use INSERT OR IGNORE to avoid duplicate entries
+    await db.runAsync(
+      `
+      INSERT OR IGNORE INTO report_items (report_id, item_id)
+      VALUES (?, ?)
+    `,
+      [reportId, itemId]
+    );
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    throw new Error(`[Database] Failed to link item to report: ${errorMessage}`);
+  }
+}
+
+/**
+ * Unlink an item from a report
+ *
+ * @param reportId - Report ID
+ * @param itemId - Item ID
+ * @returns Promise<void>
+ * @throws Error with [Database] prefix if database operation fails
+ */
+export async function unlinkItemFromReport(
+  reportId: string,
+  itemId: string
+): Promise<void> {
+  try {
+    const db = await getDatabase();
+    await db.runAsync(
+      'DELETE FROM report_items WHERE report_id = ? AND item_id = ?',
+      [reportId, itemId]
+    );
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    throw new Error(`[Database] Failed to unlink item from report: ${errorMessage}`);
+  }
+}
+
+/**
+ * Get all item IDs linked to a report
+ *
+ * @param reportId - Report ID
+ * @returns Promise<string[]> - Array of item IDs
+ * @throws Error with [Database] prefix if database operation fails
+ */
+export async function getReportItemIds(reportId: string): Promise<string[]> {
+  try {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<ReportItemRow>(
+      'SELECT item_id FROM report_items WHERE report_id = ?',
+      [reportId]
+    );
+
+    return rows.map((row) => row.item_id);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    throw new Error(`[Database] Failed to get report item IDs: ${errorMessage}`);
+  }
+}
+
+/**
+ * Get all items linked to a report (with full Item data)
+ *
+ * @param reportId - Report ID
+ * @returns Promise<Item[]> - Array of items linked to the report
+ * @throws Error with [Database] prefix if database operation fails
+ */
+export async function getReportItems(reportId: string): Promise<Item[]> {
+  try {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<ItemRow>(
+      `
+      SELECT i.* FROM items i
+      INNER JOIN report_items ri ON i.id = ri.item_id
+      WHERE ri.report_id = ?
+      ORDER BY i.date DESC
+    `,
+      [reportId]
+    );
+
+    return rows.map(rowToItem);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    throw new Error(`[Database] Failed to get report items: ${errorMessage}`);
+  }
+}
+
+/**
+ * Get all reports that contain a specific item
+ *
+ * @param itemId - Item ID
+ * @returns Promise<Report[]> - Array of reports containing the item
+ * @throws Error with [Database] prefix if database operation fails
+ */
+export async function getReportsByItemId(itemId: string): Promise<Report[]> {
+  try {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<ReportRow>(
+      `
+      SELECT r.* FROM reports r
+      INNER JOIN report_items ri ON r.id = ri.report_id
+      WHERE ri.item_id = ?
+      ORDER BY r.created_at DESC
+    `,
+      [itemId]
+    );
+
+    const reports: Report[] = [];
+    for (const row of rows) {
+      const receiptIds = await getReportReceiptIds(row.id);
+      const documentIds = await getReportDocumentIds(row.id);
+      const items = await getReportItems(row.id);
+      reports.push(rowToReport(row, receiptIds, documentIds, items));
+    }
+
+    return reports;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    throw new Error(`[Database] Failed to get reports by item ID: ${errorMessage}`);
+  }
+}
+
+/**
+ * Calculate and update the total amount for a report based on linked items
+ *
+ * This replaces recalculateReportTotal for the unified model.
+ * Only counts items with amount values (excludes proof documents without amounts).
+ *
+ * @param reportId - Report ID
+ * @returns Promise<number> - Updated total amount
+ * @throws Error with [Database] prefix if database operation fails
+ */
+export async function recalculateReportTotalFromItems(reportId: string): Promise<number> {
+  try {
+    const db = await getDatabase();
+
+    // Sum all item amounts for this report
+    const result = await db.getFirstAsync<{ total: number | null }>(
+      `
+      SELECT SUM(i.amount) as total
+      FROM items i
+      INNER JOIN report_items ri ON i.id = ri.item_id
+      WHERE ri.report_id = ? AND i.amount IS NOT NULL
+    `,
+      [reportId]
+    );
+
+    const totalAmount = result?.total ?? 0;
+
+    // Update the report with the calculated total
+    await updateReport(reportId, { totalAmount });
+
+    return totalAmount;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    throw new Error(`[Database] Failed to recalculate report total from items: ${errorMessage}`);
+  }
+}
+
+// ============================================================================
+// Report-Receipt Association Operations (Legacy - Deprecated)
 // ============================================================================
 
 /**
  * Link a receipt to a report
  *
+ * @deprecated Use linkItemToReport instead. Will be removed in v2.0
  * @param reportId - Report ID
  * @param receiptId - Receipt ID
  * @returns Promise<void>
@@ -282,6 +522,7 @@ export async function linkReceiptToReport(
   reportId: string,
   receiptId: string
 ): Promise<void> {
+  console.warn('[DEPRECATED] linkReceiptToReport is deprecated. Use linkItemToReport instead.');
   const db = await getDatabase();
 
   // Use INSERT OR IGNORE to avoid duplicate entries
@@ -297,6 +538,7 @@ export async function linkReceiptToReport(
 /**
  * Unlink a receipt from a report
  *
+ * @deprecated Use unlinkItemFromReport instead. Will be removed in v2.0
  * @param reportId - Report ID
  * @param receiptId - Receipt ID
  * @returns Promise<void>
@@ -305,6 +547,7 @@ export async function unlinkReceiptFromReport(
   reportId: string,
   receiptId: string
 ): Promise<void> {
+  console.warn('[DEPRECATED] unlinkReceiptFromReport is deprecated. Use unlinkItemFromReport instead.');
   const db = await getDatabase();
   await db.runAsync(
     'DELETE FROM report_receipts WHERE report_id = ? AND receipt_id = ?',
@@ -315,10 +558,12 @@ export async function unlinkReceiptFromReport(
 /**
  * Get all receipt IDs associated with a report
  *
+ * @deprecated Use getReportItemIds instead. Will be removed in v2.0
  * @param reportId - Report ID
  * @returns Promise<string[]> - Array of receipt IDs
  */
 export async function getReportReceiptIds(reportId: string): Promise<string[]> {
+  console.warn('[DEPRECATED] getReportReceiptIds is deprecated. Use getReportItemIds instead.');
   const db = await getDatabase();
   const rows = await db.getAllAsync<ReportReceiptRow>(
     'SELECT receipt_id FROM report_receipts WHERE report_id = ?',
@@ -331,10 +576,12 @@ export async function getReportReceiptIds(reportId: string): Promise<string[]> {
 /**
  * Get all reports that contain a specific receipt
  *
+ * @deprecated Use getReportsByItemId instead. Will be removed in v2.0
  * @param receiptId - Receipt ID
  * @returns Promise<Report[]> - Array of reports containing the receipt
  */
 export async function getReportsByReceiptId(receiptId: string): Promise<Report[]> {
+  console.warn('[DEPRECATED] getReportsByReceiptId is deprecated. Use getReportsByItemId instead.');
   const db = await getDatabase();
   const rows = await db.getAllAsync<ReportRow>(
     `
@@ -349,7 +596,9 @@ export async function getReportsByReceiptId(receiptId: string): Promise<Report[]
   const reports: Report[] = [];
   for (const row of rows) {
     const receiptIds = await getReportReceiptIds(row.id);
-    reports.push(rowToReport(row, receiptIds));
+    const documentIds = await getReportDocumentIds(row.id);
+    const items = await getReportItems(row.id);
+    reports.push(rowToReport(row, receiptIds, documentIds, items));
   }
 
   return reports;
@@ -358,10 +607,12 @@ export async function getReportsByReceiptId(receiptId: string): Promise<Report[]
 /**
  * Calculate and update the total amount for a report based on linked receipts
  *
+ * @deprecated Use recalculateReportTotalFromItems instead. Will be removed in v2.0
  * @param reportId - Report ID
  * @returns Promise<number> - Updated total amount
  */
 export async function recalculateReportTotal(reportId: string): Promise<number> {
+  console.warn('[DEPRECATED] recalculateReportTotal is deprecated. Use recalculateReportTotalFromItems instead.');
   const db = await getDatabase();
 
   // Sum all receipt amounts for this report
@@ -414,4 +665,102 @@ export async function getReportStatistics(): Promise<{
   `);
 
   return result || { total: 0, draft: 0, submitted: 0, approved: 0, rejected: 0 };
+}
+
+// ============================================================================
+// Report-Document Association Operations (Legacy - Deprecated)
+// ============================================================================
+
+/**
+ * Link a document to a report
+ *
+ * @deprecated Use linkItemToReport instead. Will be removed in v2.0
+ * @param reportId - Report ID
+ * @param documentId - Document ID
+ * @returns Promise<void>
+ */
+export async function linkDocumentToReport(
+  reportId: string,
+  documentId: string
+): Promise<void> {
+  console.warn('[DEPRECATED] linkDocumentToReport is deprecated. Use linkItemToReport instead.');
+  const db = await getDatabase();
+
+  // Use INSERT OR IGNORE to avoid duplicate entries
+  await db.runAsync(
+    `
+    INSERT OR IGNORE INTO report_documents (report_id, document_id)
+    VALUES (?, ?)
+  `,
+    [reportId, documentId]
+  );
+}
+
+/**
+ * Unlink a document from a report
+ *
+ * @deprecated Use unlinkItemFromReport instead. Will be removed in v2.0
+ * @param reportId - Report ID
+ * @param documentId - Document ID
+ * @returns Promise<void>
+ */
+export async function unlinkDocumentFromReport(
+  reportId: string,
+  documentId: string
+): Promise<void> {
+  console.warn('[DEPRECATED] unlinkDocumentFromReport is deprecated. Use unlinkItemFromReport instead.');
+  const db = await getDatabase();
+  await db.runAsync(
+    'DELETE FROM report_documents WHERE report_id = ? AND document_id = ?',
+    [reportId, documentId]
+  );
+}
+
+/**
+ * Get all document IDs associated with a report
+ *
+ * @deprecated Use getReportItemIds instead. Will be removed in v2.0
+ * @param reportId - Report ID
+ * @returns Promise<string[]> - Array of document IDs
+ */
+export async function getReportDocumentIds(reportId: string): Promise<string[]> {
+  console.warn('[DEPRECATED] getReportDocumentIds is deprecated. Use getReportItemIds instead.');
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<ReportDocumentRow>(
+    'SELECT document_id FROM report_documents WHERE report_id = ?',
+    [reportId]
+  );
+
+  return rows.map((row) => row.document_id);
+}
+
+/**
+ * Get all reports that contain a specific document
+ *
+ * @deprecated Use getReportsByItemId instead. Will be removed in v2.0
+ * @param documentId - Document ID
+ * @returns Promise<Report[]> - Array of reports containing the document
+ */
+export async function getReportsByDocumentId(documentId: string): Promise<Report[]> {
+  console.warn('[DEPRECATED] getReportsByDocumentId is deprecated. Use getReportsByItemId instead.');
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<ReportRow>(
+    `
+    SELECT r.* FROM reports r
+    INNER JOIN report_documents rd ON r.id = rd.report_id
+    WHERE rd.document_id = ?
+    ORDER BY r.created_at DESC
+  `,
+    [documentId]
+  );
+
+  const reports: Report[] = [];
+  for (const row of rows) {
+    const receiptIds = await getReportReceiptIds(row.id);
+    const documentIds = await getReportDocumentIds(row.id);
+    const items = await getReportItems(row.id);
+    reports.push(rowToReport(row, receiptIds, documentIds, items));
+  }
+
+  return reports;
 }

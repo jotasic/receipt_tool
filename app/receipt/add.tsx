@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { ImageEditor } from 'expo-image-crop-editor';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/common';
 
@@ -14,6 +15,7 @@ export default function AddReceiptScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [cropEditorVisible, setCropEditorVisible] = useState(false);
 
   // 카메라 촬영
   const takePhoto = async () => {
@@ -159,13 +161,16 @@ export default function AddReceiptScreen() {
     }
   };
 
-  // 자르기 (향후 구현 예정)
-  const cropImage = async () => {
-    Alert.alert(
-      '자르기 기능',
-      '자르기 기능은 촬영/선택 시 기본 편집 도구를 사용해주세요.\n\n회전 및 반전 기능으로 이미지를 조정할 수 있습니다.',
-      [{ text: '확인' }]
-    );
+  // 자르기 (expo-image-crop-editor 사용)
+  const cropImage = () => {
+    if (!previewUri) return;
+    setCropEditorVisible(true);
+  };
+
+  // 자르기 완료 핸들러
+  const handleCropComplete = (result: { uri: string }) => {
+    setPreviewUri(result.uri);
+    setCropEditorVisible(false);
   };
 
   // 이미지 사용 확정
@@ -281,16 +286,13 @@ export default function AddReceiptScreen() {
 
                   <TouchableOpacity
                     onPress={cropImage}
-                    disabled={true}
-                    className="flex-1 items-center justify-center py-4 bg-gray-100 border-2 border-gray-300 rounded-lg opacity-50"
+                    disabled={isEditing}
+                    className="flex-1 items-center justify-center py-4 bg-white border-2 border-blue-500 rounded-lg"
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="crop-outline" size={24} color="#9CA3AF" />
-                    <Text className="text-sm font-medium text-gray-400 mt-1">
+                    <Ionicons name="crop-outline" size={24} color="#3B82F6" />
+                    <Text className="text-sm font-medium text-blue-500 mt-1">
                       자르기
-                    </Text>
-                    <Text className="text-xs text-gray-400 mt-0.5">
-                      (준비중)
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -441,6 +443,19 @@ export default function AddReceiptScreen() {
             </View>
           </View>
         </View>
+      )}
+
+      {/* 이미지 자르기 편집기 */}
+      {previewUri && (
+        <ImageEditor
+          visible={cropEditorVisible}
+          onCloseEditor={() => setCropEditorVisible(false)}
+          imageUri={previewUri}
+          lockAspectRatio={false}
+          minimumCropDimensions={{ width: 100, height: 100 }}
+          onEditingComplete={handleCropComplete}
+          mode="crop-only"
+        />
       )}
     </SafeAreaView>
   );

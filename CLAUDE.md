@@ -140,7 +140,7 @@ npx tsc --noEmit
 
 {본문 (선택)}
 
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ### 타입
@@ -168,5 +168,5 @@ feat(알림): 푸시 알림 기능 추가
 - 리포트 제출 시 알림 발송
 - 알림 설정 화면 추가
 
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+Co-Authored-By: Claude <noreply@anthropic.com>
 ```

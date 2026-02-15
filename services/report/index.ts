@@ -28,6 +28,7 @@ export async function createReportWithReceipts(data: {
   const report = await dbCreateReport({
     title: data.title,
     receiptIds: data.receiptIds,
+    documentIds: [],
     totalAmount: 0,
     status: 'draft',
   });

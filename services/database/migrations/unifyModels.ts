@@ -257,8 +257,6 @@ async function migrateReceipts(db: SQLite.SQLiteDatabase): Promise<number> {
       END as classification,
       CASE category_id
         WHEN 'food' THEN 'meal'
-        WHEN 'transport' THEN 'transportation'
-        WHEN 'medical' THEN 'medical'
         ELSE 'other'
       END as usage_purpose,
       amount,
@@ -300,10 +298,8 @@ async function migrateDocuments(db: SQLite.SQLiteDatabase): Promise<number> {
   );
   const hasDocumentTypeColumn = columnInfo.some(col => col.name === 'document_type');
 
-  // Build the usage_purpose expression based on column existence
-  const usagePurposeExpr = hasDocumentTypeColumn
-    ? `CASE document_type WHEN 'medical' THEN 'medical' ELSE 'other' END`
-    : `'other'`;
+  // All documents become 'other' usage purpose
+  const usagePurposeExpr = `'other'`;
 
   // Migrate documents to items
   const result = await db.runAsync(
@@ -485,7 +481,7 @@ export async function verifyUnifiedModelMigration(
     // Check for invalid usage purposes
     const invalidPurposes = await db.getFirstAsync<{ count: number }>(
       `SELECT COUNT(*) as count FROM items
-       WHERE usage_purpose NOT IN ('meal', 'transportation', 'medical', 'other')`
+       WHERE usage_purpose NOT IN ('meal', 'other')`
     );
 
     if (invalidPurposes && invalidPurposes.count > 0) {

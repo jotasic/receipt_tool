@@ -6,7 +6,7 @@
 
 import { getDatabase } from './getDatabase';
 import type { DocumentRow } from './types';
-import type { Document, CreateDocumentInput, UpdateDocumentInput } from '@/types';
+import type { Document, CreateDocumentInput, UpdateDocumentInput, DocumentType } from '@/types';
 
 /**
  * Convert database row to Document type
@@ -18,6 +18,7 @@ function rowToDocument(row: DocumentRow): Document {
     description: row.description || undefined,
     filePath: row.file_path || undefined,
     fileType: row.file_type || undefined,
+    documentType: (row.document_type as DocumentType) || undefined,
     memo: row.memo || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -44,8 +45,8 @@ export async function createDocument(input: CreateDocumentInput): Promise<Docume
 
   await db.runAsync(
     `
-    INSERT INTO documents (id, title, description, file_path, file_type, memo, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO documents (id, title, description, file_path, file_type, document_type, memo, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `,
     [
       id,
@@ -53,6 +54,7 @@ export async function createDocument(input: CreateDocumentInput): Promise<Docume
       input.description || null,
       input.filePath || null,
       input.fileType || null,
+      input.documentType || 'other',
       input.memo || null,
       now,
       now,
@@ -65,6 +67,7 @@ export async function createDocument(input: CreateDocumentInput): Promise<Docume
     description: input.description,
     filePath: input.filePath,
     fileType: input.fileType,
+    documentType: input.documentType,
     memo: input.memo,
     createdAt: now,
     updatedAt: now,
@@ -138,6 +141,10 @@ export async function updateDocument(
     fields.push('file_type = ?');
     values.push(updates.fileType);
   }
+  if (updates.documentType !== undefined) {
+    fields.push('document_type = ?');
+    values.push(updates.documentType);
+  }
   if (updates.memo !== undefined) {
     fields.push('memo = ?');
     values.push(updates.memo);
@@ -179,6 +186,22 @@ export async function searchDocuments(query: string): Promise<Document[]> {
   const rows = await db.getAllAsync<DocumentRow>(
     'SELECT * FROM documents WHERE title LIKE ? OR description LIKE ? ORDER BY created_at DESC',
     [searchPattern, searchPattern]
+  );
+
+  return rows.map(rowToDocument);
+}
+
+/**
+ * Get documents by document type
+ *
+ * @param documentType - Document type to filter by
+ * @returns Promise<Document[]> - Array of documents of the specified type
+ */
+export async function getDocumentsByType(documentType: DocumentType): Promise<Document[]> {
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<DocumentRow>(
+    'SELECT * FROM documents WHERE document_type = ? ORDER BY created_at DESC',
+    [documentType]
   );
 
   return rows.map(rowToDocument);

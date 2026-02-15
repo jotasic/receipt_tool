@@ -95,6 +95,7 @@ export async function example2_CreateMonthlyReport() {
   const report = await createReport({
     title: 'February 2024 Expenses',
     receiptIds: [receipt1.id, receipt2.id, receipt3.id],
+    documentIds: [],
     totalAmount: 0, // Will be recalculated
     status: 'draft',
   });
@@ -172,6 +173,7 @@ export async function example5_CompleteWorkflow() {
   const report = await createReport({
     title: 'Business Trip - February 2024',
     receiptIds: receipts.map((r) => r.id),
+    documentIds: [],
     totalAmount: 0,
     status: 'draft',
   });

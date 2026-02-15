@@ -178,7 +178,7 @@ export interface ItemRow {
   id: string;
   title: string;
   classification: 'personal_card' | 'corporate_card' | 'proof_document';
-  usage_purpose: 'meal' | 'transportation' | 'medical' | 'other';
+  usage_purpose: string;  // Dynamic from usage_purposes table
   amount: number | null;
   date: string;
   store_name: string | null;

@@ -31,8 +31,6 @@ const USAGE_PURPOSE_INFO: Record<
   { name: string; icon: keyof typeof Ionicons.glyphMap; color: string }
 > = {
   meal: { name: '식대', icon: 'restaurant', color: '#F59E0B' },
-  transportation: { name: '교통비', icon: 'car', color: '#10B981' },
-  medical: { name: '의료비', icon: 'medical', color: '#EC4899' },
   other: { name: '기타', icon: 'ellipsis-horizontal', color: '#6B7280' },
 };
 

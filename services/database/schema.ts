@@ -162,8 +162,7 @@ export const SCHEMA = {
       -- 2D Classification
       classification TEXT NOT NULL
         CHECK(classification IN ('personal_card', 'corporate_card', 'proof_document')),
-      usage_purpose TEXT NOT NULL
-        CHECK(usage_purpose IN ('meal', 'transportation', 'medical', 'other')),
+      usage_purpose TEXT NOT NULL,
 
       -- Financial (nullable for proof documents)
       amount REAL,
@@ -355,9 +354,7 @@ export const DEFAULT_CATEGORIES = [
  */
 export const DEFAULT_USAGE_PURPOSES = [
   { id: 'meal', name: '식대', name_en: 'Meal', icon: 'restaurant', color: '#FF6B6B', display_order: 1 },
-  { id: 'transportation', name: '교통비', name_en: 'Transportation', icon: 'car', color: '#4ECDC4', display_order: 2 },
-  { id: 'medical', name: '의료비', name_en: 'Medical', icon: 'medical', color: '#FCBAD3', display_order: 3 },
-  { id: 'other', name: '기타', name_en: 'Other', icon: 'ellipsis-horizontal', color: '#C7CEEA', display_order: 4 },
+  { id: 'other', name: '기타', name_en: 'Other', icon: 'ellipsis-horizontal', color: '#C7CEEA', display_order: 2 },
 ];
 
 /**
@@ -368,7 +365,7 @@ export interface ItemRow {
   id: string;
   title: string;
   classification: 'personal_card' | 'corporate_card' | 'proof_document';
-  usage_purpose: 'meal' | 'transportation' | 'medical' | 'other';
+  usage_purpose: string;  // Dynamic from usage_purposes table
   amount: number | null;
   date: string;
   store_name: string | null;

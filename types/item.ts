@@ -29,12 +29,10 @@ export type ItemClassification =
  *
  * Represents the purpose/category of the expense.
  * Used for reporting, filtering, and categorization across all item types.
+ *
+ * Note: This is stored in the usage_purposes table and is user-extensible.
  */
-export type UsagePurpose =
-  | 'meal'             // 식대
-  | 'transportation'   // 교통비
-  | 'medical'          // 의료비
-  | 'other';           // 기타
+export type UsagePurpose = string;
 
 /**
  * Item - Unified expense document model

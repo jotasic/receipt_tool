@@ -13,28 +13,12 @@ export const USAGE_PURPOSES: UsagePurposeConfig[] = [
     displayOrder: 1
   },
   {
-    id: 'transportation',
-    name: '교통비',
-    nameEn: 'Transportation',
-    icon: 'car',
-    color: '#4ECDC4',
-    displayOrder: 2
-  },
-  {
-    id: 'medical',
-    name: '의료비',
-    nameEn: 'Medical',
-    icon: 'medical',
-    color: '#FCBAD3',
-    displayOrder: 3
-  },
-  {
     id: 'other',
     name: '기타',
     nameEn: 'Other',
     icon: 'ellipsis-horizontal',
     color: '#C7CEEA',
-    displayOrder: 4
+    displayOrder: 2
   },
 ];
 

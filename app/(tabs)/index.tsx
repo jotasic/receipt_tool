@@ -5,8 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Card } from '@/components/common/Card';
 
 export default function HomeScreen() {
-  const handleAddReceipt = () => {
-    router.push('/receipt/add');
+  const handleAddItem = () => {
+    router.push('/item/add' as any);
   };
 
   return (
@@ -15,7 +15,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View className="px-6 pt-4 pb-6">
           <Text className="text-3xl font-bold text-gray-900">
-            영수증 관리
+            증빙 관리
           </Text>
         </View>
 
@@ -35,19 +35,19 @@ export default function HomeScreen() {
             </View>
 
             <View className="flex-row items-center">
-              <Ionicons name="receipt-outline" size={16} color="#6b7280" />
+              <Ionicons name="list-outline" size={16} color="#6b7280" />
               <Text className="text-gray-600 text-sm ml-2">
-                영수증 0건
+                증빙 0건
               </Text>
             </View>
           </Card>
         </View>
 
-        {/* Recent Receipts Section */}
+        {/* Recent Items Section */}
         <View className="px-6 pb-6">
           <View className="flex-row items-center justify-between mb-4">
             <Text className="text-xl font-bold text-gray-900">
-              최근 영수증
+              최근 증빙
             </Text>
           </View>
 
@@ -55,13 +55,13 @@ export default function HomeScreen() {
           <Card>
             <View className="items-center py-8">
               <View className="bg-gray-100 rounded-full p-4 mb-4">
-                <Ionicons name="receipt-outline" size={48} color="#9ca3af" />
+                <Ionicons name="list-outline" size={48} color="#9ca3af" />
               </View>
               <Text className="text-gray-500 text-base text-center">
-                아직 등록된 영수증이 없습니다
+                아직 등록된 증빙이 없습니다
               </Text>
               <Text className="text-gray-400 text-sm text-center mt-2">
-                하단의 + 버튼을 눌러 영수증을 추가해보세요
+                하단의 + 버튼을 눌러 증빙을 추가해보세요
               </Text>
             </View>
           </Card>
@@ -70,7 +70,7 @@ export default function HomeScreen() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        onPress={handleAddReceipt}
+        onPress={handleAddItem}
         className="absolute bottom-6 right-6 bg-blue-600 rounded-full w-16 h-16 items-center justify-center active:bg-blue-700"
         style={{
           shadowColor: '#2563eb',
@@ -83,7 +83,7 @@ export default function HomeScreen() {
           elevation: 8,
         }}
         activeOpacity={0.8}
-        accessibilityLabel="영수증 추가"
+        accessibilityLabel="증빙 추가"
         accessibilityRole="button"
       >
         <Ionicons name="add" size={32} color="#ffffff" />

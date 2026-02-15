@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, RefreshControl, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -131,7 +132,7 @@ export default function ReceiptsScreen() {
     : receipts.filter(r => r.category === activeFilter);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'left', 'right']}>
       {/* 헤더 */}
       <View className="px-4 py-3 bg-white border-b border-gray-200">
         <Text className="text-2xl font-bold text-gray-900">영수증</Text>

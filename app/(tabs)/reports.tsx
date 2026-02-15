@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/common/Button';
@@ -92,7 +93,7 @@ export default function ReportsScreen() {
   }, [loadReports]);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'left', 'right']}>
       {/* Header */}
       <View className="flex-row justify-between items-center px-4 py-3 bg-white border-b border-gray-200">
         <Text className="text-2xl font-bold text-gray-900">리포트</Text>

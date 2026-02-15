@@ -103,6 +103,7 @@ describe('Database Services', () => {
       const report = await createReport({
         title: 'Test Report',
         receiptIds: [testReceiptId],
+        documentIds: [],
         totalAmount: 200,
         status: 'draft',
       });

@@ -1,7 +1,7 @@
 /**
- * Shared usage purpose type
+ * Shared usage purpose type (user-extensible via usage_purposes table)
  */
-export type UsagePurpose = 'meal' | 'transportation' | 'medical' | 'other';
+export type UsagePurpose = string;
 
 /**
  * Usage purpose display configuration

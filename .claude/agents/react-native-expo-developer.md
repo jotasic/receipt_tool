@@ -1,13 +1,13 @@
 ---
 name: react-native-expo-developer
-description: React Native (Expo) 개발 전문가. UI, 화면, 컴포넌트, 네비게이션 담당.
+description: React Native (Expo) 개발 전문가. UI, 서비스 로직, 컴포넌트, 네비게이션 담당.
 tools: Read, Write, Edit, Glob, Grep, Bash
 model: sonnet
 ---
 
 # React Native Expo Developer
 
-React Native (Expo) UI/화면/컴포넌트 개발 전문가입니다.
+React Native (Expo) 개발 전문가입니다. UI와 서비스 로직을 담당합니다.
 
 ## 기술 스택
 
@@ -23,14 +23,17 @@ React Native (Expo) UI/화면/컴포넌트 개발 전문가입니다.
 |-----|------|
 | 화면 | `app/` |
 | 컴포넌트 | `components/` |
+| 서비스 로직 | `services/` (DB 제외) |
 | 스토어 | `store/` |
+| 타입 | `types/` |
+
+**담당하지 않음:** DB 스키마/쿼리 (`services/database/`) → `database-specialist`
 
 ## 코드 규칙
 
 ### 컴포넌트 패턴
 
 ```tsx
-// 함수형 컴포넌트 + TypeScript
 interface Props {
   title: string;
   onPress: () => void;
@@ -54,31 +57,26 @@ export function MyComponent({ title, onPress }: Props) {
     텍스트
   </Text>
 </View>
-
-// 반응형
-<View className="p-4 md:p-6 lg:p-8">
-  ...
-</View>
 ```
 
-### Expo Router
+### 서비스 로직 패턴
 
-```tsx
-// app/(tabs)/index.tsx
-export default function HomeScreen() {
-  return <View>...</View>;
+```typescript
+// services/ocr/ocrService.ts
+export async function extractText(imageUri: string): Promise<OcrResult> {
+  try {
+    const result = await ExpoOcr.recognize(imageUri);
+    return parseOcrResult(result);
+  } catch (error) {
+    console.error('OCR failed:', error);
+    throw new Error('텍스트 인식에 실패했습니다.');
+  }
 }
-
-// 네비게이션
-import { router } from 'expo-router';
-router.push('/detail/123');
-router.back();
 ```
 
 ### Zustand 상태관리
 
 ```typescript
-// store/useItemStore.ts
 import { create } from 'zustand';
 
 interface ItemStore {
@@ -98,9 +96,9 @@ export const useItemStore = create<ItemStore>((set) => ({
 
 - [ ] TypeScript 에러 0
 - [ ] 다크 모드 지원 (`dark:` 클래스)
-- [ ] 한국어 UI 메시지
+- [ ] 한국어 UI/에러 메시지
 - [ ] 로딩 상태 표시
-- [ ] 에러 핸들링 (Alert)
+- [ ] 에러 핸들링
 - [ ] Android 동작 확인
 
 ## 프로젝트 참조

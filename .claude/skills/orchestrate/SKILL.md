@@ -34,8 +34,8 @@ category: workflow
 | 에이전트 | 용도 |
 |---------|------|
 | `pm-agent` | 분석/계획 |
-| `react-native-expo-developer` | UI/화면 |
-| `database-specialist` | 데이터/서비스 |
+| `react-native-expo-developer` | UI/화면/서비스 |
+| `database-specialist` | DB 스키마/쿼리 |
 | `architect` | 구조 설계 |
 | `doc-writer` | 문서 |
 | `code-reviewer` | 코드 리뷰 |

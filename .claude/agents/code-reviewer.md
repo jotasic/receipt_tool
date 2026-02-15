@@ -106,6 +106,11 @@ npx tsc --noEmit
 - Suggestion: N개
 ```
 
+## 프로젝트 참조
+
+- 구조: `/docs/architecture.md`
+- API: `/docs/api.md`
+
 ## 완료 후
 
 리뷰 결과를 담당 개발자에게 전달.

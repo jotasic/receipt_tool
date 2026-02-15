@@ -40,8 +40,8 @@ model: sonnet
 
 | 에이전트 | 용도 |
 |---------|------|
-| `react-native-expo-developer` | UI/화면/컴포넌트 |
-| `database-specialist` | 데이터/서비스 로직 |
+| `react-native-expo-developer` | UI/화면/서비스 로직 |
+| `database-specialist` | DB 스키마/쿼리 |
 | `architect` | 구조 설계 (코드 X) |
 | `doc-writer` | 문서 작성 |
 | `code-reviewer` | 코드 리뷰 |
@@ -74,6 +74,11 @@ TodoWrite로 구조화된 태스크 보드 생성.
 
 - [Agent Assignment Guide](resources/agent-assignment-guide.md)
 - [Task Schema](resources/task-schema.md)
+
+## 프로젝트 참조
+
+- 구조: `/docs/architecture.md`
+- API: `/docs/api.md`
 
 ## 통합 플로우
 

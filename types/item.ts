@@ -12,6 +12,7 @@
  */
 
 import type { Tag } from './tag';
+import type { CustomFieldValue } from './customField';
 
 /**
  * ItemClassification - Primary categorization of items
@@ -73,6 +74,12 @@ export interface Item {
    * Optional - loaded when needed via JOIN query
    */
   tags?: Tag[];
+
+  /**
+   * Custom field values for this item
+   * Optional - loaded when needed via JOIN query
+   */
+  customValues?: CustomFieldValue[];
 
   // ============================================
   // Financial Data
@@ -216,9 +223,11 @@ export function isExpense(item: Item): boolean {
  *   tags: ['tag-id-1', 'tag-id-2'], // Optional tag IDs
  * };
  */
-export interface CreateItemInput extends Omit<Item, 'id' | 'createdAt' | 'updatedAt' | 'tags'> {
+export interface CreateItemInput extends Omit<Item, 'id' | 'createdAt' | 'updatedAt' | 'tags' | 'customValues'> {
   /** Array of tag IDs to associate with this item */
   tags?: string[];
+  /** Custom field values as Record<fieldId, value> */
+  customValues?: Record<string, string | null>;
 }
 
 /**

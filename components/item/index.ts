@@ -4,4 +4,5 @@ export { ClassificationSelector } from './ClassificationSelector';
 export { UsagePurposeSelector } from './UsagePurposeSelector';
 export { TagSelector } from './TagSelector';
 export { OcrOverlay } from './OcrOverlay';
+export { CustomFieldInput } from './CustomFieldInput';
 export type { SelectionMode, SelectedItem } from './OcrOverlay';

@@ -5,7 +5,7 @@
  */
 
 export type CustomFieldType = 'text' | 'number' | 'date' | 'select';
-export type CustomFieldEntityType = 'receipt' | 'document' | 'both';
+export type CustomFieldEntityType = 'receipt' | 'document' | 'item' | 'both';
 
 export interface CustomField {
   id: string;
@@ -39,4 +39,6 @@ export interface UpdateCustomFieldInput {
 export interface CustomFieldValue {
   fieldId: string;
   value: string | null;
+  fieldName?: string;
+  fieldType?: CustomFieldType;
 }

@@ -148,7 +148,7 @@ export interface CustomFieldRow {
   field_type: 'text' | 'number' | 'date' | 'select';
   options: string | null;
   is_required: number;
-  entity_type: 'receipt' | 'document' | 'both';
+  entity_type: 'receipt' | 'document' | 'item' | 'both';
   display_order: number;
   created_at: string;
 }
@@ -169,6 +169,17 @@ export interface DocumentCustomValueRow {
   document_id: string;
   field_id: string;
   value: string | null;
+}
+
+/**
+ * Database row type for item_custom_values table
+ */
+export interface ItemCustomValueRow {
+  item_id: string;
+  field_id: string;
+  value: string;
+  name?: string;
+  field_type?: string;
 }
 
 /**

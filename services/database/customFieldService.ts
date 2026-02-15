@@ -5,7 +5,7 @@
  */
 
 import { getDatabase } from './getDatabase';
-import type { CustomFieldRow, ReceiptCustomValueRow, DocumentCustomValueRow } from './types';
+import type { CustomFieldRow, ReceiptCustomValueRow, DocumentCustomValueRow, ItemCustomValueRow } from './types';
 import type {
   CustomField,
   CreateCustomFieldInput,
@@ -95,11 +95,11 @@ export async function getCustomFields(): Promise<CustomField[]> {
 /**
  * Get custom fields by entity type
  *
- * @param entityType - Entity type ('receipt', 'document', or 'both')
+ * @param entityType - Entity type ('receipt', 'document', 'item', or 'both')
  * @returns Promise<CustomField[]> - Array of custom fields
  */
 export async function getCustomFieldsByEntityType(
-  entityType: 'receipt' | 'document'
+  entityType: 'receipt' | 'document' | 'item'
 ): Promise<CustomField[]> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<CustomFieldRow>(
@@ -364,5 +364,74 @@ export async function setDocumentCustomValues(
         [documentId, value.fieldId, value.value]
       );
     }
+  }
+}
+
+// ============================================================================
+// Item Custom Field Value Operations
+// ============================================================================
+
+/**
+ * Set custom field value for an item
+ */
+export async function setItemCustomValue(
+  itemId: string,
+  fieldId: string,
+  value: string | null
+): Promise<void> {
+  const db = await getDatabase();
+
+  if (value === null || value === '') {
+    await db.runAsync(
+      'DELETE FROM item_custom_values WHERE item_id = ? AND field_id = ?',
+      [itemId, fieldId]
+    );
+  } else {
+    await db.runAsync(
+      'INSERT OR REPLACE INTO item_custom_values (item_id, field_id, value) VALUES (?, ?, ?)',
+      [itemId, fieldId, value]
+    );
+  }
+}
+
+/**
+ * Get custom field values for an item
+ */
+export async function getItemCustomValues(itemId: string): Promise<CustomFieldValue[]> {
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<ItemCustomValueRow>(
+    `SELECT icv.field_id, icv.value, cf.name, cf.field_type
+     FROM item_custom_values icv
+     INNER JOIN custom_fields cf ON icv.field_id = cf.id
+     WHERE icv.item_id = ?
+     ORDER BY cf.display_order ASC`,
+    [itemId]
+  );
+
+  return rows.map((row) => ({
+    fieldId: row.field_id,
+    value: row.value,
+    fieldName: row.name,
+    fieldType: row.field_type as 'text' | 'number' | 'date' | 'select' | undefined,
+  }));
+}
+
+/**
+ * Delete all custom values for an item
+ */
+export async function deleteItemCustomValues(itemId: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync('DELETE FROM item_custom_values WHERE item_id = ?', [itemId]);
+}
+
+/**
+ * Set multiple custom field values for an item
+ */
+export async function setItemCustomValues(
+  itemId: string,
+  values: Record<string, string | null>
+): Promise<void> {
+  for (const [fieldId, value] of Object.entries(values)) {
+    await setItemCustomValue(itemId, fieldId, value);
   }
 }

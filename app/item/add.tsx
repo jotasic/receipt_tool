@@ -25,6 +25,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { ItemForm } from '@/components/item';
 import { createItem } from '@/services/database/itemService';
 import { setTagsForItem } from '@/services/database/tagService';
+import { setItemCustomValues } from '@/services/database/customFieldService';
 import { useItemStore } from '@/store/itemStore';
 import type { CreateItemInput } from '@/types/item';
 
@@ -86,8 +87,8 @@ export default function ItemAddScreen() {
         savedImagePath = await saveItemImage(data.filePath);
       }
 
-      // 2. Create item in database (exclude tags from item creation)
-      const { tags: tagIds, ...itemData } = data;
+      // 2. Create item in database (exclude tags and customValues from item creation)
+      const { tags: tagIds, customValues, ...itemData } = data;
       const item = await createItem({
         ...itemData,
         filePath: savedImagePath || undefined,
@@ -98,10 +99,15 @@ export default function ItemAddScreen() {
         await setTagsForItem(item.id, tagIds);
       }
 
-      // 4. Update Zustand store
+      // 4. Save custom field values if provided
+      if (customValues && Object.keys(customValues).length > 0) {
+        await setItemCustomValues(item.id, customValues);
+      }
+
+      // 5. Update Zustand store
       addItem(item);
 
-      // 5. Navigate back with success message
+      // 6. Navigate back with success message
       Alert.alert('성공', '항목이 저장되었습니다.', [
         { text: '확인', onPress: () => router.replace('/(tabs)') },
       ]);

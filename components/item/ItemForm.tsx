@@ -35,6 +35,7 @@ import { Input, Button } from '@/components/common';
 import { ClassificationSelector } from './ClassificationSelector';
 import { UsagePurposeSelector } from './UsagePurposeSelector';
 import { TagSelector } from './TagSelector';
+import { CustomFieldInput } from './CustomFieldInput';
 import { OcrOverlay, type SelectedItem } from './OcrOverlay';
 import {
   extractReceiptData,
@@ -43,10 +44,12 @@ import {
   ocrLogger,
   getCurrentProvider,
 } from '@/services/ocr';
+import { getCustomFieldsByEntityType } from '@/services/database/customFieldService';
 import type { OcrError, OcrBlock } from '@/services/ocr';
 import type { CreateItemInput } from '@/types/item';
 import type { ItemClassification, UsagePurpose } from '@/types/shared';
 import type { Tag } from '@/types/tag';
+import type { CustomField } from '@/types';
 
 interface ItemFormProps {
   /** Initial form data for edit mode (optional) */
@@ -89,6 +92,10 @@ export function ItemForm({
     (initialData as any)?.tagObjects || []
   );
 
+  // Custom fields state
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [customValues, setCustomValues] = useState<Record<string, string | null>>({});
+
   // UI state
   const [isLoadingImage, setIsLoadingImage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -109,12 +116,46 @@ export function ItemForm({
   const showStoreName =
     classification === 'personal_card' || classification === 'corporate_card';
 
+  // Load custom fields on mount
+  useEffect(() => {
+    loadCustomFields();
+  }, []);
+
   // Run OCR when initialImageUri is provided
   useEffect(() => {
     if (initialImageUri && !initialData?.title) {
       runOCR(initialImageUri);
     }
   }, [initialImageUri]);
+
+  /**
+   * Load custom fields for items
+   */
+  const loadCustomFields = async () => {
+    try {
+      const fields = await getCustomFieldsByEntityType('item');
+      setCustomFields(fields);
+
+      // Initialize custom values from initialData if editing
+      if ((initialData as any)?.customValues) {
+        const values: Record<string, string | null> = {};
+        const customValueArray = (initialData as any).customValues;
+
+        // Handle both array format (CustomFieldValue[]) and object format
+        if (Array.isArray(customValueArray)) {
+          customValueArray.forEach((cv: any) => {
+            values[cv.fieldId] = cv.value;
+          });
+        } else if (typeof customValueArray === 'object') {
+          Object.assign(values, customValueArray);
+        }
+
+        setCustomValues(values);
+      }
+    } catch (error) {
+      console.error('Failed to load custom fields:', error);
+    }
+  };
 
   /**
    * Run OCR on the provided image
@@ -409,6 +450,11 @@ export function ItemForm({
       // Add tags (as IDs)
       if (selectedTags.length > 0) {
         itemData.tags = selectedTags.map(tag => tag.id);
+      }
+
+      // Add custom field values
+      if (Object.keys(customValues).length > 0) {
+        itemData.customValues = customValues;
       }
 
       await onSubmit(itemData);
@@ -715,6 +761,23 @@ export function ItemForm({
             label="태그 (선택)"
           />
         </View>
+
+        {/* Custom Fields Section */}
+        {customFields.length > 0 && (
+          <View className="mb-6">
+            <Text className="text-base font-semibold text-gray-900 mb-3">추가 정보</Text>
+            {customFields.map((field) => (
+              <CustomFieldInput
+                key={field.id}
+                field={field}
+                value={customValues[field.id] || null}
+                onValueChange={(value) => {
+                  setCustomValues(prev => ({ ...prev, [field.id]: value }));
+                }}
+              />
+            ))}
+          </View>
+        )}
       </ScrollView>
 
       {/* Action Buttons */}

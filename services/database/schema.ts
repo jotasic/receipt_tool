@@ -135,7 +135,7 @@ export const SCHEMA = {
       field_type TEXT NOT NULL CHECK(field_type IN ('text', 'number', 'date', 'select')),
       options TEXT,
       is_required INTEGER DEFAULT 0,
-      entity_type TEXT NOT NULL CHECK(entity_type IN ('receipt', 'document', 'both')),
+      entity_type TEXT NOT NULL CHECK(entity_type IN ('receipt', 'document', 'item', 'both')),
       display_order INTEGER DEFAULT 0,
       created_at TEXT NOT NULL
     )
@@ -159,6 +159,17 @@ export const SCHEMA = {
       value TEXT,
       PRIMARY KEY (document_id, field_id),
       FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+      FOREIGN KEY (field_id) REFERENCES custom_fields(id) ON DELETE CASCADE
+    )
+  `,
+
+  item_custom_values: `
+    CREATE TABLE IF NOT EXISTS item_custom_values (
+      item_id TEXT NOT NULL,
+      field_id TEXT NOT NULL,
+      value TEXT,
+      PRIMARY KEY (item_id, field_id),
+      FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
       FOREIGN KEY (field_id) REFERENCES custom_fields(id) ON DELETE CASCADE
     )
   `,
@@ -326,6 +337,16 @@ export const INDEXES = {
   document_custom_values_field: `
     CREATE INDEX IF NOT EXISTS idx_document_custom_values_field
     ON document_custom_values(field_id)
+  `,
+
+  item_custom_values_item: `
+    CREATE INDEX IF NOT EXISTS idx_item_custom_values_item
+    ON item_custom_values(item_id)
+  `,
+
+  item_custom_values_field: `
+    CREATE INDEX IF NOT EXISTS idx_item_custom_values_field
+    ON item_custom_values(field_id)
   `,
 
   // Indexes for new unified items table

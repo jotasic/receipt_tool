@@ -34,6 +34,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { ItemForm } from '@/components/item';
 import { getItemById, updateItem } from '@/services/database/itemService';
 import { getTagsForItem, setTagsForItem } from '@/services/database/tagService';
+import { getItemCustomValues, setItemCustomValues } from '@/services/database/customFieldService';
 import { useItemStore } from '@/store/itemStore';
 import type { Item, CreateItemInput } from '@/types/item';
 
@@ -121,7 +122,11 @@ export default function ItemEditScreen() {
 
       // Load tags for the item
       const tags = await getTagsForItem(id);
-      setItem({ ...fetchedItem, tags });
+
+      // Load custom values for the item
+      const customValues = await getItemCustomValues(id);
+
+      setItem({ ...fetchedItem, tags, customValues });
     } catch (error) {
       console.error('Item load error:', error);
       Alert.alert('오류', '항목을 불러오는 중 오류가 발생했습니다.', [
@@ -191,13 +196,18 @@ export default function ItemEditScreen() {
         await setTagsForItem(id, data.tags);
       }
 
-      // 5. Update Zustand store with full updated item
+      // 5. Save custom field values if provided
+      if (data.customValues !== undefined) {
+        await setItemCustomValues(id, data.customValues);
+      }
+
+      // 6. Update Zustand store with full updated item
       updateItemInStore(id, {
         ...updateData,
         updatedAt: new Date().toISOString(),
       });
 
-      // 6. Navigate back with success message
+      // 7. Navigate back with success message
       Alert.alert('성공', '항목이 수정되었습니다.', [
         { text: '확인', onPress: () => router.back() },
       ]);
@@ -325,8 +335,18 @@ export default function ItemEditScreen() {
     );
   }
 
+  // Convert custom values array to Record format for form
+  const customValuesRecord: Record<string, string | null> = {};
+  if (item.customValues) {
+    item.customValues.forEach(cv => {
+      customValuesRecord[cv.fieldId] = cv.value;
+    });
+  }
+
   // Convert Item to CreateItemInput format for ItemForm
-  const initialData: Partial<CreateItemInput> & { tagObjects?: typeof item.tags } = {
+  const initialData: Partial<CreateItemInput> & {
+    tagObjects?: typeof item.tags;
+  } = {
     title: item.title,
     classification: item.classification,
     usagePurpose: item.usagePurpose,
@@ -338,6 +358,7 @@ export default function ItemEditScreen() {
     ocrText: item.ocrText,
     memo: item.memo,
     tagObjects: item.tags, // Pass Tag objects for display
+    customValues: customValuesRecord, // Pass custom values as Record for form
   };
 
   return (

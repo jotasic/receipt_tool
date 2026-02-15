@@ -1,0 +1,179 @@
+/**
+ * CustomFieldInput - Dynamic input component for custom fields
+ *
+ * Renders different input types based on field type:
+ * - text: Standard text input
+ * - number: Numeric keyboard input
+ * - date: Date input with format validation
+ * - select: Picker/dropdown from options
+ *
+ * Features:
+ * - Type-specific keyboards
+ * - Required field validation display
+ * - NativeWind styling
+ * - Error state handling
+ */
+
+import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import type { CustomField } from '@/types';
+
+interface CustomFieldInputProps {
+  field: CustomField;
+  value: string | null;
+  onValueChange: (value: string | null) => void;
+  error?: string;
+}
+
+export function CustomFieldInput({
+  field,
+  value,
+  onValueChange,
+  error,
+}: CustomFieldInputProps) {
+  /**
+   * Render text input
+   */
+  const renderTextInput = () => (
+    <TextInput
+      value={value || ''}
+      onChangeText={onValueChange}
+      placeholder={`${field.name} 입력`}
+      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-base text-gray-900"
+      placeholderTextColor="#9CA3AF"
+      autoCapitalize="sentences"
+    />
+  );
+
+  /**
+   * Render number input
+   */
+  const renderNumberInput = () => (
+    <TextInput
+      value={value || ''}
+      onChangeText={onValueChange}
+      placeholder={`${field.name} 입력`}
+      keyboardType="numeric"
+      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-base text-gray-900"
+      placeholderTextColor="#9CA3AF"
+    />
+  );
+
+  /**
+   * Render date input
+   *
+   * Note: For now, using a simple text input with format validation.
+   * Future enhancement: Use a proper date picker component.
+   */
+  const renderDateInput = () => (
+    <View>
+      <TextInput
+        value={value || ''}
+        onChangeText={onValueChange}
+        placeholder="YYYY-MM-DD"
+        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-base text-gray-900"
+        placeholderTextColor="#9CA3AF"
+        autoCapitalize="none"
+      />
+      <Text className="text-xs text-gray-500 mt-1 ml-1">
+        형식: YYYY-MM-DD (예: 2026-02-15)
+      </Text>
+    </View>
+  );
+
+  /**
+   * Render select input with options
+   */
+  const renderSelectInput = () => {
+    const options = field.options || [];
+
+    return (
+      <View className="w-full">
+        {/* Selected value display */}
+        <TouchableOpacity
+          className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg flex-row items-center justify-between"
+          onPress={() => {
+            // For now, cycle through options on tap
+            // Future enhancement: Show a proper picker modal
+            const currentIndex = value ? options.indexOf(value) : -1;
+            const nextIndex = (currentIndex + 1) % options.length;
+            onValueChange(options[nextIndex] || null);
+          }}
+        >
+          <Text className={`text-base ${value ? 'text-gray-900' : 'text-gray-400'}`}>
+            {value || `${field.name} 선택`}
+          </Text>
+          <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
+        </TouchableOpacity>
+
+        {/* Options preview */}
+        {options.length > 0 && (
+          <View className="mt-2 flex-row flex-wrap gap-2">
+            {options.map((option) => (
+              <TouchableOpacity
+                key={option}
+                onPress={() => onValueChange(option)}
+                className={`px-3 py-1.5 rounded-full border ${
+                  value === option
+                    ? 'bg-blue-50 border-blue-500'
+                    : 'bg-gray-50 border-gray-300'
+                }`}
+              >
+                <Text
+                  className={`text-sm ${
+                    value === option ? 'text-blue-700 font-medium' : 'text-gray-700'
+                  }`}
+                >
+                  {option}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  /**
+   * Render appropriate input based on field type
+   */
+  const renderInput = () => {
+    switch (field.fieldType) {
+      case 'text':
+        return renderTextInput();
+      case 'number':
+        return renderNumberInput();
+      case 'date':
+        return renderDateInput();
+      case 'select':
+        return renderSelectInput();
+      default:
+        return renderTextInput();
+    }
+  };
+
+  return (
+    <View className="mb-4">
+      {/* Label */}
+      <View className="flex-row items-center mb-2">
+        <Text className="text-base text-gray-700 font-medium">
+          {field.name}
+        </Text>
+        {field.isRequired && (
+          <Text className="text-red-500 ml-1">*</Text>
+        )}
+      </View>
+
+      {/* Input */}
+      {renderInput()}
+
+      {/* Error message */}
+      {error && (
+        <View className="flex-row items-center mt-1 ml-1">
+          <Ionicons name="alert-circle" size={14} color="#EF4444" />
+          <Text className="text-sm text-red-500 ml-1">{error}</Text>
+        </View>
+      )}
+    </View>
+  );
+}

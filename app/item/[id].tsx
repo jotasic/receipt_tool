@@ -16,6 +16,7 @@ import { Button } from '@/components/common';
 import { useItemStore } from '@/store/itemStore';
 import { getItemById, deleteItem } from '@/services/database/itemService';
 import { getTagsForItem } from '@/services/database/tagService';
+import { getItemCustomValues } from '@/services/database/customFieldService';
 import type { Item, ItemClassification, UsagePurpose } from '@/types/item';
 
 const CLASSIFICATION_INFO: Record<
@@ -65,7 +66,11 @@ export default function ItemDetailScreen() {
 
       // Load tags for the item
       const tags = await getTagsForItem(id);
-      setItem({ ...fetchedItem, tags });
+
+      // Load custom values for the item
+      const customValues = await getItemCustomValues(id);
+
+      setItem({ ...fetchedItem, tags, customValues });
     } catch (error) {
       console.error('Item load error:', error);
       Alert.alert('오류', '항목을 불러오는 중 오류가 발생했습니다.', [
@@ -274,6 +279,21 @@ export default function ItemDetailScreen() {
                   <Text style={{ color: tag.color }} className="text-sm font-medium">
                     {tag.name}
                   </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Custom Fields Section */}
+        {item.customValues && item.customValues.length > 0 && (
+          <View className="mb-6">
+            <Text className="text-sm font-semibold text-gray-700 mb-2">추가 정보</Text>
+            <View className="p-4 bg-gray-50 rounded-lg">
+              {item.customValues.map((cv) => (
+                <View key={cv.fieldId} className="mb-3 last:mb-0">
+                  <Text className="text-xs text-gray-500 mb-1">{cv.fieldName}</Text>
+                  <Text className="text-sm text-gray-900">{cv.value || '-'}</Text>
                 </View>
               ))}
             </View>

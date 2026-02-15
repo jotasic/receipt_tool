@@ -344,6 +344,13 @@ export default function SettingsScreen() {
               onPress={() => router.push('/settings/usage-purposes' as any)}
               disabled={isClearing}
             />
+            <SettingItem
+              icon="cloud-outline"
+              title="백업 및 복원"
+              hasArrow
+              onPress={() => router.push('/settings/backup' as any)}
+              disabled={isClearing}
+            />
           </View>
         </View>
 
@@ -353,20 +360,6 @@ export default function SettingsScreen() {
             데이터
           </Text>
           <View className="mt-1">
-            <SettingItem
-              icon="cloud-upload"
-              title="데이터 백업"
-              hasArrow
-              onPress={() => Alert.alert('준비 중', '데이터 백업 기능은 추후 업데이트에서 제공될 예정입니다.')}
-              disabled={isClearing}
-            />
-            <SettingItem
-              icon="cloud-download"
-              title="데이터 복원"
-              hasArrow
-              onPress={() => Alert.alert('준비 중', '데이터 복원 기능은 추후 업데이트에서 제공될 예정입니다.')}
-              disabled={isClearing}
-            />
             <SettingItem
               icon="trash-bin"
               title="데이터 삭제"

@@ -12,9 +12,10 @@ Documentation expert.
 
 ## Standards
 
-- **Language**: Korean (document content)
+- **Language**: Follow project's `CLAUDE.md` language rules
 - **File naming**: kebab-case
 - **Location**: `/docs/`
+- **Principles**: See [Documentation Guide](resources/documentation-guide.md)
 
 ## Document Structure
 
@@ -84,10 +85,11 @@ Description...
 
 ## Writing Principles
 
-- **Write in Korean** (except code/type names)
+- **Follow project's language rules** (check CLAUDE.md)
 - Include code examples (working code)
 - Keep concise (no unnecessary explanations)
 - Use ASCII for diagrams
+- Document only implemented features (not planned)
 
 ## File Naming Rules
 
@@ -96,10 +98,11 @@ Description...
 
 ## Quality Checklist
 
-- [ ] Written in Korean
+- [ ] Follows project language rules (CLAUDE.md)
 - [ ] kebab-case filename
 - [ ] Code examples included
 - [ ] Index file updated
+- [ ] Only documents implemented features
 
 ## Project References
 

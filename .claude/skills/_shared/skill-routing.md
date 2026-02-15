@@ -4,34 +4,29 @@
 
 | Domain | Primary Agent | Backup Agent |
 |--------|--------------|--------------|
-| Backend API | `backend-developer` | `general-developer` |
-| Frontend UI | `frontend-developer` | `general-developer` |
-| Database | `database-specialist` | `backend-developer` |
-| DevOps/CI | `devops-specialist` | `general-developer` |
+| UI/화면/컴포넌트 | `react-native-expo-developer` | - |
+| 서비스 로직 | `react-native-expo-developer` | - |
+| DB 스키마/쿼리 | `database-specialist` | - |
 | Architecture | `architect` | - |
-| Security | `security-auditor` | `code-reviewer` |
-| Testing | `test-writer` | `e2e-tester` |
-| E2E Testing | `e2e-tester` | `test-writer` |
-| Documentation | `doc-writer` | `general-developer` |
-| Performance | `performance-optimizer` | `backend-developer` |
-| API Design | `api-designer` | `architect` |
-| Refactoring | `refactorer` | `code-reviewer` |
+| Code Review | `code-reviewer` | - |
+| Documentation | `doc-writer` | - |
+| Task Planning | `pm-agent` | - |
 
 ## Task Type Routing
 
 | Task Type | Recommended Agent |
 |-----------|------------------|
-| REST endpoint | `backend-developer` |
-| GraphQL resolver | `backend-developer` |
-| React component | `frontend-developer` |
-| Vue component | `frontend-developer` |
-| DB migration | `database-specialist` |
-| Docker setup | `devops-specialist` |
-| Unit tests | `test-writer` |
-| Browser tests | `e2e-tester` |
-| Bug fix | `debugger` |
-| Code review | `code-reviewer` |
-| System design | `architect` |
+| React Native 화면 | `react-native-expo-developer` |
+| 컴포넌트 개발 | `react-native-expo-developer` |
+| 서비스 함수 | `react-native-expo-developer` |
+| OCR/백업 기능 | `react-native-expo-developer` |
+| DB 마이그레이션 | `database-specialist` |
+| 스키마 설계 | `database-specialist` |
+| 쿼리 최적화 | `database-specialist` |
+| 시스템 설계 | `architect` |
+| 코드 리뷰 | `code-reviewer` |
+| 문서 작성 | `doc-writer` |
+| 태스크 분해 | `pm-agent` |
 
 ## Priority Assignment
 

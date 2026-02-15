@@ -11,21 +11,21 @@ category: development
 
 ## ⚡ 즉시 실행
 
-**프로젝트 타입에 따라 적절한 에이전트 호출:**
+**작업 유형에 따라 적절한 에이전트 호출:**
 
-### UI/화면/컴포넌트:
+### UI/화면/컴포넌트/서비스 로직:
 ```
 Use the react-native-expo-developer agent to implement: $ARGUMENTS
 ```
 
-### 비즈니스 로직/서비스:
-```
-Use the backend-developer agent to implement: $ARGUMENTS
-```
-
-### 데이터베이스/스키마:
+### DB 스키마/쿼리/마이그레이션:
 ```
 Use the database-specialist agent to implement: $ARGUMENTS
+```
+
+### 구조 설계 (분석만):
+```
+Use the architect agent to analyze: $ARGUMENTS
 ```
 
 ## 에이전트 완료 후

@@ -25,9 +25,9 @@ Record all tasks in TodoWrite:
 ### Launch Pattern
 ```
 Use the Task tool to launch multiple agents in parallel:
-- backend-developer for T-001
-- frontend-developer for T-002
-- database-specialist for T-003
+- react-native-expo-developer for T-001 (UI/서비스)
+- database-specialist for T-002 (DB 스키마)
+- doc-writer for T-003 (문서)
 ```
 
 ## Phase 4: Verification

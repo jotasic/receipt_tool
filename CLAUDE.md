@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 문서 | 내용 |
 |-----|-----|
 | [/docs/architecture.md](/docs/architecture.md) | 아키텍처, 기술 스택, 데이터 모델 (SSOT) |
-| [/docs/api.md](/docs/api.md) | API/함수 레퍼런스 |
+| [/docs/services.md](/docs/services.md) | 서비스 함수 레퍼런스 |
 | [/docs/guides/database.md](/docs/guides/database.md) | 데이터베이스 가이드 |
 | [/docs/guides/ocr.md](/docs/guides/ocr.md) | OCR 시스템 가이드 |
 | [/docs/migration-guide.md](/docs/migration-guide.md) | 모델 진화 히스토리 |
@@ -49,7 +49,7 @@ npx tsc --noEmit
 
 #### 1. 계획 단계
 
-- /docs/ARCHITECTURE.md 참조하여 현재 구조 파악
+- /docs/architecture.md 참조하여 현재 구조 파악
 - 기능 분석 및 우선순위 분류 (P0/P1/P2)
 - 적절한 에이전트 선정
 - **사용자에게 계획 제시 후 승인 받기**
@@ -74,11 +74,11 @@ npx tsc --noEmit
 
 | 작업 유형 | 에이전트 | 예시 |
 |----------|---------|------|
-| UI/화면/컴포넌트 | `react-native-expo-developer` | 화면, 폼, 스타일 |
-| 비즈니스 로직 | `backend-developer` | 서비스, 마이그레이션 |
-| 데이터베이스 | `database-specialist` | 스키마, CRUD |
+| UI/화면/서비스 | `react-native-expo-developer` | 화면, 컴포넌트, 서비스 로직 |
+| DB 스키마/쿼리 | `database-specialist` | 스키마, 마이그레이션 |
 | 문서 작업 | `doc-writer` | 가이드, README |
 | 코드 리뷰 | `code-reviewer` | PR 리뷰 |
+| 구조 설계 | `architect` | 시스템 설계 |
 
 ---
 
@@ -110,20 +110,20 @@ npx tsc --noEmit
 | 변경 유형 | 업데이트 문서 |
 |----------|-------------|
 | 새 서비스/컴포넌트 | /docs/architecture.md |
-| 새 DB 함수 | /docs/api.md |
+| 새 DB 함수 | /docs/services.md |
 | 복잡한 기능 | /docs/guides/{기능}.md |
 
 ### 방식
 
 - 해당 기능 커밋에 문서 변경 포함 (별도 커밋 X)
-- 예: `feat: 푸시 알림 추가` 커밋에 ARCHITECTURE.md 업데이트 포함
+- 예: `feat: 푸시 알림 추가` 커밋에 architecture.md 업데이트 포함
 
 ### 문서 파일명 스타일
 
 **kebab-case 통일** (README.md 제외)
 
 ```
-✅ architecture.md, api.md, migration-guide.md
+✅ architecture.md, services.md, migration-guide.md
 ✅ getting-started.md, item-service.md
 ❌ ARCHITECTURE.md, API.md, MIGRATION_GUIDE.md
 ```
@@ -147,11 +147,11 @@ npx tsc --noEmit
 │   ├── tech-stack.md        ← 기술 스택
 │   └── data-flow.md         ← 데이터 흐름
 │
-├── api.md                   ← 요약 + 인덱스
-├── api/
-│   ├── item-service.md      ← Item CRUD API
-│   ├── report-service.md    ← Report API
-│   ├── ocr-service.md       ← OCR API
+├── services.md              ← 요약 + 인덱스
+├── services/
+│   ├── item-service.md      ← Item CRUD
+│   ├── report-service.md    ← Report 서비스
+│   ├── ocr-service.md       ← OCR 서비스
 │   ├── stores.md            ← Zustand stores
 │   ├── types.md             ← TypeScript 타입
 │   └── database-utils.md    ← DB 유틸리티

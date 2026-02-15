@@ -19,6 +19,30 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
 
+  // TabBar height calculation constants
+  const TAB_BAR_HEIGHT = 60;
+  const MIN_PADDING = 8;
+
+  // Log insets for debugging
+  console.log('[TabBar] SafeAreaInsets:', {
+    bottom: insets.bottom,
+    top: insets.top,
+    left: insets.left,
+    right: insets.right,
+  });
+
+  // Improved conditional logic for TabBar padding and height
+  // - When insets.bottom === 0: Use minimum padding (device has no bottom safe area)
+  // - When insets.bottom > 0: Use insets.bottom directly (device has safe area)
+  const bottomPadding = insets.bottom > 0 ? insets.bottom : MIN_PADDING;
+  const tabBarHeight = TAB_BAR_HEIGHT + bottomPadding;
+
+  console.log('[TabBar] Calculated values:', {
+    bottomPadding,
+    tabBarHeight,
+    calculation: `${TAB_BAR_HEIGHT} + ${bottomPadding} = ${tabBarHeight}`,
+  });
+
   return (
     <Tabs
       screenOptions={{
@@ -27,9 +51,9 @@ export default function TabLayout() {
         // Hide default header (screens use custom headers)
         headerShown: false,
         tabBarStyle: {
-          paddingBottom: Math.max(insets.bottom, 8),
+          paddingBottom: bottomPadding,
           paddingTop: 8,
-          height: 60 + Math.max(insets.bottom - 8, 0),
+          height: tabBarHeight,
         },
         tabBarLabelStyle: {
           fontSize: 12,

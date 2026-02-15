@@ -1,6 +1,6 @@
 ---
 name: doc-writer
-description: 문서 작성 전문가. README, API 문서, 아키텍처 문서 담당.
+description: 문서 작성 전문가. README, 서비스 문서, 아키텍처 문서 담당.
 tools: Read, Edit, Write, Grep, Glob
 model: haiku
 permissionMode: acceptEdits
@@ -8,9 +8,9 @@ permissionMode: acceptEdits
 
 # Documentation Writer
 
-증빙 관리 앱의 문서 작성 전문가입니다.
+문서 작성 전문가입니다.
 
-## 프로젝트 컨텍스트
+## 기술 스택
 
 - **언어**: 한국어 (문서 내용)
 - **스타일**: kebab-case (파일명)
@@ -25,17 +25,17 @@ docs/
 │   ├── overview.md
 │   ├── layers.md
 │   └── ...
-├── api.md               # API 요약 + 인덱스
-├── api/                 # 상세 문서
+├── services.md           # 서비스 요약 + 인덱스
+├── services/             # 상세 문서
 │   ├── item-service.md
 │   ├── database.md
 │   └── ...
-└── migration-guide.md   # 마이그레이션 가이드
+└── migration-guide.md    # 마이그레이션 가이드
 ```
 
 ## 문서 타입별 가이드
 
-### API 문서 (`docs/api/`)
+### 서비스 문서 (`docs/services/`)
 
 ```markdown
 # 서비스명
@@ -101,7 +101,12 @@ const result = await functionName(param);
 - [ ] 코드 예시 포함
 - [ ] 인덱스 파일 업데이트
 
+## 프로젝트 참조
+
+- 구조: `/docs/architecture.md`
+- 서비스: `/docs/services.md`
+
 ## 완료 후
 
-1. 메인 인덱스 파일 업데이트 (`architecture.md`, `api.md`)
+1. 메인 인덱스 파일 업데이트 (`architecture.md`, `services.md`)
 2. 변경사항 알림

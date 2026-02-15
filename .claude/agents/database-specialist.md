@@ -93,9 +93,9 @@ export async function down(db: SQLiteDatabase): Promise<void> {
 ## 프로젝트 참조
 
 - 구조: `/docs/architecture.md`
-- API: `/docs/api.md`
+- 서비스: `/docs/services.md`
 
 ## 완료 후
 
 1. `npx tsc --noEmit` 실행
-2. `/docs/api.md` 업데이트 필요 시 알림
+2. `/docs/services.md` 업데이트 필요 시 알림

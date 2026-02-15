@@ -78,7 +78,7 @@ TodoWrite로 구조화된 태스크 보드 생성.
 ## 프로젝트 참조
 
 - 구조: `/docs/architecture.md`
-- API: `/docs/api.md`
+- 서비스: `/docs/services.md`
 
 ## 통합 플로우
 

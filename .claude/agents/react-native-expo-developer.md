@@ -104,7 +104,7 @@ export const useItemStore = create<ItemStore>((set) => ({
 ## 프로젝트 참조
 
 - 구조: `/docs/architecture.md`
-- API: `/docs/api.md`
+- 서비스: `/docs/services.md`
 
 ## 완료 후
 

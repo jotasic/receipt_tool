@@ -6,17 +6,20 @@
  *
  * Features:
  * - ItemForm integration with all item types
+ * - OCR text extraction from captured images
  * - Image file system management (items/ directory)
  * - Database persistence via itemService
  * - Zustand store synchronization
  * - Error handling with retry logic
  * - Loading states during save operation
+ *
+ * Route params:
+ * - imageUri (optional): Pre-captured image URI for OCR processing
  */
 
-import { useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ItemForm } from '@/components/item';
@@ -56,6 +59,7 @@ async function saveItemImage(sourceUri: string): Promise<string> {
 }
 
 export default function ItemAddScreen() {
+  const { imageUri } = useLocalSearchParams<{ imageUri?: string }>();
   const addItem = useItemStore((state) => state.addItem);
 
   /**
@@ -216,6 +220,7 @@ export default function ItemAddScreen() {
 
       {/* Form */}
       <ItemForm
+        imageUri={imageUri}
         onSubmit={handleSubmit}
         onCancel={() => router.back()}
       />

@@ -56,26 +56,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="receipts"
-        options={{
-          href: null,  // Hide from tab bar (legacy)
-          title: '영수증',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'receipt' : 'receipt-outline'} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="documents"
-        options={{
-          href: null,  // Hide from tab bar (legacy)
-          title: '증빙서류',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'document-text' : 'document-text-outline'} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="calendar"
         options={{
           title: '달력',

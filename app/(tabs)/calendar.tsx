@@ -1,36 +1,52 @@
 /**
  * Calendar Screen
  *
- * Displays receipts and documents in a calendar view
+ * Displays items (receipts/documents) in a calendar view
+ * Uses the unified Item system
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar, Card } from '@/components/common';
-import { useReceiptStore } from '@/store/receiptStore';
-import type { Receipt } from '@/types';
+import { useItemStore } from '@/store/itemStore';
+import { isExpense } from '@/types/item';
+import type { Item, ItemClassification } from '@/types/item';
 
 function formatCurrency(amount: number): string {
   return `₩${amount.toLocaleString()}`;
 }
 
+const CLASSIFICATION_ICONS: Record<ItemClassification, keyof typeof Ionicons.glyphMap> = {
+  personal_card: 'card',
+  corporate_card: 'business',
+  proof_document: 'document-text',
+};
+
+const CLASSIFICATION_NAMES: Record<ItemClassification, string> = {
+  personal_card: '개인',
+  corporate_card: '법인',
+  proof_document: '증명',
+};
+
 export default function CalendarScreen() {
-  const { receipts, loadReceipts } = useReceiptStore();
+  const { items, loadItems } = useItemStore();
   const [selectedDate, setSelectedDate] = useState<string>('');
 
-  useEffect(() => {
-    loadReceipts();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadItems();
+    }, [loadItems])
+  );
 
-  // Group receipts by date and calculate totals for markers
+  // Group items by date and calculate totals for markers
   const markedDates = useMemo(() => {
     const marks: { [date: string]: { count: number; color?: string } } = {};
 
-    receipts.forEach((receipt) => {
-      const date = receipt.date;
+    items.forEach((item) => {
+      const date = item.date;
       if (marks[date]) {
         marks[date].count += 1;
       } else {
@@ -39,18 +55,23 @@ export default function CalendarScreen() {
     });
 
     return marks;
-  }, [receipts]);
+  }, [items]);
 
-  // Get receipts for selected date
-  const selectedDateReceipts = useMemo(() => {
+  // Get items for selected date
+  const selectedDateItems = useMemo(() => {
     if (!selectedDate) return [];
-    return receipts.filter((receipt) => receipt.date === selectedDate);
-  }, [receipts, selectedDate]);
+    return items.filter((item) => item.date === selectedDate);
+  }, [items, selectedDate]);
 
-  // Calculate total for selected date
+  // Calculate total for selected date (only expense items with amount)
   const selectedDateTotal = useMemo(() => {
-    return selectedDateReceipts.reduce((sum, receipt) => sum + receipt.amount, 0);
-  }, [selectedDateReceipts]);
+    return selectedDateItems.reduce((sum, item) => {
+      if (isExpense(item) && item.amount !== undefined && item.amount !== null) {
+        return sum + item.amount;
+      }
+      return sum;
+    }, 0);
+  }, [selectedDateItems]);
 
   // Format selected date for display
   const formatSelectedDate = (dateString: string) => {
@@ -86,12 +107,12 @@ export default function CalendarScreen() {
                 </Text>
                 <View className="bg-blue-100 px-3 py-1 rounded-full">
                   <Text className="text-blue-700 font-medium">
-                    {selectedDateReceipts.length}건
+                    {selectedDateItems.length}건
                   </Text>
                 </View>
               </View>
 
-              {selectedDateReceipts.length > 0 ? (
+              {selectedDateItems.length > 0 ? (
                 <>
                   <View className="border-t border-gray-100 pt-3">
                     <View className="flex-row justify-between items-center">
@@ -104,58 +125,64 @@ export default function CalendarScreen() {
                 </>
               ) : (
                 <View className="items-center py-4">
-                  <Text className="text-gray-500">이 날짜에 영수증이 없습니다</Text>
+                  <Text className="text-gray-500">이 날짜에 항목이 없습니다</Text>
                 </View>
               )}
             </Card>
           </View>
         )}
 
-        {/* Selected Date Receipts List */}
-        {selectedDate && selectedDateReceipts.length > 0 && (
+        {/* Selected Date Items List */}
+        {selectedDate && selectedDateItems.length > 0 && (
           <View className="px-4 pb-4">
-            <Text className="text-lg font-semibold mb-3 text-gray-900">영수증 목록</Text>
-            {selectedDateReceipts.map((receipt) => (
+            <Text className="text-lg font-semibold mb-3 text-gray-900">항목 목록</Text>
+            {selectedDateItems.map((item) => (
               <TouchableOpacity
-                key={receipt.id}
-                onPress={() => router.push(`/receipt/${receipt.id}`)}
+                key={item.id}
+                onPress={() => router.push(`/item/${item.id}`)}
                 className="flex-row items-center bg-white p-4 rounded-lg mb-2"
                 activeOpacity={0.7}
               >
                 <View className="w-10 h-10 bg-gray-100 rounded-lg items-center justify-center mr-3">
                   <Ionicons
-                    name={receipt.receiptType === 'corporate' ? 'business-outline' : 'person-outline'}
+                    name={CLASSIFICATION_ICONS[item.classification]}
                     size={20}
                     color="#6B7280"
                   />
                 </View>
                 <View className="flex-1">
                   <Text className="font-medium text-gray-900" numberOfLines={1}>
-                    {receipt.storeName || receipt.title}
+                    {item.storeName || item.title}
                   </Text>
                   <View className="flex-row items-center mt-1">
                     <View
                       className={`px-2 py-0.5 rounded ${
-                        receipt.receiptType === 'corporate'
+                        item.classification === 'corporate_card'
                           ? 'bg-blue-100'
-                          : 'bg-gray-100'
+                          : item.classification === 'personal_card'
+                          ? 'bg-red-100'
+                          : 'bg-purple-100'
                       }`}
                     >
                       <Text
                         className={`text-xs ${
-                          receipt.receiptType === 'corporate'
+                          item.classification === 'corporate_card'
                             ? 'text-blue-700'
-                            : 'text-gray-600'
+                            : item.classification === 'personal_card'
+                            ? 'text-red-700'
+                            : 'text-purple-700'
                         }`}
                       >
-                        {receipt.receiptType === 'corporate' ? '법인' : '개인'}
+                        {CLASSIFICATION_NAMES[item.classification]}
                       </Text>
                     </View>
                   </View>
                 </View>
-                <Text className="font-bold text-gray-900">
-                  {formatCurrency(receipt.amount)}
-                </Text>
+                {item.amount !== undefined && item.amount !== null && (
+                  <Text className="font-bold text-gray-900">
+                    {formatCurrency(item.amount)}
+                  </Text>
+                )}
               </TouchableOpacity>
             ))}
           </View>
@@ -167,15 +194,22 @@ export default function CalendarScreen() {
             <Card>
               <Text className="text-lg font-semibold text-gray-900 mb-2">이번 달 요약</Text>
               <View className="flex-row justify-between items-center">
-                <Text className="text-gray-500">총 영수증</Text>
+                <Text className="text-gray-500">총 항목</Text>
                 <Text className="text-xl font-bold text-gray-900">
-                  {receipts.length}건
+                  {items.length}건
                 </Text>
               </View>
               <View className="flex-row justify-between items-center mt-2">
                 <Text className="text-gray-500">총 금액</Text>
                 <Text className="text-xl font-bold text-blue-600">
-                  {formatCurrency(receipts.reduce((sum, r) => sum + r.amount, 0))}
+                  {formatCurrency(
+                    items.reduce((sum, item) => {
+                      if (isExpense(item) && item.amount !== undefined && item.amount !== null) {
+                        return sum + item.amount;
+                      }
+                      return sum;
+                    }, 0)
+                  )}
                 </Text>
               </View>
             </Card>

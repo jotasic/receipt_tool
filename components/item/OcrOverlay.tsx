@@ -13,7 +13,6 @@ import {
   Image,
   Modal,
   Pressable,
-  ScrollView,
   LayoutChangeEvent,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -72,7 +71,6 @@ export function OcrOverlay({
   activeMode,
 }: OcrOverlayProps) {
   const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 });
-  const [selectedLineIndex, setSelectedLineIndex] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [tappedLine, setTappedLine] = useState<{ text: string; lineIndex: string } | null>(null);
   const [showDebug, setShowDebug] = useState(false);
@@ -81,9 +79,6 @@ export function OcrOverlay({
   const handleImageLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
     setDisplaySize({ width, height });
-    console.log('=== OCR Overlay Debug ===');
-    console.log('Container display size:', { width, height });
-    console.log('Original image size:', imageSize);
   };
 
   // OCR 좌표에서 실제 이미지 크기 추정 (EXIF 회전 감지용)
@@ -104,34 +99,21 @@ export function OcrOverlay({
   }, [blocks]);
 
   // OCR 좌표 기준 실제 이미지 크기 계산
-  // ML Kit이 고해상도 원본을 처리하고, Image.getSize는 다운스케일 크기를 반환할 수 있음
   const correctedImageSize = useMemo(() => {
     const { maxRight, maxBottom } = ocrBounds;
     if (maxRight === 0 || maxBottom === 0) return imageSize;
 
-    // OCR 좌표가 이미지 크기를 벗어나는지 확인
-    const exceedsWidth = maxRight > imageSize.width * 1.1; // 10% 마진
+    const exceedsWidth = maxRight > imageSize.width * 1.1;
     const exceedsHeight = maxBottom > imageSize.height * 1.1;
 
     if (exceedsWidth || exceedsHeight) {
-      // 1. 먼저 EXIF 회전 확인 (width/height 스왑)
       const swappedMatchesWidth = maxRight <= imageSize.height * 1.1;
       const swappedMatchesHeight = maxBottom <= imageSize.width * 1.1;
 
       if (swappedMatchesWidth && swappedMatchesHeight) {
-        console.log('=== EXIF Rotation Detected ===');
-        console.log('Swapping image dimensions for OCR coordinate mapping');
         return { width: imageSize.height, height: imageSize.width };
       }
 
-      // 2. 해상도 불일치 - OCR 좌표 범위를 실제 이미지 크기로 사용
-      // ML Kit이 원본 고해상도 이미지를 처리했을 가능성
-      console.log('=== Resolution Mismatch Detected ===');
-      console.log('Image.getSize:', imageSize);
-      console.log('OCR bounds:', { maxRight, maxBottom });
-      console.log('Using OCR bounds as effective image size');
-
-      // OCR 좌표에 약간의 마진 추가 (텍스트가 이미지 가장자리에 있지 않을 수 있음)
       return {
         width: maxRight * 1.05,
         height: maxBottom * 1.05,
@@ -155,33 +137,20 @@ export function OcrOverlay({
     let scale: number;
 
     if (imageAspect > containerAspect) {
-      // 이미지가 컨테이너보다 가로로 더 넓음 → 가로 기준 맞춤
       renderedWidth = displaySize.width;
       scale = displaySize.width / correctedImageSize.width;
       renderedHeight = correctedImageSize.height * scale;
     } else {
-      // 이미지가 컨테이너보다 세로로 더 김 → 세로 기준 맞춤
       renderedHeight = displaySize.height;
       scale = displaySize.height / correctedImageSize.height;
       renderedWidth = correctedImageSize.width * scale;
     }
 
-    // 중앙 정렬 offset
     const offsetX = (displaySize.width - renderedWidth) / 2;
     const offsetY = (displaySize.height - renderedHeight) / 2;
 
-    console.log('=== Image Layout Calculation ===');
-    console.log('Original image:', imageSize);
-    console.log('Corrected image:', correctedImageSize);
-    console.log('OCR bounds:', ocrBounds);
-    console.log('Container:', displaySize);
-    console.log('Aspect ratios - image:', imageAspect.toFixed(3), 'container:', containerAspect.toFixed(3));
-    console.log('Rendered image:', { renderedWidth: renderedWidth.toFixed(1), renderedHeight: renderedHeight.toFixed(1) });
-    console.log('Scale factor:', scale.toFixed(4));
-    console.log('Offset:', { offsetX: offsetX.toFixed(1), offsetY: offsetY.toFixed(1) });
-
     return { scale, offsetX, offsetY, renderedWidth, renderedHeight };
-  }, [correctedImageSize, displaySize, imageSize, ocrBounds]);
+  }, [correctedImageSize, displaySize]);
 
   // line index로 선택된 항목 찾기
   const findSelectedItem = (lineIndex: string): SelectedItem | undefined => {
@@ -193,16 +162,13 @@ export function OcrOverlay({
     const alreadySelected = findSelectedItem(lineIndex);
 
     if (alreadySelected) {
-      // 이미 선택된 항목 → 선택 해제
       onDeselectItem(lineIndex);
       return;
     }
 
     if (activeMode) {
-      // 활성 모드가 있으면 바로 선택
       onSelectItem({ text, mode: activeMode, lineIndex });
     } else {
-      // 활성 모드가 없으면 모달 표시
       setTappedLine({ text, lineIndex });
       setModalVisible(true);
     }
@@ -230,46 +196,28 @@ export function OcrOverlay({
         });
       });
     });
-    // 디버그: 첫 3개 라인의 frame 정보 출력
-    if (lines.length > 0) {
-      console.log('=== OCR Lines Debug ===');
-      console.log('Total lines:', lines.length);
-      console.log('First 3 lines:', lines.slice(0, 3).map(l => ({
-        text: l.line.text.substring(0, 20),
-        frame: l.line.frame,
-      })));
-
-      // 좌표 범위 분석
-      const framesWithData = lines.filter(l => l.line.frame);
-      if (framesWithData.length > 0) {
-        const maxRight = Math.max(...framesWithData.map(l => (l.line.frame?.left || 0) + (l.line.frame?.width || 0)));
-        const maxBottom = Math.max(...framesWithData.map(l => (l.line.frame?.top || 0) + (l.line.frame?.height || 0)));
-        console.log('Max coordinates from OCR:', { maxRight, maxBottom });
-        console.log('Expected image size:', imageSize);
-      }
-    }
     return lines;
-  }, [blocks, imageSize]);
+  }, [blocks]);
 
   return (
     <View
       className="flex-1"
       onLayout={handleImageLayout}
     >
-      {/* 이미지 컨테이너 - 절대 위치로 전체 영역 차지 */}
+      {/* 이미지 컨테이너 */}
       <Image
         source={{ uri: imageUri }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
         resizeMode="contain"
       />
 
-      {/* 바운딩 박스 오버레이 - 같은 영역을 차지 */}
+      {/* 바운딩 박스 오버레이 */}
       {displaySize.width > 0 && displaySize.height > 0 && (
         <View
           style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           pointerEvents="box-none"
         >
-          {/* 디버그: 이미지 렌더링 영역 표시 - 길게 눌러서 토글 */}
+          {/* 디버그: 이미지 렌더링 영역 표시 */}
           {showDebug && (
             <View
               style={{
@@ -293,7 +241,6 @@ export function OcrOverlay({
             const isSelected = !!selectedItem;
             const config = selectedItem ? MODE_CONFIG[selectedItem.mode] : null;
 
-            // 프레임 좌표를 화면 좌표로 변환
             const { scale, offsetX, offsetY } = imageLayout;
             const left = line.frame.left * scale + offsetX;
             const top = line.frame.top * scale + offsetY;
@@ -312,14 +259,13 @@ export function OcrOverlay({
                   width,
                   height,
                   borderWidth: 2,
-                  borderColor: isSelected ? config?.color : 'rgba(59, 130, 246, 0.5)', // blue-500
+                  borderColor: isSelected ? config?.color : 'rgba(59, 130, 246, 0.5)',
                   backgroundColor: isSelected
-                    ? `${config?.color}33` // 20% 투명도
+                    ? `${config?.color}33`
                     : 'rgba(59, 130, 246, 0.1)',
                   borderRadius: 4,
                 }}
               >
-                {/* 선택된 항목 라벨 */}
                 {isSelected && config && (
                   <View
                     className="absolute -top-6 left-0 px-2 py-1 rounded"
@@ -345,10 +291,7 @@ export function OcrOverlay({
               paddingVertical: 6,
               borderRadius: 16,
             }}
-            onPress={() => {
-              setShowDebug(!showDebug);
-              console.log('Debug mode:', !showDebug);
-            }}
+            onPress={() => setShowDebug(!showDebug)}
           >
             <Text style={{ color: 'white', fontSize: 12 }}>
               {showDebug ? '디버그 끄기' : '디버그'}

@@ -161,7 +161,7 @@ export default function ReportDetailScreen() {
           {receipts.map((receipt) => (
             <TouchableOpacity
               key={receipt.id}
-              onPress={() => router.push(`/receipt/${receipt.id}`)}
+              onPress={() => router.push(`/item/${receipt.id}`)}
               className="flex-row items-center bg-white p-3 rounded-lg mb-2"
             >
               <View className="w-10 h-10 bg-gray-100 rounded-md items-center justify-center mr-3">

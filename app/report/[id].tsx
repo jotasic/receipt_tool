@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Card } from '@/components/common';
-import { loadReport, submitReport } from '@/services/report';
+import { loadReport, submitReport, deleteReport } from '@/services/report';
 import { getItemById } from '@/services/database/itemService';
 import { useReportStore } from '@/store/reportStore';
 import type { Report, Item } from '@/types';
@@ -35,6 +35,8 @@ export default function ReportDetailScreen() {
   const [items, setItems] = useState<Item[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const deleteReportFromStore = useReportStore((state) => state.deleteReport);
 
   useEffect(() => {
     loadData();
@@ -86,10 +88,61 @@ export default function ReportDetailScreen() {
     );
   };
 
+  const handleEdit = () => {
+    if (!id) return;
+    router.push(`/report/edit?id=${id}`);
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      '리포트 삭제',
+      '이 리포트를 삭제하시겠습니까?\n삭제된 리포트는 복구할 수 없습니다.',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: confirmDelete,
+        },
+      ]
+    );
+  };
+
+  const confirmDelete = async () => {
+    if (!id || !report) return;
+
+    // Prevent duplicate deletion attempts
+    if (isDeleting) {
+      console.warn('Delete already in progress');
+      return;
+    }
+
+    // Verify report is in draft status
+    if (report.status !== 'draft') {
+      Alert.alert('삭제 불가', 'draft 상태의 리포트만 삭제할 수 있습니다.');
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      await deleteReport(id);
+      deleteReportFromStore(id);
+
+      // Navigate immediately after store update
+      router.back();
+    } catch (error) {
+      console.error('Report delete error:', error);
+      Alert.alert('삭제 실패', '리포트 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center">
-        <Text className="text-gray-500">로딩 중...</Text>
+        <ActivityIndicator size="large" color="#2563EB" />
+        <Text className="mt-4 text-gray-500">로딩 중...</Text>
       </SafeAreaView>
     );
   }
@@ -182,14 +235,40 @@ export default function ReportDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Submit Button (only for draft) */}
+      {/* Action Buttons (only for draft) */}
       {report.status === 'draft' && (
         <View className="p-4 bg-white border-t border-gray-200">
+          <View className="flex-row gap-3 mb-3">
+            <View className="flex-1">
+              <Button
+                title="편집"
+                onPress={handleEdit}
+                variant="outline"
+                disabled={isDeleting || isSubmitting}
+                icon={<Ionicons name="create-outline" size={20} color="#2563eb" />}
+              />
+            </View>
+            <View className="flex-1">
+              <Button
+                title={isDeleting ? '삭제 중...' : '삭제'}
+                onPress={handleDelete}
+                variant="outline"
+                disabled={isDeleting || isSubmitting}
+                loading={isDeleting}
+                icon={
+                  !isDeleting ? (
+                    <Ionicons name="trash-outline" size={20} color="#2563eb" />
+                  ) : undefined
+                }
+              />
+            </View>
+          </View>
           <Button
             title="리포트 제출"
             onPress={handleSubmit}
             variant="primary"
             loading={isSubmitting}
+            disabled={isDeleting}
           />
         </View>
       )}

@@ -11,6 +11,7 @@ import {
   getReports,
   getReportById,
   updateReport,
+  deleteReport as dbDeleteReport,
   recalculateReportTotal,
   recalculateReportTotalFromItems,
 } from '@/services/database/reportService';
@@ -233,6 +234,16 @@ export async function addReceiptsToReport(
  */
 export function calculateTotal(amounts: number[]): number {
   return amounts.reduce((sum, amount) => sum + amount, 0);
+}
+
+/**
+ * Delete a report
+ *
+ * @param reportId - Report ID
+ * @returns Promise<void>
+ */
+export async function deleteReport(reportId: string): Promise<void> {
+  await dbDeleteReport(reportId);
 }
 
 /**

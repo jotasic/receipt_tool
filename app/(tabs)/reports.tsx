@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/common/Button';
 import { ReportCard } from '@/components/report/ReportCard';
@@ -40,9 +40,11 @@ export default function ReportsScreen() {
   }, [loadReports]);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right']}>
-      {/* Header */}
-      <View className="flex-row justify-between items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right']}>
+        {/* Header */}
+        <View className="flex-row justify-between items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">리포트</Text>
         {reports.length > 0 && (
           <TouchableOpacity onPress={() => router.push('/report/create')}>
@@ -68,6 +70,7 @@ export default function ReportsScreen() {
           }
         />
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </>
   );
 }

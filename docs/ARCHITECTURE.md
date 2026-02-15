@@ -174,8 +174,29 @@ CREATE TABLE report_items (
 다음 테이블들은 마이그레이션을 위해 유지:
 - `receipts` - 구 영수증 테이블
 - `documents` - 구 문서 테이블
-- `categories` - 구 카테고리 테이블 (현재 items에서는 usage_purposes 사용)
+- `categories` - **DEPRECATED** 구 카테고리 테이블 (현재 items에서는 usage_purposes 사용)
 - `report_receipts` / `report_documents` - 구 연결 테이블
+
+#### Legacy Category System (Deprecated)
+
+**Old System (Deprecated):**
+- Single-dimension categorization via `categories` table
+- Categories: 식비, 교통비, 쇼핑, etc.
+- Used in legacy `receipts` table via `category_id` foreign key
+- Service: `categoryService.ts` (marked `@deprecated`)
+
+**New System (Current):**
+- 2D classification: `ItemClassification × UsagePurpose`
+- **Classification** (payment method): `personal_card`, `corporate_card`, `proof_document`
+- **UsagePurpose** (expense type): `meal`, `other`, + user-defined
+- Used in new `items` table via `usage_purpose` field
+- Service: `usagePurposeService.ts`
+
+**Migration Strategy:**
+- Legacy tables kept for backward compatibility only
+- New implementations should NOT use categories
+- Use `usagePurposeService` for new code
+- See [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md#category-system-migration) for details
 
 상세 스키마: `/services/database/SCHEMA_DIAGRAM.md`
 

@@ -2,7 +2,9 @@ import type { Category } from '@/types';
 
 /**
  * 기본 카테고리 목록
+ * @deprecated Legacy category system - use DEFAULT_USAGE_PURPOSES instead
  * ID는 /services/database/schema.ts의 DEFAULT_CATEGORIES와 일치해야 합니다.
+ * Kept for backward compatibility with old receipt data only.
  */
 export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'food', name: '식비', icon: 'restaurant', color: '#FF6B6B' },

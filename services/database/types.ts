@@ -9,6 +9,7 @@ import type { ReportStatus } from '@/types/report';
 
 /**
  * Database row type for categories table
+ * @deprecated Legacy category system - use UsagePurposeRow instead
  */
 export interface CategoryRow {
   id: string;

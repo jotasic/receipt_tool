@@ -493,6 +493,81 @@ await migrateToUnifiedModel(db);
 3. **UsagePurpose 서비스 구현** - 동적 용도 관리
 4. **레거시 테이블 제거 검토** - 마이그레이션 안정화 후
 
+## Category System Migration
+
+### Before (Legacy)
+
+```typescript
+import { getCategories } from '@/services/database/categoryService';
+
+// Get all categories
+const categories = await getCategories();
+// Categories: 식비, 교통비, 쇼핑, etc.
+
+// Receipt used category_id field
+const receipt = {
+  title: '점심',
+  amount: 12000,
+  category: 'food',  // Category ID
+  // ... other fields
+};
+```
+
+### After (Current)
+
+```typescript
+import { getActiveUsagePurposes } from '@/services/database/usagePurposeService';
+
+// Get all usage purposes
+const purposes = await getActiveUsagePurposes();
+// Purposes: meal, other, + user-defined
+
+// Items now use 2D classification:
+const item = {
+  classification: 'personal_card',  // or 'corporate_card', 'proof_document'
+  usagePurpose: 'meal',             // or 'other', or user-defined ID
+  title: '점심',
+  amount: 12000,
+  // ... other fields
+};
+```
+
+### Rationale
+
+**Why we moved away from Categories:**
+
+1. **Single-dimension limitation**: Categories were only about expense type (food, transport, etc.)
+2. **Missing payment context**: Couldn't distinguish between personal card, corporate card, or proof documents
+3. **Not extensible**: Hard to add new categorization dimensions
+
+**Benefits of 2D Classification:**
+
+1. **Payment method dimension**: `classification` tells you HOW the expense was paid
+   - `personal_card` - Personal card (to be reimbursed)
+   - `corporate_card` - Corporate card (already paid by company)
+   - `proof_document` - Supporting documents (no payment involved)
+
+2. **Usage purpose dimension**: `usagePurpose` tells you WHAT the expense was for
+   - System defaults: `meal`, `other`
+   - User-extensible via `usage_purposes` table
+   - Same flexibility as old categories, but cleaner
+
+3. **More accurate tracking**: Can now answer questions like:
+   - "Show me all corporate card meal expenses"
+   - "What personal card expenses need reimbursement?"
+   - "List all proof documents for medical purposes"
+
+### Migration Path
+
+Legacy `categories` table and `category_id` field are kept for backward compatibility:
+
+- Old `receipts` table still references categories
+- New `items` table uses `usage_purpose` instead
+- Both systems coexist - no data loss
+- Category service still works but is marked `@deprecated`
+
+When creating new items, always use `usagePurpose` instead of categories.
+
 ## 참고 문서
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - 현재 아키텍처

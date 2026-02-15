@@ -17,7 +17,14 @@ export {
 export { getDatabase } from './getDatabase';
 
 // Schema definitions
-export { SCHEMA, INDEXES, DEFAULT_CATEGORIES } from './schema';
+export {
+  SCHEMA,
+  INDEXES,
+  /**
+   * @deprecated Use DEFAULT_USAGE_PURPOSES instead
+   */
+  DEFAULT_CATEGORIES,
+} from './schema';
 
 // Database migrations (schema migrations)
 export {
@@ -113,7 +120,10 @@ export {
   getReportsByDocumentId,
 } from './reportService';
 
-// Category service operations
+// Category service operations (DEPRECATED - use usagePurposeService instead)
+/**
+ * @deprecated Legacy category service - use usagePurposeService for new code
+ */
 export {
   getCategories,
   getCategoryById,
@@ -226,3 +236,12 @@ export {
   sanitizeLikeQuery,
   buildWhereClause,
 } from './utils';
+
+// Database cleanup utilities (for legacy data)
+export {
+  hasLegacyCategoryData,
+  removeCategoryTable,
+  getLegacyReceiptCount,
+  getCategoryTableCount,
+  getCleanupStatus,
+} from './cleanup';

@@ -66,6 +66,12 @@ export const SCHEMA = {
     )
   `,
 
+  /**
+   * DEPRECATED: Legacy category system
+   * Replaced by 2D classification: ItemClassification × UsagePurpose
+   * Kept for backward compatibility with old receipt data
+   * New items use usage_purpose field instead
+   */
   categories: `
     CREATE TABLE IF NOT EXISTS categories (
       id TEXT PRIMARY KEY,
@@ -377,7 +383,10 @@ export const INDEXES = {
 };
 
 /**
- * Default categories to seed the database
+ * DEPRECATED: Default categories for legacy receipt system
+ * New items use UsagePurpose instead (meal, other, etc.)
+ * Kept for backward compatibility with old receipt data only
+ * @deprecated Use DEFAULT_USAGE_PURPOSES instead
  */
 export const DEFAULT_CATEGORIES = [
   { id: 'food', name: '식비', icon: 'restaurant', color: '#FF6B6B' },

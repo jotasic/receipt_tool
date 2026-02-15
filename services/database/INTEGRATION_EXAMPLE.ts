@@ -3,6 +3,10 @@
  *
  * This file demonstrates how to use the database service layer
  * in a real-world scenario.
+ *
+ * NOTE: This file uses legacy Receipt/Category APIs for demonstration.
+ * For new code, use the Item-based APIs with UsagePurpose instead.
+ * See MIGRATION_GUIDE.md for details.
  */
 
 import {
@@ -135,6 +139,7 @@ export async function example3_TransactionExample(reportId: string) {
 
 /**
  * Example 4: Query and display categories with statistics
+ * @deprecated Use getActiveUsagePurposes() for new code
  */
 export async function example4_CategoryStatistics() {
   const categories = await getCategories();

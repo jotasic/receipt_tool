@@ -1,7 +1,16 @@
 /**
  * Category Service
  *
- * Provides CRUD operations for expense categories
+ * @deprecated This service is deprecated and kept only for backward compatibility
+ * with legacy Receipt data. New items use the UsagePurpose system instead.
+ *
+ * For new implementations, use:
+ * - ItemClassification (personal_card, corporate_card, proof_document)
+ * - UsagePurpose (meal, other, + user-defined via usagePurposeService)
+ *
+ * See: /services/database/usagePurposeService.ts
+ *
+ * Provides CRUD operations for expense categories (LEGACY ONLY)
  */
 
 import { getDatabase } from './getDatabase';
@@ -32,6 +41,7 @@ function generateId(name: string): string {
 
 /**
  * Get all categories
+ * @deprecated Use getActiveUsagePurposes() from usagePurposeService instead
  *
  * @returns Promise<Category[]> - Array of all categories
  */
@@ -46,6 +56,7 @@ export async function getCategories(): Promise<Category[]> {
 
 /**
  * Get a category by ID
+ * @deprecated Use getUsagePurposeById() from usagePurposeService instead
  *
  * @param id - Category ID
  * @returns Promise<Category | null> - Category object or null if not found
@@ -66,6 +77,7 @@ export async function getCategoryById(id: string): Promise<Category | null> {
 
 /**
  * Create a new category
+ * @deprecated Use createUsagePurpose() from usagePurposeService instead
  *
  * @param category - Category data without id or with custom id
  * @returns Promise<Category> - The created category
@@ -89,6 +101,7 @@ export async function createCategory(
 
 /**
  * Update a category
+ * @deprecated Use updateUsagePurpose() from usagePurposeService instead
  *
  * @param id - Category ID
  * @param updates - Partial category data to update
@@ -126,6 +139,7 @@ export async function updateCategory(
 
 /**
  * Delete a category
+ * @deprecated Use deleteUsagePurpose() from usagePurposeService instead
  *
  * @param id - Category ID
  * @returns Promise<void>
@@ -151,6 +165,7 @@ export async function deleteCategory(id: string): Promise<void> {
 
 /**
  * Get category usage statistics
+ * @deprecated Use getUsagePurposeStatistics() from usagePurposeService instead
  *
  * @returns Promise<Array> - Array of categories with receipt counts and total amounts
  */
@@ -193,6 +208,7 @@ export async function getCategoryStatistics(): Promise<
 
 /**
  * Check if a category name already exists
+ * @deprecated No direct replacement needed - handled internally in usagePurposeService
  *
  * @param name - Category name
  * @param excludeId - Optional category ID to exclude from check (for updates)

@@ -69,7 +69,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
       <ScrollView
         className="flex-1"
         refreshControl={
@@ -78,7 +78,7 @@ export default function HomeScreen() {
       >
         {/* Header */}
         <View className="px-6 pt-4 pb-6">
-          <Text className="text-3xl font-bold text-gray-900">
+          <Text className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             증빙 관리
           </Text>
         </View>
@@ -87,7 +87,7 @@ export default function HomeScreen() {
         <View className="px-6 pb-6">
           <Card className="bg-gradient-to-br">
             <View className="mb-2">
-              <Text className="text-gray-600 text-base font-medium">
+              <Text className="text-gray-600 dark:text-gray-400 text-base font-medium">
                 이번 달 지출
               </Text>
             </View>
@@ -96,7 +96,7 @@ export default function HomeScreen() {
               {isLoading && items.length === 0 ? (
                 <ActivityIndicator size="large" color="#2563eb" />
               ) : (
-                <Text className="text-4xl font-bold text-blue-600">
+                <Text className="text-4xl font-bold text-blue-600 dark:text-blue-400">
                   {formatCurrency(stats.totalAmount)}
                 </Text>
               )}
@@ -104,7 +104,7 @@ export default function HomeScreen() {
 
             <View className="flex-row items-center">
               <Ionicons name="list-outline" size={16} color="#6b7280" />
-              <Text className="text-gray-600 text-sm ml-2">
+              <Text className="text-gray-600 dark:text-gray-400 text-sm ml-2">
                 증빙 {stats.totalCount}건
               </Text>
             </View>
@@ -113,7 +113,7 @@ export default function HomeScreen() {
 
         {/* Quick Action Cards */}
         <View className="px-6 pb-6">
-          <Text className="text-xl font-bold text-gray-900 mb-4">
+          <Text className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
             분류별 현황
           </Text>
 
@@ -126,14 +126,14 @@ export default function HomeScreen() {
               <Card>
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center flex-1">
-                    <View className="bg-blue-100 rounded-full p-3 mr-3">
+                    <View className="bg-blue-100 dark:bg-blue-900/30 rounded-full p-3 mr-3">
                       <Ionicons name="card-outline" size={24} color="#2563eb" />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-base font-semibold text-gray-900">
+                      <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">
                         개인카드
                       </Text>
-                      <Text className="text-sm text-gray-500 mt-1">
+                      <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         {stats.personalCard.count}건 · {formatCurrency(stats.personalCard.total)}
                       </Text>
                     </View>
@@ -157,14 +157,14 @@ export default function HomeScreen() {
               <Card>
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center flex-1">
-                    <View className="bg-purple-100 rounded-full p-3 mr-3">
+                    <View className="bg-purple-100 dark:bg-purple-900/30 rounded-full p-3 mr-3">
                       <Ionicons name="business-outline" size={24} color="#7c3aed" />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-base font-semibold text-gray-900">
+                      <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">
                         법인카드
                       </Text>
-                      <Text className="text-sm text-gray-500 mt-1">
+                      <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         {stats.corporateCard.count}건 · {formatCurrency(stats.corporateCard.total)}
                       </Text>
                     </View>
@@ -188,14 +188,14 @@ export default function HomeScreen() {
               <Card>
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center flex-1">
-                    <View className="bg-green-100 rounded-full p-3 mr-3">
+                    <View className="bg-green-100 dark:bg-green-900/30 rounded-full p-3 mr-3">
                       <Ionicons name="document-text-outline" size={24} color="#059669" />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-base font-semibold text-gray-900">
+                      <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">
                         증명서류
                       </Text>
-                      <Text className="text-sm text-gray-500 mt-1">
+                      <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         {stats.proofDocument.count}건
                       </Text>
                     </View>
@@ -219,14 +219,14 @@ export default function HomeScreen() {
               <Card>
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center flex-1">
-                    <View className="bg-orange-100 rounded-full p-3 mr-3">
+                    <View className="bg-orange-100 dark:bg-orange-900/30 rounded-full p-3 mr-3">
                       <Ionicons name="stats-chart-outline" size={24} color="#ea580c" />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-base font-semibold text-gray-900">
+                      <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">
                         리포트
                       </Text>
-                      <Text className="text-sm text-gray-500 mt-1">
+                      <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         지출 분석 및 통계
                       </Text>
                     </View>
@@ -243,13 +243,13 @@ export default function HomeScreen() {
           <View className="px-6 pb-6">
             <Card>
               <View className="items-center py-8">
-                <View className="bg-gray-100 rounded-full p-4 mb-4">
+                <View className="bg-gray-100 dark:bg-gray-700 rounded-full p-4 mb-4">
                   <Ionicons name="list-outline" size={48} color="#9ca3af" />
                 </View>
-                <Text className="text-gray-500 text-base text-center">
+                <Text className="text-gray-500 dark:text-gray-400 text-base text-center">
                   아직 등록된 증빙이 없습니다
                 </Text>
-                <Text className="text-gray-400 text-sm text-center mt-2">
+                <Text className="text-gray-400 dark:text-gray-500 text-sm text-center mt-2">
                   하단의 + 버튼을 눌러 증빙을 추가해보세요
                 </Text>
               </View>

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
+import { Appearance } from 'react-native';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useItemStore } from '@/store/itemStore';
 import { getDatabase } from '@/services/database';
@@ -43,7 +44,7 @@ function SettingItem({
   return (
     <TouchableOpacity
       onPress={handlePress}
-      className="flex-row items-center px-4 py-3 bg-white border-b border-gray-200"
+      className="flex-row items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
       activeOpacity={hasToggle ? 1 : 0.6}
       disabled={disabled || hasToggle}
     >
@@ -59,7 +60,7 @@ function SettingItem({
       {/* Title */}
       <Text
         className={`flex-1 text-base ${
-          textColor === 'red' ? 'text-red-500' : 'text-gray-900'
+          textColor === 'red' ? 'text-red-500' : 'text-gray-900 dark:text-gray-100'
         }`}
       >
         {title}
@@ -67,7 +68,7 @@ function SettingItem({
 
       {/* Value */}
       {value && !hasToggle && (
-        <Text className="text-sm text-gray-500 mr-2">{value}</Text>
+        <Text className="text-sm text-gray-500 dark:text-gray-400 mr-2">{value}</Text>
       )}
 
       {/* Toggle Switch */}
@@ -98,10 +99,43 @@ export default function SettingsScreen() {
   // Get app version from expo config
   const appVersion = Constants.expoConfig?.version || '1.0.0';
 
-  // Dark mode toggle handler (basic implementation for P0)
-  const handleDarkModeToggle = (value: boolean) => {
-    setTheme(value ? 'dark' : 'light');
-    Alert.alert('준비 중', '다크 모드는 P1.6에서 완전히 구현될 예정입니다.');
+  // Dark mode toggle handler
+  const handleDarkModeToggle = async (value: boolean) => {
+    const newTheme = value ? 'dark' : 'light';
+    await setTheme(newTheme);
+    Appearance.setColorScheme(newTheme);
+  };
+
+  // Theme selection handler
+  const handleThemeSelection = () => {
+    Alert.alert(
+      '테마 선택',
+      '사용할 테마를 선택해주세요',
+      [
+        {
+          text: '라이트 모드',
+          onPress: async () => {
+            await setTheme('light');
+            Appearance.setColorScheme('light');
+          },
+        },
+        {
+          text: '다크 모드',
+          onPress: async () => {
+            await setTheme('dark');
+            Appearance.setColorScheme('dark');
+          },
+        },
+        {
+          text: '시스템 설정 따르기',
+          onPress: async () => {
+            await setTheme('system');
+            Appearance.setColorScheme(null);
+          },
+        },
+        { text: '취소', style: 'cancel' },
+      ]
+    );
   };
 
   // Clear all data handler
@@ -226,36 +260,50 @@ export default function SettingsScreen() {
     );
   };
 
+  // Get theme display text
+  const getThemeDisplayText = () => {
+    switch (theme) {
+      case 'light':
+        return '라이트';
+      case 'dark':
+        return '다크';
+      case 'system':
+        return '시스템 설정';
+      default:
+        return '시스템 설정';
+    }
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
       <ScrollView className="flex-1">
         {/* Header */}
-        <View className="px-4 py-6 bg-white border-b border-gray-200">
-          <Text className="text-2xl font-bold text-gray-900">설정</Text>
+        <View className="px-4 py-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">설정</Text>
         </View>
 
         {/* Loading overlay */}
         {isClearing && (
           <View className="absolute inset-0 bg-black/30 items-center justify-center z-50">
-            <View className="bg-white rounded-lg p-6 items-center">
+            <View className="bg-white dark:bg-gray-800 rounded-lg p-6 items-center">
               <ActivityIndicator size="large" color="#3B82F6" />
-              <Text className="mt-4 text-gray-700">처리 중...</Text>
+              <Text className="mt-4 text-gray-700 dark:text-gray-300">처리 중...</Text>
             </View>
           </View>
         )}
 
         {/* 설정 그룹 1: 앱 설정 */}
         <View className="mt-6">
-          <Text className="px-4 py-2 text-sm font-semibold text-gray-500 uppercase">
+          <Text className="px-4 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase">
             앱 설정
           </Text>
           <View className="mt-1">
             <SettingItem
               icon="moon"
-              title="다크 모드"
-              hasToggle
-              toggleValue={theme === 'dark'}
-              onToggleChange={handleDarkModeToggle}
+              title="테마"
+              value={getThemeDisplayText()}
+              hasArrow
+              onPress={handleThemeSelection}
               disabled={isClearing}
             />
             <SettingItem
@@ -278,7 +326,7 @@ export default function SettingsScreen() {
 
         {/* 설정 그룹 2: 관리 */}
         <View className="mt-6">
-          <Text className="px-4 py-2 text-sm font-semibold text-gray-500 uppercase">
+          <Text className="px-4 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase">
             관리
           </Text>
           <View className="mt-1">
@@ -301,7 +349,7 @@ export default function SettingsScreen() {
 
         {/* 설정 그룹 3: 데이터 */}
         <View className="mt-6">
-          <Text className="px-4 py-2 text-sm font-semibold text-gray-500 uppercase">
+          <Text className="px-4 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase">
             데이터
           </Text>
           <View className="mt-1">
@@ -338,7 +386,7 @@ export default function SettingsScreen() {
 
         {/* 설정 그룹 4: 정보 */}
         <View className="mt-6 mb-6">
-          <Text className="px-4 py-2 text-sm font-semibold text-gray-500 uppercase">
+          <Text className="px-4 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase">
             정보
           </Text>
           <View className="mt-1">

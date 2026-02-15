@@ -42,7 +42,7 @@ export function ItemCard({ item, onPress }: ItemCardProps) {
   return (
     <TouchableOpacity
       onPress={handlePress}
-      className="bg-white p-4 rounded-lg mb-3"
+      className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-3 border border-gray-100 dark:border-gray-700"
       activeOpacity={0.7}
       style={{
         shadowColor: '#000',
@@ -71,14 +71,14 @@ export function ItemCard({ item, onPress }: ItemCardProps) {
 
         {/* Title */}
         <View className="flex-1">
-          <Text className="font-semibold text-gray-900 text-base" numberOfLines={1}>
+          <Text className="font-semibold text-gray-900 dark:text-gray-100 text-base" numberOfLines={1}>
             {item.title}
           </Text>
         </View>
 
         {/* Amount */}
         {shouldShowAmount && (
-          <Text className="font-bold text-gray-900 text-base ml-2">
+          <Text className="font-bold text-gray-900 dark:text-gray-100 text-base ml-2">
             {formatAmount(item.amount!)}
           </Text>
         )}
@@ -125,7 +125,7 @@ export function ItemCard({ item, onPress }: ItemCardProps) {
       {/* Bottom Row: Date, Chevron */}
       <View className="flex-row items-center justify-between mt-2 ml-13">
         {/* Date */}
-        <Text className="text-sm text-gray-500">
+        <Text className="text-sm text-gray-500 dark:text-gray-400">
           {formatDate(item.date)}
         </Text>
 

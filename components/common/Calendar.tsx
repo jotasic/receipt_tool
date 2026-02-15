@@ -102,21 +102,21 @@ export function Calendar({ selectedDate, onDateSelect, markedDates = {} }: Calen
   };
 
   return (
-    <View className="bg-white rounded-lg p-4">
+    <View className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-100 dark:border-gray-700">
       {/* Header */}
       <View className="flex-row items-center justify-between mb-4">
         <TouchableOpacity onPress={goToPreviousMonth} className="p-2">
-          <Ionicons name="chevron-back" size={24} color="#374151" />
+          <Ionicons name="chevron-back" size={24} color="#6B7280" />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={goToToday} className="flex-row items-center">
-          <Text className="text-lg font-bold text-gray-900">
+          <Text className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {currentYear}년 {currentMonth + 1}월
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={goToNextMonth} className="p-2">
-          <Ionicons name="chevron-forward" size={24} color="#374151" />
+          <Ionicons name="chevron-forward" size={24} color="#6B7280" />
         </TouchableOpacity>
       </View>
 
@@ -126,7 +126,7 @@ export function Calendar({ selectedDate, onDateSelect, markedDates = {} }: Calen
           <View key={day} className="flex-1 items-center py-2">
             <Text
               className={`text-sm font-medium ${
-                index === 0 ? 'text-red-500' : index === 6 ? 'text-blue-500' : 'text-gray-500'
+                index === 0 ? 'text-red-500 dark:text-red-400' : index === 6 ? 'text-blue-500 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'
               }`}
             >
               {day}
@@ -150,20 +150,20 @@ export function Calendar({ selectedDate, onDateSelect, markedDates = {} }: Calen
               key={day}
               onPress={() => handleDateSelect(day)}
               className={`w-[14.28%] aspect-square items-center justify-center ${
-                isSelected(day) ? 'bg-blue-500 rounded-full' : ''
-              } ${isToday(day) && !isSelected(day) ? 'border border-blue-500 rounded-full' : ''}`}
+                isSelected(day) ? 'bg-blue-500 dark:bg-blue-600 rounded-full' : ''
+              } ${isToday(day) && !isSelected(day) ? 'border border-blue-500 dark:border-blue-400 rounded-full' : ''}`}
             >
               <Text
                 className={`text-base ${
                   isSelected(day)
                     ? 'text-white font-bold'
                     : isToday(day)
-                    ? 'text-blue-500 font-bold'
+                    ? 'text-blue-500 dark:text-blue-400 font-bold'
                     : dayOfWeek === 0
-                    ? 'text-red-500'
+                    ? 'text-red-500 dark:text-red-400'
                     : dayOfWeek === 6
-                    ? 'text-blue-500'
-                    : 'text-gray-900'
+                    ? 'text-blue-500 dark:text-blue-400'
+                    : 'text-gray-900 dark:text-gray-100'
                 }`}
               >
                 {day}

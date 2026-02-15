@@ -100,24 +100,24 @@ export default function ItemsScreen() {
   const renderHeader = () => (
     <View className="mb-4">
       {/* Stats Card */}
-      <View className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-5 mb-4">
+      <View className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-xl p-5 mb-4">
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-1">
-            <Text className="text-white/80 text-sm font-medium mb-1">
+            <Text className="text-white/80 dark:text-white/70 text-sm font-medium mb-1">
               총 항목
             </Text>
             <Text className="text-white text-3xl font-bold">
               {stats.totalItems}건
             </Text>
           </View>
-          <View className="bg-white/20 rounded-full p-4">
+          <View className="bg-white/20 dark:bg-white/10 rounded-full p-4">
             <Ionicons name="receipt" size={32} color="#FFFFFF" />
           </View>
         </View>
 
         {/* Total Amount */}
-        <View className="border-t border-white/20 pt-3">
-          <Text className="text-white/80 text-sm font-medium mb-1">
+        <View className="border-t border-white/20 dark:border-white/10 pt-3">
+          <Text className="text-white/80 dark:text-white/70 text-sm font-medium mb-1">
             총 금액
           </Text>
           <Text className="text-white text-2xl font-bold">
@@ -127,13 +127,13 @@ export default function ItemsScreen() {
 
         {/* Count by Classification */}
         {selectedFilter === 'all' && (
-          <View className="border-t border-white/20 pt-3 mt-3">
+          <View className="border-t border-white/20 dark:border-white/10 pt-3 mt-3">
             <View className="flex-row items-center justify-between">
               {CLASSIFICATIONS.map((classification) => {
                 const count = stats.countByClassification[classification.id] || 0;
                 return (
                   <View key={classification.id} className="flex-1 items-center">
-                    <Text className="text-white/80 text-xs font-medium mb-1">
+                    <Text className="text-white/80 dark:text-white/70 text-xs font-medium mb-1">
                       {classification.name}
                     </Text>
                     <Text className="text-white text-lg font-bold">
@@ -162,7 +162,7 @@ export default function ItemsScreen() {
                 onPress={() => handleFilterChange(item.id)}
                 className={`
                   px-4 py-2 rounded-full flex-row items-center
-                  ${isSelected ? 'bg-blue-600' : 'bg-gray-100'}
+                  ${isSelected ? 'bg-blue-600' : 'bg-gray-100 dark:bg-gray-700'}
                 `}
                 activeOpacity={0.7}
                 accessibilityLabel={`${item.name} 필터`}
@@ -177,7 +177,7 @@ export default function ItemsScreen() {
                 <Text
                   className={`
                     ml-2 text-sm font-semibold
-                    ${isSelected ? 'text-white' : 'text-gray-700'}
+                    ${isSelected ? 'text-white' : 'text-gray-700 dark:text-gray-300'}
                   `}
                 >
                   {item.name}
@@ -190,10 +190,10 @@ export default function ItemsScreen() {
 
       {/* Section Header */}
       <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-lg font-bold text-gray-900">
+        <Text className="text-lg font-bold text-gray-900 dark:text-gray-100">
           항목 목록
         </Text>
-        <Text className="text-sm text-gray-500">
+        <Text className="text-sm text-gray-500 dark:text-gray-400">
           {filteredItems.length}건
         </Text>
       </View>
@@ -202,13 +202,13 @@ export default function ItemsScreen() {
 
   const renderEmptyState = () => (
     <View className="items-center justify-center py-16">
-      <View className="bg-gray-100 rounded-full p-6 mb-4">
+      <View className="bg-gray-100 dark:bg-gray-700 rounded-full p-6 mb-4">
         <Ionicons name="receipt-outline" size={64} color="#9CA3AF" />
       </View>
-      <Text className="text-gray-900 text-lg font-semibold mb-2">
+      <Text className="text-gray-900 dark:text-gray-100 text-lg font-semibold mb-2">
         등록된 항목이 없습니다
       </Text>
-      <Text className="text-gray-500 text-base text-center mb-6">
+      <Text className="text-gray-500 dark:text-gray-400 text-base text-center mb-6">
         {selectedFilter === 'all'
           ? '하단의 + 버튼을 눌러\n첫 항목을 등록해보세요'
           : `${FILTER_OPTIONS.find((f) => f.id === selectedFilter)?.name} 항목이 없습니다`}
@@ -216,12 +216,12 @@ export default function ItemsScreen() {
       {selectedFilter !== 'all' && (
         <TouchableOpacity
           onPress={() => setSelectedFilter('all')}
-          className="px-4 py-2 bg-blue-50 rounded-lg"
+          className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg"
           activeOpacity={0.7}
           accessibilityLabel="전체 보기"
           accessibilityRole="button"
         >
-          <Text className="text-blue-600 font-medium">전체 보기</Text>
+          <Text className="text-blue-600 dark:text-blue-400 font-medium">전체 보기</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -233,20 +233,20 @@ export default function ItemsScreen() {
 
   if (isLoading && !isRefreshing) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'left', 'right', 'bottom']}>
+      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="mt-4 text-gray-500">항목 불러오는 중...</Text>
+          <Text className="mt-4 text-gray-500 dark:text-gray-400">항목 불러오는 중...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
       {/* Header */}
-      <View className="px-6 pt-4 pb-3 bg-white border-b border-gray-200">
-        <Text className="text-3xl font-bold text-gray-900">항목 관리</Text>
+      <View className="px-6 pt-4 pb-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <Text className="text-3xl font-bold text-gray-900 dark:text-gray-100">항목 관리</Text>
       </View>
 
       {/* Item List */}

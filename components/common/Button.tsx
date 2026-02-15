@@ -22,27 +22,27 @@ export function Button({
 }: ButtonProps) {
   // Variant styles
   const variantStyles = {
-    primary: 'bg-blue-600 active:bg-blue-700',
-    secondary: 'bg-gray-600 active:bg-gray-700',
-    outline: 'bg-transparent border-2 border-blue-600 active:bg-blue-50',
+    primary: 'bg-blue-600 dark:bg-blue-500 active:bg-blue-700 dark:active:bg-blue-600',
+    secondary: 'bg-gray-600 dark:bg-gray-500 active:bg-gray-700 dark:active:bg-gray-600',
+    outline: 'bg-transparent border-2 border-blue-600 dark:border-blue-500 active:bg-blue-50 dark:active:bg-blue-900/20',
   };
 
   const variantTextStyles = {
     primary: 'text-white',
     secondary: 'text-white',
-    outline: 'text-blue-600',
+    outline: 'text-blue-600 dark:text-blue-400',
   };
 
   const disabledStyles = {
-    primary: 'bg-gray-300',
-    secondary: 'bg-gray-300',
-    outline: 'border-gray-300',
+    primary: 'bg-gray-300 dark:bg-gray-700',
+    secondary: 'bg-gray-300 dark:bg-gray-700',
+    outline: 'border-gray-300 dark:border-gray-600',
   };
 
   const disabledTextStyles = {
-    primary: 'text-gray-500',
-    secondary: 'text-gray-500',
-    outline: 'text-gray-400',
+    primary: 'text-gray-500 dark:text-gray-400',
+    secondary: 'text-gray-500 dark:text-gray-400',
+    outline: 'text-gray-400 dark:text-gray-500',
   };
 
   // Size styles

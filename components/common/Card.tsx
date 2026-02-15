@@ -9,10 +9,11 @@ export function Card({ children, className = '' }: CardProps) {
   return (
     <View
       className={`
-        bg-white
+        bg-white dark:bg-gray-800
         rounded-lg
         shadow-md
         p-4
+        border border-gray-100 dark:border-gray-700
         ${className}
       `}
       style={{

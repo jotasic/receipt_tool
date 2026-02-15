@@ -81,10 +81,10 @@ export default function CalendarScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'left', 'right']}>
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right']}>
       {/* Header */}
-      <View className="px-4 py-3 bg-white border-b border-gray-200">
-        <Text className="text-2xl font-bold text-gray-900">달력</Text>
+      <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">달력</Text>
       </View>
 
       <ScrollView className="flex-1">
@@ -102,11 +102,11 @@ export default function CalendarScreen() {
           <View className="px-4 pb-4">
             <Card>
               <View className="flex-row justify-between items-center mb-3">
-                <Text className="text-lg font-semibold text-gray-900">
+                <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {formatSelectedDate(selectedDate)}
                 </Text>
-                <View className="bg-blue-100 px-3 py-1 rounded-full">
-                  <Text className="text-blue-700 font-medium">
+                <View className="bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                  <Text className="text-blue-700 dark:text-blue-400 font-medium">
                     {selectedDateItems.length}건
                   </Text>
                 </View>
@@ -114,10 +114,10 @@ export default function CalendarScreen() {
 
               {selectedDateItems.length > 0 ? (
                 <>
-                  <View className="border-t border-gray-100 pt-3">
+                  <View className="border-t border-gray-100 dark:border-gray-700 pt-3">
                     <View className="flex-row justify-between items-center">
-                      <Text className="text-gray-500">총 금액</Text>
-                      <Text className="text-xl font-bold text-blue-600">
+                      <Text className="text-gray-500 dark:text-gray-400">총 금액</Text>
+                      <Text className="text-xl font-bold text-blue-600 dark:text-blue-400">
                         {formatCurrency(selectedDateTotal)}
                       </Text>
                     </View>
@@ -125,7 +125,7 @@ export default function CalendarScreen() {
                 </>
               ) : (
                 <View className="items-center py-4">
-                  <Text className="text-gray-500">이 날짜에 항목이 없습니다</Text>
+                  <Text className="text-gray-500 dark:text-gray-400">이 날짜에 항목이 없습니다</Text>
                 </View>
               )}
             </Card>
@@ -135,15 +135,15 @@ export default function CalendarScreen() {
         {/* Selected Date Items List */}
         {selectedDate && selectedDateItems.length > 0 && (
           <View className="px-4 pb-4">
-            <Text className="text-lg font-semibold mb-3 text-gray-900">항목 목록</Text>
+            <Text className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">항목 목록</Text>
             {selectedDateItems.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 onPress={() => router.push(`/item/${item.id}`)}
-                className="flex-row items-center bg-white p-4 rounded-lg mb-2"
+                className="flex-row items-center bg-white dark:bg-gray-800 p-4 rounded-lg mb-2 border border-gray-100 dark:border-gray-700"
                 activeOpacity={0.7}
               >
-                <View className="w-10 h-10 bg-gray-100 rounded-lg items-center justify-center mr-3">
+                <View className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg items-center justify-center mr-3">
                   <Ionicons
                     name={CLASSIFICATION_ICONS[item.classification]}
                     size={20}
@@ -151,26 +151,26 @@ export default function CalendarScreen() {
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="font-medium text-gray-900" numberOfLines={1}>
+                  <Text className="font-medium text-gray-900 dark:text-gray-100" numberOfLines={1}>
                     {item.storeName || item.title}
                   </Text>
                   <View className="flex-row items-center mt-1">
                     <View
                       className={`px-2 py-0.5 rounded ${
                         item.classification === 'corporate_card'
-                          ? 'bg-blue-100'
+                          ? 'bg-blue-100 dark:bg-blue-900/30'
                           : item.classification === 'personal_card'
-                          ? 'bg-red-100'
-                          : 'bg-purple-100'
+                          ? 'bg-red-100 dark:bg-red-900/30'
+                          : 'bg-purple-100 dark:bg-purple-900/30'
                       }`}
                     >
                       <Text
                         className={`text-xs ${
                           item.classification === 'corporate_card'
-                            ? 'text-blue-700'
+                            ? 'text-blue-700 dark:text-blue-400'
                             : item.classification === 'personal_card'
-                            ? 'text-red-700'
-                            : 'text-purple-700'
+                            ? 'text-red-700 dark:text-red-400'
+                            : 'text-purple-700 dark:text-purple-400'
                         }`}
                       >
                         {CLASSIFICATION_NAMES[item.classification]}
@@ -179,7 +179,7 @@ export default function CalendarScreen() {
                   </View>
                 </View>
                 {item.amount !== undefined && item.amount !== null && (
-                  <Text className="font-bold text-gray-900">
+                  <Text className="font-bold text-gray-900 dark:text-gray-100">
                     {formatCurrency(item.amount)}
                   </Text>
                 )}
@@ -192,16 +192,16 @@ export default function CalendarScreen() {
         {!selectedDate && (
           <View className="px-4 pb-4">
             <Card>
-              <Text className="text-lg font-semibold text-gray-900 mb-2">이번 달 요약</Text>
+              <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">이번 달 요약</Text>
               <View className="flex-row justify-between items-center">
-                <Text className="text-gray-500">총 항목</Text>
-                <Text className="text-xl font-bold text-gray-900">
+                <Text className="text-gray-500 dark:text-gray-400">총 항목</Text>
+                <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   {items.length}건
                 </Text>
               </View>
               <View className="flex-row justify-between items-center mt-2">
-                <Text className="text-gray-500">총 금액</Text>
-                <Text className="text-xl font-bold text-blue-600">
+                <Text className="text-gray-500 dark:text-gray-400">총 금액</Text>
+                <Text className="text-xl font-bold text-blue-600 dark:text-blue-400">
                   {formatCurrency(
                     items.reduce((sum, item) => {
                       if (isExpense(item) && item.amount !== undefined && item.amount !== null) {

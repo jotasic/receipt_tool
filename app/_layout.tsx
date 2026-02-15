@@ -7,9 +7,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Appearance } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { initDatabase } from '@/services/database';
+import { useSettingsStore } from '@/store/settingsStore';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -31,8 +33,9 @@ export default function RootLayout() {
   });
   const [dbInitialized, setDbInitialized] = useState(false);
   const [dbError, setDbError] = useState<Error | null>(null);
+  const { theme, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
 
-  // Initialize database on app start
+  // Initialize database and settings on app start
   useEffect(() => {
     async function setupDatabase() {
       try {
@@ -49,6 +52,20 @@ export default function RootLayout() {
     setupDatabase();
   }, []);
 
+  // Load settings on app start
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  // Apply theme preference
+  useEffect(() => {
+    if (settingsLoaded && theme && theme !== 'system') {
+      Appearance.setColorScheme(theme);
+    } else if (settingsLoaded && theme === 'system') {
+      Appearance.setColorScheme(null);
+    }
+  }, [theme, settingsLoaded]);
+
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
@@ -59,12 +76,12 @@ export default function RootLayout() {
   }, [dbError]);
 
   useEffect(() => {
-    if (loaded && dbInitialized) {
+    if (loaded && dbInitialized && settingsLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [loaded, dbInitialized]);
+  }, [loaded, dbInitialized, settingsLoaded]);
 
-  if (!loaded || !dbInitialized) {
+  if (!loaded || !dbInitialized || !settingsLoaded) {
     return null;
   }
 

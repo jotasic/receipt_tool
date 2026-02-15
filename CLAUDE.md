@@ -7,11 +7,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 회사 경비 청구를 위한 증빙서류 관리 Expo 앱입니다.
 
 ### 핵심 기능
-- **영수증 스캔/OCR**: 카메라로 영수증 촬영 후 텍스트 자동 추출
-- **증빙서류 관리**: 영수증 외 회사 제출용 문서 관리 (의료 세부내역서, 계약서 등)
-- **영수증/문서 보관/정리**: 카테고리별 저장 및 검색
+- **증빙 스캔/OCR**: 카메라로 증빙 촬영 후 텍스트 자동 추출
+- **통합 증빙 관리**: 개인카드, 법인카드, 기타 증빙 문서 통합 관리 (Item 모델)
+- **2차원 분류**: ItemClassification × UsagePurpose
+- **증빙 보관/정리**: 분류별 저장 및 검색
 - **지출 관리**: 지출 내역 추적 및 통계
-- **경비 청구/리포트**: 회사 경비 청구용 리포트 생성 및 내보내기 (영수증 + 문서)
+- **경비 청구/리포트**: 회사 경비 청구용 리포트 생성 및 내보내기
 
 ## 개발 명령어
 
@@ -36,23 +37,26 @@ eas build --platform android
 
 ## 아키텍처
 
+상세 아키텍처: [/docs/ARCHITECTURE.md](/docs/ARCHITECTURE.md)
+
 ```
 app/                    # Expo Router 파일 기반 라우팅
-  (tabs)/              # 메인 탭 (홈, 영수증/문서 목록, 리포트, 설정)
-  receipt/             # 영수증 상세/편집 화면
-  document/            # 문서 상세/편집 화면 (신규)
+  (tabs)/              # 메인 탭 (홈, 증빙 목록, 캘린더, 리포트, 설정)
+  item/                # 증빙 추가/상세 화면
   report/              # 리포트 생성/상세 화면
   _layout.tsx          # 루트 레이아웃
 components/            # UI 컴포넌트
-  receipt/             # 영수증 관련 컴포넌트
-  document/            # 문서 관련 컴포넌트 (신규)
+  item/                # Item 관련 컴포넌트
   report/              # 리포트 관련 컴포넌트
   common/              # 공통 컴포넌트
-hooks/                 # 커스텀 훅
-services/              # API, OCR, 스토리지 서비스
-utils/                 # 유틸리티 함수
-constants/             # 상수, 테마
+services/              # 비즈니스 로직
+  database/            # SQLite 서비스
+  ocr/                 # OCR 서비스
+  file/                # 파일 관리
+store/                 # Zustand 상태 관리
 types/                 # TypeScript 타입 정의
+constants/             # 상수, 테마
+utils/                 # 유틸리티 함수
 assets/                # 이미지, 폰트
 ```
 
@@ -70,19 +74,23 @@ assets/                # 이미지, 폰트
 
 ## 데이터 모델
 
-### 영수증 (Receipt)
-- 지출을 증명하는 영수증 (식비, 교통비 등)
-- 금액 정보 포함
-- OCR을 통한 자동 정보 추출
+상세: [/docs/ARCHITECTURE.md](/docs/ARCHITECTURE.md)
 
-### 문서 (Document)
-- 영수증 외 증빙서류
-- 타입: 의료(medical), 계약서(contract), 견적서(estimate), 청구서(invoice), 증명서(certificate), 기타(other)
-- 예시: 의료 세부내역서, 진단서, 계약서 등
+### Item (통합 증빙)
+**2차원 분류 시스템:**
+- **ItemClassification** (증빙 형태):
+  - `personal_card`: 개인카드
+  - `corporate_card`: 법인카드
+  - `proof_document`: 기타 증빙 문서
+- **UsagePurpose** (사용 용도):
+  - `meal`: 식비
+  - `other`: 기타
+  - (동적 확장 가능)
 
-### 리포트 (Report)
-- 영수증 + 문서를 포함하는 경비 청구 리포트
-- 총액은 영수증 금액만 포함 (문서는 참고 자료)
+### Report (경비 청구)
+- 여러 Item을 묶어서 경비 청구하는 단위
+- 상태: `draft` → `submitted` → `approved` / `rejected`
+- totalAmount는 금액이 있는 Item만 합산
 
 ## 에이전트 활용
 
@@ -103,7 +111,17 @@ assets/                # 이미지, 폰트
 - 컴포넌트명: PascalCase
 - 파일명: kebab-case 또는 camelCase
 
+## 문서
+
+- **아키텍처 SSOT**: [/docs/ARCHITECTURE.md](/docs/ARCHITECTURE.md)
+- **API 레퍼런스**: [/docs/API.md](/docs/API.md)
+- **데이터베이스**: [/docs/guides/database.md](/docs/guides/database.md)
+- **OCR 시스템**: [/docs/guides/ocr.md](/docs/guides/ocr.md)
+- **모델 진화**: [/docs/MIGRATION_GUIDE.md](/docs/MIGRATION_GUIDE.md)
+- **미구현 기능**: [/미구현_기능_현황_보고.md](/미구현_기능_현황_보고.md)
+
 ## 작업 규칙
 
 - 단계별 작업 완료 시 반드시 커밋할 것
 - 커밋 메시지는 한글로 작성
+- 문서 업데이트 시 `/docs/ARCHITECTURE.md`가 SSOT임을 기억

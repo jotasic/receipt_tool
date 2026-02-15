@@ -1,89 +1,65 @@
 # Database Service
 
-SQLite database schema and initialization for the Receipt Tool application.
+SQLite 데이터베이스 서비스
 
-## Files
+Receipt Tool의 로컬 데이터 저장소로 SQLite를 사용합니다.
 
-- `schema.ts` - Table definitions, indexes, and default data
-- `init.ts` - Database initialization and management functions
-- `index.ts` - Module exports
-
-## Usage
-
-### Initialize Database
+## Quick Start
 
 ```typescript
-import { initDatabase } from '@/services/database';
+import { initDatabase, getItems, createItem } from '@/services/database';
 
-// In your App.tsx or root component
-useEffect(() => {
-  const setupDatabase = async () => {
-    try {
-      const db = await initDatabase();
-      console.log('Database initialized successfully');
-    } catch (error) {
-      console.error('Database initialization failed:', error);
-    }
-  };
+// 초기화 (App.tsx에서 한 번만)
+await initDatabase();
 
-  setupDatabase();
-}, []);
+// Item 생성
+const item = await createItem({
+  classification: 'personal_card',
+  usagePurpose: 'meal',
+  title: '점심',
+  amount: 12000,
+  date: '2024-02-15',
+});
+
+// 조회
+const items = await getItems();
 ```
 
-### Get Database Instance
+## 상세 가이드
 
-```typescript
-import { getDatabaseInstance } from '@/services/database';
+전체 데이터베이스 가이드: [/docs/guides/database.md](/docs/guides/database.md)
 
-const db = getDatabaseInstance();
-if (db) {
-  // Use database
-  const result = await db.getAllAsync('SELECT * FROM receipts');
-}
+### 포함 내용
+- 데이터 모델 설명
+- 49개 서비스 API 레퍼런스
+- 트랜잭션 사용법
+- React Native 통합 패턴
+- 에러 처리
+- 성능 최적화
+
+## API 레퍼런스
+
+API 레퍼런스: [/docs/API.md](/docs/API.md)
+
+## 파일 구조
+
+```
+services/database/
+├── init.ts                # DB 초기화
+├── schema.ts              # 테이블 정의
+├── itemService.ts         # Item CRUD (12 함수)
+├── reportService.ts       # Report 관리 (16 함수)
+├── categoryService.ts     # Category (레거시, 7 함수)
+├── utils.ts               # 유틸리티 (14 함수)
+├── migrations/            # 마이그레이션
+└── __tests__/             # 테스트
 ```
 
-## Schema Overview
+## 주요 기능
 
-### Tables
-
-1. **categories** - Receipt categories (식비, 교통비, etc.)
-   - Pre-seeded with 8 default categories
-
-2. **receipts** - Main receipt records
-   - Links to categories
-   - Stores OCR text and images
-
-3. **receipt_items** - Individual items within a receipt
-   - One-to-many relationship with receipts
-
-4. **reports** - Expense reports
-   - Tracks status: draft, submitted, approved, rejected
-
-5. **report_receipts** - Junction table linking reports and receipts
-   - Many-to-many relationship
-
-### Indexes
-
-Optimized indexes for common queries:
-- Receipt date (DESC)
-- Receipt category
-- Receipt items by receipt ID
-- Report status
-- Report creation date (DESC)
-
-## Features
-
-- Foreign key constraints enabled
-- Cascade deletes for data integrity
-- Automatic default category seeding
-- Singleton database instance pattern
-- Comprehensive error handling
-
-## Database Reset
-
-```typescript
-import { resetDatabase } from '@/services/database';
-
-// WARNING: This deletes all data
-await resetDatabase();
-```
+- Item (통합 증빙) CRUD
+- Report (경비 청구) 관리
+- 검색/필터링
+- 통계 조회
+- 트랜잭션 지원
+- 데이터 무결성 (Foreign keys, CASCADE delete)

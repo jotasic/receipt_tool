@@ -16,15 +16,16 @@ Migrations are designed to be:
 
 **Purpose**: Migrate deprecated document types to 'other'
 
-**Background**: The application removed support for three document types:
-- `contract` (계약서) - Contracts
-- `estimate` (견적서) - Estimates
-- `invoice` (청구서) - Invoices
+**Background**: The application migrated from separate Receipt/Document models to a unified Item model. During this transition, deprecated document types were migrated to 'other':
+- `contract` (계약서) → `other`
+- `estimate` (견적서) → `other`
+- `invoice` (청구서) → `other`
 
-These are being replaced with a simpler type system focused on HR/financial documents:
-- `medical` - Medical documents and receipts
-- `certificate` - Verification certificates
-- `other` - All other documents
+The unified Item model uses:
+- **ItemClassification**: `personal_card` | `corporate_card` | `proof_document`
+- **UsagePurpose**: `meal` | `other` | ... (dynamically extensible)
+
+See: [/docs/MIGRATION_GUIDE.md](/docs/MIGRATION_GUIDE.md)
 
 **What it does**:
 1. Checks if the documents table exists

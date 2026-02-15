@@ -289,6 +289,13 @@ export default function SettingsScreen() {
               onPress={() => router.push('/settings/tags' as any)}
               disabled={isClearing}
             />
+            <SettingItem
+              icon="pricetag"
+              title="사용처 관리"
+              hasArrow
+              onPress={() => router.push('/settings/usage-purposes' as any)}
+              disabled={isClearing}
+            />
           </View>
         </View>
 

@@ -1,0 +1,222 @@
+/**
+ * Icon Picker Component
+ *
+ * A reusable modal for selecting Ionicons
+ */
+
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+
+// Common icons for usage purposes and tags
+const COMMON_ICONS = [
+  'restaurant',
+  'car',
+  'bus',
+  'train',
+  'airplane',
+  'shopping-bag',
+  'cart',
+  'gift',
+  'home',
+  'business',
+  'medical',
+  'fitness',
+  'book',
+  'school',
+  'briefcase',
+  'phone',
+  'laptop',
+  'camera',
+  'game-controller',
+  'film',
+  'music',
+  'heart',
+  'star',
+  'trophy',
+  'pricetag',
+  'bookmark',
+  'folder',
+  'document',
+  'cash',
+  'card',
+  'wallet',
+  'receipt',
+  'pizza',
+  'cafe',
+  'beer',
+  'wine',
+  'fast-food',
+  'ellipsis-horizontal',
+  'construct',
+  'hammer',
+  'build',
+  'cog',
+  'settings',
+  'pencil',
+  'create',
+  'color-palette',
+  'people',
+  'person',
+  'shield',
+  'lock-closed',
+  'lock-open',
+  'notifications',
+  'mail',
+  'chatbubble',
+  'call',
+  'location',
+  'map',
+  'compass',
+  'globe',
+  'cloud',
+  'sunny',
+  'moon',
+  'flash',
+  'flame',
+  'water',
+  'leaf',
+  'rose',
+  'flower',
+  'paw',
+  'bicycle',
+  'boat',
+  'rocket',
+  'battery-full',
+  'bulb',
+  'calculator',
+  'calendar',
+  'time',
+  'timer',
+  'stopwatch',
+  'hourglass',
+  'alarm',
+] as const;
+
+interface IconPickerProps {
+  visible: boolean;
+  selectedIcon: string | null;
+  onIconSelect: (icon: string) => void;
+  onClose: () => void;
+}
+
+export function IconPicker({
+  visible,
+  selectedIcon,
+  onIconSelect,
+  onClose,
+}: IconPickerProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filter icons by search query
+  const filteredIcons = searchQuery.trim()
+    ? COMMON_ICONS.filter((icon) =>
+        icon.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : COMMON_ICONS;
+
+  const handleSelectIcon = (icon: string) => {
+    onIconSelect(icon);
+    onClose();
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+        {/* Header */}
+        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
+          <Text className="text-lg font-semibold text-gray-900">
+            아이콘 선택
+          </Text>
+          <TouchableOpacity
+            onPress={onClose}
+            className="w-10 h-10 items-center justify-center"
+          >
+            <Ionicons name="close" size={24} color="#111827" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Search bar */}
+        <View className="px-4 py-3 border-b border-gray-200">
+          <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
+            <Ionicons name="search" size={20} color="#6B7280" />
+            <TextInput
+              className="flex-1 ml-2 text-base text-gray-900"
+              placeholder="아이콘 검색"
+              placeholderTextColor="#9CA3AF"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <Ionicons name="close-circle" size={20} color="#6B7280" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Icon grid */}
+        <ScrollView className="flex-1 p-4">
+          <View className="flex-row flex-wrap gap-3">
+            {filteredIcons.map((icon) => (
+              <TouchableOpacity
+                key={icon}
+                onPress={() => handleSelectIcon(icon)}
+                className="w-16 h-16 items-center justify-center rounded-lg border-2"
+                style={{
+                  borderColor:
+                    selectedIcon === icon ? '#3B82F6' : '#E5E7EB',
+                  backgroundColor:
+                    selectedIcon === icon ? '#EFF6FF' : '#F9FAFB',
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={icon as any}
+                  size={28}
+                  color={selectedIcon === icon ? '#3B82F6' : '#6B7280'}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {filteredIcons.length === 0 && (
+            <View className="items-center justify-center py-12">
+              <Ionicons name="search" size={48} color="#D1D5DB" />
+              <Text className="mt-4 text-gray-500">
+                검색 결과가 없습니다
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Selected icon preview */}
+        {selectedIcon && (
+          <View className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+            <Text className="text-sm text-gray-600 mb-2">선택된 아이콘</Text>
+            <View className="flex-row items-center">
+              <View className="w-12 h-12 bg-blue-50 rounded-lg items-center justify-center mr-3">
+                <Ionicons name={selectedIcon as any} size={24} color="#3B82F6" />
+              </View>
+              <Text className="text-base text-gray-900">{selectedIcon}</Text>
+            </View>
+          </View>
+        )}
+      </SafeAreaView>
+    </Modal>
+  );
+}

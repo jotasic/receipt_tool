@@ -24,6 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ItemForm } from '@/components/item';
 import { createItem } from '@/services/database/itemService';
+import { setTagsForItem } from '@/services/database/tagService';
 import { useItemStore } from '@/store/itemStore';
 import type { CreateItemInput } from '@/types/item';
 
@@ -85,16 +86,22 @@ export default function ItemAddScreen() {
         savedImagePath = await saveItemImage(data.filePath);
       }
 
-      // 2. Create item in database
+      // 2. Create item in database (exclude tags from item creation)
+      const { tags: tagIds, ...itemData } = data;
       const item = await createItem({
-        ...data,
+        ...itemData,
         filePath: savedImagePath || undefined,
       });
 
-      // 3. Update Zustand store
+      // 3. Save tags if provided
+      if (tagIds && tagIds.length > 0) {
+        await setTagsForItem(item.id, tagIds);
+      }
+
+      // 4. Update Zustand store
       addItem(item);
 
-      // 4. Navigate back with success message
+      // 5. Navigate back with success message
       Alert.alert('성공', '항목이 저장되었습니다.', [
         { text: '확인', onPress: () => router.replace('/(tabs)') },
       ]);

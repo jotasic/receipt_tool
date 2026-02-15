@@ -34,6 +34,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Input, Button } from '@/components/common';
 import { ClassificationSelector } from './ClassificationSelector';
 import { UsagePurposeSelector } from './UsagePurposeSelector';
+import { TagSelector } from './TagSelector';
 import { OcrOverlay, type SelectedItem } from './OcrOverlay';
 import {
   extractReceiptData,
@@ -45,6 +46,7 @@ import {
 import type { OcrError, OcrBlock } from '@/services/ocr';
 import type { CreateItemInput } from '@/types/item';
 import type { ItemClassification, UsagePurpose } from '@/types/shared';
+import type { Tag } from '@/types/tag';
 
 interface ItemFormProps {
   /** Initial form data for edit mode (optional) */
@@ -83,6 +85,9 @@ export function ItemForm({
   );
   const [memo, setMemo] = useState(initialData?.memo || '');
   const [ocrText, setOcrText] = useState(initialData?.ocrText || '');
+  const [selectedTags, setSelectedTags] = useState<Tag[]>(
+    (initialData as any)?.tagObjects || []
+  );
 
   // UI state
   const [isLoadingImage, setIsLoadingImage] = useState(false);
@@ -401,6 +406,11 @@ export function ItemForm({
         itemData.storeName = storeName.trim();
       }
 
+      // Add tags (as IDs)
+      if (selectedTags.length > 0) {
+        itemData.tags = selectedTags.map(tag => tag.id);
+      }
+
       await onSubmit(itemData);
     } catch (error) {
       console.error('Submit error:', error);
@@ -696,6 +706,15 @@ export function ItemForm({
           multiline
           numberOfLines={4}
         />
+
+        {/* Tags Section */}
+        <View className="mb-6">
+          <TagSelector
+            selectedTags={selectedTags}
+            onTagsChange={setSelectedTags}
+            label="태그 (선택)"
+          />
+        </View>
       </ScrollView>
 
       {/* Action Buttons */}

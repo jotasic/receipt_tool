@@ -33,6 +33,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ItemForm } from '@/components/item';
 import { getItemById, updateItem } from '@/services/database/itemService';
+import { getTagsForItem, setTagsForItem } from '@/services/database/tagService';
 import { useItemStore } from '@/store/itemStore';
 import type { Item, CreateItemInput } from '@/types/item';
 
@@ -118,7 +119,9 @@ export default function ItemEditScreen() {
         return;
       }
 
-      setItem(fetchedItem);
+      // Load tags for the item
+      const tags = await getTagsForItem(id);
+      setItem({ ...fetchedItem, tags });
     } catch (error) {
       console.error('Item load error:', error);
       Alert.alert('오류', '항목을 불러오는 중 오류가 발생했습니다.', [
@@ -183,13 +186,18 @@ export default function ItemEditScreen() {
       // 3. Update in database
       await updateItem(id, updateData);
 
-      // 4. Update Zustand store with full updated item
+      // 4. Save tags if provided
+      if (data.tags !== undefined) {
+        await setTagsForItem(id, data.tags);
+      }
+
+      // 5. Update Zustand store with full updated item
       updateItemInStore(id, {
         ...updateData,
         updatedAt: new Date().toISOString(),
       });
 
-      // 5. Navigate back with success message
+      // 6. Navigate back with success message
       Alert.alert('성공', '항목이 수정되었습니다.', [
         { text: '확인', onPress: () => router.back() },
       ]);
@@ -318,7 +326,7 @@ export default function ItemEditScreen() {
   }
 
   // Convert Item to CreateItemInput format for ItemForm
-  const initialData: Partial<CreateItemInput> = {
+  const initialData: Partial<CreateItemInput> & { tagObjects?: typeof item.tags } = {
     title: item.title,
     classification: item.classification,
     usagePurpose: item.usagePurpose,
@@ -329,6 +337,7 @@ export default function ItemEditScreen() {
     fileType: item.fileType,
     ocrText: item.ocrText,
     memo: item.memo,
+    tagObjects: item.tags, // Pass Tag objects for display
   };
 
   return (

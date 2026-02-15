@@ -213,9 +213,13 @@ export function isExpense(item: Item): boolean {
  *   amount: 4500,
  *   date: '2026-02-15',
  *   storeName: '스타벅스 강남점',
+ *   tags: ['tag-id-1', 'tag-id-2'], // Optional tag IDs
  * };
  */
-export interface CreateItemInput extends Omit<Item, 'id' | 'createdAt' | 'updatedAt'> {}
+export interface CreateItemInput extends Omit<Item, 'id' | 'createdAt' | 'updatedAt' | 'tags'> {
+  /** Array of tag IDs to associate with this item */
+  tags?: string[];
+}
 
 /**
  * UpdateItemInput - Data allowed for updating an existing item

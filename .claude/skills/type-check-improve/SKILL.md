@@ -1,8 +1,8 @@
 ---
 name: type-check-improve
-description: Improve TypeScript/Python type checking
+description: Improve TypeScript type checking
 argument-hint: [path] [--strict]
-allowed-tools: Task, Bash
+allowed-tools: Bash, Read, Grep, Glob, Edit
 model: haiku
 category: development
 ---
@@ -11,23 +11,38 @@ category: development
 
 ## ⚡ 즉시 실행
 
-**아래 에이전트를 즉시 호출하세요:**
-
-```
-Use the refactorer agent to analyze and improve type coverage for: $ARGUMENTS
+```bash
+npx tsc --noEmit
 ```
 
-## 에이전트 완료 후
+## 에러 발견 시
 
-검사 완료 시 안내:
+1. 에러 위치 확인
+2. 타입 정의 수정 또는 추가
+3. 재검사
 
-```
-타입 검사 완료.
-- 타입 에러 수정: Use the debugger agent to fix type errors
-- 린트 검사: /lint --fix
+## 옵션
+
+- `--strict`: 엄격 모드로 검사
+- `[path]`: 특정 파일/폴더만 검사
+
+## 일반적인 수정 패턴
+
+```typescript
+// 1. 타입 단언
+const value = data as string;
+
+// 2. 옵셔널 체이닝
+const name = user?.name;
+
+// 3. 타입 가드
+if (typeof value === 'string') { ... }
+
+// 4. 인터페이스 확장
+interface Item extends BaseItem { ... }
 ```
 
 ## Related Skills
 
-- `/lint`: 코드 스타일 검사
+- `/lint --fix`: 코드 스타일 자동 수정
 - `/code-quality`: 전체 품질 검사

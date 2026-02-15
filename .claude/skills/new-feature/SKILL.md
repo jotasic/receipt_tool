@@ -11,40 +11,31 @@ category: development
 
 ## ⚡ 즉시 실행
 
-**프로젝트 타입 확인 후 적절한 에이전트 호출:**
+**프로젝트 타입에 따라 적절한 에이전트 호출:**
 
-### 프론트엔드 기능인 경우:
+### UI/화면/컴포넌트:
 ```
-Use the frontend-developer agent to implement: $ARGUMENTS
+Use the react-native-expo-developer agent to implement: $ARGUMENTS
 ```
 
-### 백엔드/API 기능인 경우:
+### 비즈니스 로직/서비스:
 ```
 Use the backend-developer agent to implement: $ARGUMENTS
 ```
 
-### 스크립트/CLI/유틸리티인 경우:
+### 데이터베이스/스키마:
 ```
-Use the general-developer agent to implement: $ARGUMENTS
+Use the database-specialist agent to implement: $ARGUMENTS
 ```
-
-### 판단 기준:
-- UI, 컴포넌트, 스타일링 → frontend-developer
-- API, DB, 서버 로직 → backend-developer
-- 스크립트, 봇, CLI → general-developer
 
 ## 에이전트 완료 후
 
-구현 완료 시 안내:
-
-```
-구현 완료.
-- /run-tests 로 테스트 확인
-- /lint --fix 로 린트 수정
-- /commit 으로 커밋
-```
+1. 타입 체크: `npx tsc --noEmit`
+2. 문서 업데이트 필요 시: `doc-writer` 에이전트 호출
+3. 코드 리뷰 필요 시: `code-reviewer` 에이전트 호출
 
 ## Related Skills
 
-- `/full-dev`: 기획부터 전체 플로우
-- `/run-tests`: 테스트 실행
+- `/plan`: 계획만 수립
+- `/orchestrate`: 복잡한 기능 (멀티 에이전트)
+- `/code-quality`: 품질 검사

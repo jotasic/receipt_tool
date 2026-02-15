@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Commit changes (Conventional Commits)
+description: Commit changes (한글 커밋)
 argument-hint: [message] [--amend]
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep
@@ -10,12 +10,12 @@ category: workflow
 
 # Git Commit
 
-변경사항을 Conventional Commits 형식으로 커밋합니다.
+변경사항을 한글 커밋 메시지로 커밋합니다.
 
 ## Triggers (사용 조건)
 
 - "커밋해줘", "commit"
-- "변경사항 저장", "git commit"
+- "변경사항 저장"
 - 코드 작업 완료 후
 
 ## Arguments
@@ -27,66 +27,49 @@ category: workflow
 
 ```
 ┌─────────────────────────────────────┐
-│  1. Check status & diff             │
-│  2. Stage changes                   │
-│  3. Create commit                   │
-│  4. Verify commit                   │
+│  1. git status & diff 확인          │
+│  2. 변경사항 스테이징                 │
+│  3. 커밋 생성                        │
+│  4. 커밋 확인                        │
 └─────────────────────────────────────┘
 ```
 
-## Conventional Commits Format
+## 커밋 메시지 형식
 
 ```
-<type>(<scope>): <description>
+{타입}({범위}): {한글 설명}
 
-[optional body]
+{본문 (선택)}
 
-[optional footer]
+Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ### Types
 
-| Type | Description |
-|------|-------------|
-| feat | 새로운 기능 |
+| Type | 용도 |
+|------|-----|
+| feat | 새 기능 |
 | fix | 버그 수정 |
 | docs | 문서 변경 |
-| style | 코드 스타일 (포맷팅) |
 | refactor | 리팩토링 |
-| test | 테스트 추가/수정 |
-| chore | 빌드, 설정 등 |
-| perf | 성능 개선 |
+| chore | 설정, 빌드 등 |
 
-## Output Format
-
-```
-Commit Created
-═══════════════════════════════════════
-Hash: abc1234
-Type: feat
-Scope: auth
-Message: add OAuth2 login support
-
-Files: 3 changed, 45 insertions(+), 12 deletions(-)
-═══════════════════════════════════════
-```
-
-## Examples
+## 예시
 
 ```bash
-/commit feat(auth): add OAuth2 login
-/commit fix(api): handle null response
-/commit --amend
+/commit feat(아이템): 태그 필터링 기능 추가
+/commit fix(OCR): 금액 파싱 오류 수정
+/commit docs: API 문서 업데이트
 ```
 
-## Guidelines
+## 규칙
 
+- **한글로 작성**
 - 제목 50자 이내
-- 본문 72자에서 줄바꿈
-- 명령형 현재시제 (Add, not Added)
+- 원자적 커밋 (1 기능 = 1 커밋)
+- 문서 변경은 관련 기능 커밋에 포함
 
 ## Related Skills
 
 - `/lint`: 커밋 전 린트
 - `/code-quality`: 품질 검사 후 커밋
-- `/git-workflow`: 브랜치 워크플로우

@@ -20,10 +20,12 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
+  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Input, Button } from '@/components/common';
 import {
@@ -63,6 +65,7 @@ export default function TagManagementScreen() {
   const [tagUsageCounts, setTagUsageCounts] = useState<Record<string, number>>(
     {}
   );
+  const colorScheme = useColorScheme();
 
   // Load tags when screen is focused
   useFocusEffect(
@@ -239,7 +242,7 @@ export default function TagManagementScreen() {
     return (
       <View
         key={tag.id}
-        className="flex-row items-center py-3 px-4 bg-white border-b border-gray-200"
+        className="flex-row items-center py-3 px-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
       >
         {/* Color indicator */}
         <View
@@ -251,10 +254,10 @@ export default function TagManagementScreen() {
 
         {/* Tag info */}
         <View className="flex-1">
-          <Text className="text-base font-medium text-gray-900">
+          <Text className="text-base font-medium text-gray-900 dark:text-gray-100">
             {tag.name}
           </Text>
-          <Text className="text-sm text-gray-500 mt-0.5">
+          <Text className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             {usageCount}개 항목에서 사용 중
           </Text>
         </View>
@@ -293,17 +296,17 @@ export default function TagManagementScreen() {
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top']}>
         {/* Header */}
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
+        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <TouchableOpacity
             onPress={onClose}
             className="w-10 h-10 items-center justify-center"
             disabled={isSaving}
           >
-            <Ionicons name="close" size={24} color="#111827" />
+            <Ionicons name="close" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
           </TouchableOpacity>
-          <Text className="text-lg font-semibold text-gray-900">
+          <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {isEdit ? '태그 수정' : '새 태그'}
           </Text>
           <View className="w-10" />
@@ -320,7 +323,7 @@ export default function TagManagementScreen() {
           />
 
           {/* Color picker */}
-          <Text className="text-gray-700 text-base font-medium mb-2">
+          <Text className="text-gray-700 dark:text-gray-300 text-base font-medium mb-2">
             색상
           </Text>
           <View className="flex-row flex-wrap gap-3 mb-6">
@@ -344,10 +347,10 @@ export default function TagManagementScreen() {
           </View>
 
           {/* Preview */}
-          <Text className="text-gray-700 text-base font-medium mb-2">
+          <Text className="text-gray-700 dark:text-gray-300 text-base font-medium mb-2">
             미리보기
           </Text>
-          <View className="bg-gray-50 rounded-lg p-4">
+          <View className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
             <View
               className="px-4 py-2 rounded-full self-start"
               style={{ backgroundColor: tagColor + '20' }}
@@ -363,7 +366,7 @@ export default function TagManagementScreen() {
         </ScrollView>
 
         {/* Action buttons */}
-        <View className="p-4 border-t border-gray-200">
+        <View className="p-4 border-t border-gray-200 dark:border-gray-700">
           <Button
             title={
               isSaving ? '저장 중...' : isEdit ? '수정' : '생성'
@@ -379,32 +382,34 @@ export default function TagManagementScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center px-4 py-3 bg-white border-b border-gray-200">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center mr-2"
-        >
-          <Ionicons name="arrow-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text className="flex-1 text-xl font-bold text-gray-900">
-          태그 관리
-        </Text>
-        <TouchableOpacity
-          onPress={handleOpenCreateModal}
-          className="w-10 h-10 items-center justify-center"
-        >
-          <Ionicons name="add" size={28} color="#3B82F6" />
-        </TouchableOpacity>
-      </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top']}>
+        {/* Header */}
+        <View className="flex-row items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="w-10 h-10 items-center justify-center mr-2"
+          >
+            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
+          </TouchableOpacity>
+          <Text className="flex-1 text-xl font-bold text-gray-900 dark:text-gray-100">
+            태그 관리
+          </Text>
+          <TouchableOpacity
+            onPress={handleOpenCreateModal}
+            className="w-10 h-10 items-center justify-center"
+          >
+            <Ionicons name="add" size={28} color="#3B82F6" />
+          </TouchableOpacity>
+        </View>
 
       {/* Search bar */}
-      <View className="px-4 py-3 bg-white border-b border-gray-200">
-        <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
+      <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <View className="flex-row items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
           <Ionicons name="search" size={20} color="#6B7280" />
           <TextInput
-            className="flex-1 ml-2 text-base text-gray-900"
+            className="flex-1 ml-2 text-base text-gray-900 dark:text-gray-100"
             placeholder="태그 검색"
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
@@ -428,10 +433,10 @@ export default function TagManagementScreen() {
       ) : filteredTags.length === 0 ? (
         <View className="flex-1 items-center justify-center p-6">
           <Ionicons name="pricetags-outline" size={64} color="#D1D5DB" />
-          <Text className="mt-4 text-lg font-semibold text-gray-900">
+          <Text className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
             {searchQuery ? '검색 결과가 없습니다' : '태그가 없습니다'}
           </Text>
-          <Text className="mt-2 text-gray-500 text-center">
+          <Text className="mt-2 text-gray-500 dark:text-gray-400 text-center">
             {searchQuery
               ? '다른 검색어를 입력해보세요'
               : '새 태그를 만들어 항목을 체계적으로 정리하세요'}
@@ -451,8 +456,8 @@ export default function TagManagementScreen() {
       ) : (
         <ScrollView className="flex-1">
           {/* Tag count */}
-          <View className="px-4 py-2 bg-gray-50">
-            <Text className="text-sm text-gray-600">
+          <View className="px-4 py-2 bg-gray-50 dark:bg-gray-900">
+            <Text className="text-sm text-gray-600 dark:text-gray-400">
               총 {filteredTags.length}개의 태그
             </Text>
           </View>
@@ -477,6 +482,7 @@ export default function TagManagementScreen() {
         () => setShowEditModal(false),
         handleUpdateTag
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </>
   );
 }

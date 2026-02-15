@@ -7,9 +7,10 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Button } from '@/components/common';
@@ -42,6 +43,7 @@ export default function ItemDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteItemFromStore = useItemStore((state) => state.deleteItem);
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     loadItem();
@@ -168,12 +170,15 @@ export default function ItemDetailScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="mt-4 text-gray-500">항목 불러오는 중...</Text>
-        </View>
-      </SafeAreaView>
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#2563EB" />
+            <Text className="mt-4 text-gray-500">항목 불러오는 중...</Text>
+          </View>
+        </SafeAreaView>
+      </>
     );
   }
 
@@ -187,20 +192,22 @@ export default function ItemDetailScreen() {
   const updatedDate = new Date(item.updatedAt);
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
-      {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-gray-200">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          accessibilityLabel="뒤로 가기"
-        >
-          <Ionicons name="arrow-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text className="flex-1 text-center text-lg font-semibold text-gray-900">
-          항목 상세
-        </Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+        {/* Header */}
+        <View className="flex-row items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            accessibilityLabel="뒤로 가기"
+          >
+            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
+          </TouchableOpacity>
+          <Text className="flex-1 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">
+            항목 상세
+          </Text>
+          <View style={{ width: 24 }} />
+        </View>
 
       <ScrollView
         className="flex-1"
@@ -260,7 +267,7 @@ export default function ItemDetailScreen() {
 
         {/* Title */}
         <View className="mb-6">
-          <Text className="text-2xl font-bold text-gray-900">
+          <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {item.title}
           </Text>
         </View>
@@ -268,7 +275,7 @@ export default function ItemDetailScreen() {
         {/* Tags Section */}
         {item.tags && item.tags.length > 0 && (
           <View className="mb-6">
-            <Text className="text-sm font-semibold text-gray-700 mb-2">태그</Text>
+            <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">태그</Text>
             <View className="flex-row flex-wrap gap-2">
               {item.tags.map((tag) => (
                 <View
@@ -288,12 +295,12 @@ export default function ItemDetailScreen() {
         {/* Custom Fields Section */}
         {item.customValues && item.customValues.length > 0 && (
           <View className="mb-6">
-            <Text className="text-sm font-semibold text-gray-700 mb-2">추가 정보</Text>
-            <View className="p-4 bg-gray-50 rounded-lg">
+            <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">추가 정보</Text>
+            <View className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
               {item.customValues.map((cv) => (
                 <View key={cv.fieldId} className="mb-3 last:mb-0">
-                  <Text className="text-xs text-gray-500 mb-1">{cv.fieldName}</Text>
-                  <Text className="text-sm text-gray-900">{cv.value || '-'}</Text>
+                  <Text className="text-xs text-gray-500 dark:text-gray-400 mb-1">{cv.fieldName}</Text>
+                  <Text className="text-sm text-gray-900 dark:text-gray-100">{cv.value || '-'}</Text>
                 </View>
               ))}
             </View>
@@ -301,17 +308,17 @@ export default function ItemDetailScreen() {
         )}
 
         {/* Item Details */}
-        <View className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <View className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           {/* Amount */}
           {item.amount !== undefined && (
             <View className="mb-3">
               <View className="flex-row items-center mb-1">
-                <Ionicons name="cash-outline" size={18} color="#6B7280" />
-                <Text className="text-sm font-semibold text-gray-700 ml-2">
+                <Ionicons name="cash-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+                <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-2">
                   금액
                 </Text>
               </View>
-              <Text className="text-xl font-bold text-gray-900 ml-6">
+              <Text className="text-xl font-bold text-gray-900 dark:text-gray-100 ml-6">
                 {formatCurrency(item.amount)}
               </Text>
             </View>
@@ -321,12 +328,12 @@ export default function ItemDetailScreen() {
           {item.storeName && (
             <View className="mb-3">
               <View className="flex-row items-center mb-1">
-                <Ionicons name="storefront-outline" size={18} color="#6B7280" />
-                <Text className="text-sm font-semibold text-gray-700 ml-2">
+                <Ionicons name="storefront-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+                <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-2">
                   가맹점
                 </Text>
               </View>
-              <Text className="text-base text-gray-900 ml-6">
+              <Text className="text-base text-gray-900 dark:text-gray-100 ml-6">
                 {item.storeName}
               </Text>
             </View>
@@ -335,12 +342,12 @@ export default function ItemDetailScreen() {
           {/* Date */}
           <View>
             <View className="flex-row items-center mb-1">
-              <Ionicons name="calendar-outline" size={18} color="#6B7280" />
-              <Text className="text-sm font-semibold text-gray-700 ml-2">
+              <Ionicons name="calendar-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+              <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-2">
                 일자
               </Text>
             </View>
-            <Text className="text-base text-gray-900 ml-6">
+            <Text className="text-base text-gray-900 dark:text-gray-100 ml-6">
               {formatDate(item.date)}
             </Text>
           </View>
@@ -348,32 +355,32 @@ export default function ItemDetailScreen() {
 
         {/* Memo */}
         {item.memo && (
-          <View className="mb-6 p-4 bg-gray-50 rounded-lg">
+          <View className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <View className="flex-row items-center mb-2">
-              <Ionicons name="document-text-outline" size={18} color="#6B7280" />
-              <Text className="text-base font-semibold text-gray-700 ml-2">
+              <Ionicons name="document-text-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+              <Text className="text-base font-semibold text-gray-700 dark:text-gray-300 ml-2">
                 메모
               </Text>
             </View>
-            <Text className="text-base text-gray-600 leading-6">
+            <Text className="text-base text-gray-600 dark:text-gray-400 leading-6">
               {item.memo}
             </Text>
           </View>
         )}
 
         {/* Metadata */}
-        <View className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <View className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <View className="flex-row items-center mb-3">
-            <Ionicons name="time-outline" size={18} color="#6B7280" />
-            <Text className="text-sm text-gray-600 ml-2">
+            <Ionicons name="time-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+            <Text className="text-sm text-gray-600 dark:text-gray-400 ml-2">
               생성일: {formatDateTime(item.createdAt)}
             </Text>
           </View>
 
           {item.createdAt !== item.updatedAt && (
             <View className="flex-row items-center">
-              <Ionicons name="sync-outline" size={18} color="#6B7280" />
-              <Text className="text-sm text-gray-600 ml-2">
+              <Ionicons name="sync-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+              <Text className="text-sm text-gray-600 dark:text-gray-400 ml-2">
                 수정일: {formatDateTime(item.updatedAt)}
               </Text>
             </View>
@@ -382,7 +389,7 @@ export default function ItemDetailScreen() {
       </ScrollView>
 
       {/* Action Buttons */}
-      <View className="p-4 border-t border-gray-200">
+      <View className="p-4 border-t border-gray-200 dark:border-gray-700">
         <View className="flex-row gap-3 mb-3">
           <View className="flex-1">
             <Button
@@ -409,6 +416,7 @@ export default function ItemDetailScreen() {
           </View>
         </View>
       </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </>
   );
 }

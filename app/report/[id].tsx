@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Card } from '@/components/common';
 import { loadReport, submitReport, deleteReport } from '@/services/report';
@@ -38,6 +38,7 @@ export default function ReportDetailScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteReportFromStore = useReportStore((state) => state.deleteReport);
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     loadData();
@@ -141,35 +142,43 @@ export default function ReportDetailScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center" edges={['top', 'left', 'right', 'bottom']}>
-        <ActivityIndicator size="large" color="#2563EB" />
-        <Text className="mt-4 text-gray-500">로딩 중...</Text>
-      </SafeAreaView>
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900 items-center justify-center" edges={['top', 'left', 'right', 'bottom']}>
+          <ActivityIndicator size="large" color="#2563EB" />
+          <Text className="mt-4 text-gray-500">로딩 중...</Text>
+        </SafeAreaView>
+      </>
     );
   }
 
   if (!report) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center" edges={['top', 'left', 'right', 'bottom']}>
-        <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
-        <Text className="text-gray-500 mt-4">리포트를 찾을 수 없습니다.</Text>
-        <View className="mt-4">
-          <Button title="돌아가기" onPress={() => router.back()} variant="outline" />
-        </View>
-      </SafeAreaView>
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900 items-center justify-center" edges={['top', 'left', 'right', 'bottom']}>
+          <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
+          <Text className="text-gray-500 mt-4">리포트를 찾을 수 없습니다.</Text>
+          <View className="mt-4">
+            <Button title="돌아가기" onPress={() => router.back()} variant="outline" />
+          </View>
+        </SafeAreaView>
+      </>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'left', 'right', 'bottom']}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text className="text-lg font-semibold">리포트 상세</Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+        {/* Header */}
+        <View className="flex-row items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
+          </TouchableOpacity>
+          <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">리포트 상세</Text>
+          <View style={{ width: 24 }} />
+        </View>
 
       <ScrollView className="flex-1">
         {/* Report Info */}
@@ -214,22 +223,22 @@ export default function ReportDetailScreen() {
 
         {/* Items */}
         <View className="px-4 pb-4">
-          <Text className="text-lg font-semibold mb-3">포함된 항목</Text>
+          <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">포함된 항목</Text>
           {items.map((item) => (
             <TouchableOpacity
               key={item.id}
               onPress={() => router.push(`/item/${item.id}`)}
-              className="flex-row items-center bg-white p-3 rounded-lg mb-2"
+              className="flex-row items-center bg-white dark:bg-gray-800 p-3 rounded-lg mb-2"
             >
-              <View className="w-10 h-10 bg-gray-100 rounded-md items-center justify-center mr-3">
-                <Ionicons name="receipt-outline" size={20} color="#6B7280" />
+              <View className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-md items-center justify-center mr-3">
+                <Ionicons name="receipt-outline" size={20} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
               </View>
               <View className="flex-1">
-                <Text className="font-medium text-gray-900">{item.storeName || item.title}</Text>
-                <Text className="text-sm text-gray-500">{item.date}</Text>
+                <Text className="font-medium text-gray-900 dark:text-gray-100">{item.storeName || item.title}</Text>
+                <Text className="text-sm text-gray-500 dark:text-gray-400">{item.date}</Text>
               </View>
               {item.amount !== undefined && (
-                <Text className="font-semibold text-gray-900">₩{item.amount.toLocaleString()}</Text>
+                <Text className="font-semibold text-gray-900 dark:text-gray-100">₩{item.amount.toLocaleString()}</Text>
               )}
             </TouchableOpacity>
           ))}
@@ -238,7 +247,7 @@ export default function ReportDetailScreen() {
 
       {/* Action Buttons (only for draft) */}
       {report.status === 'draft' && (
-        <View className="p-4 bg-white border-t border-gray-200">
+        <View className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           <View className="flex-row gap-3 mb-3">
             <View className="flex-1">
               <Button
@@ -273,6 +282,7 @@ export default function ReportDetailScreen() {
           />
         </View>
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </>
   );
 }

@@ -26,9 +26,10 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ItemForm } from '@/components/item';
@@ -92,6 +93,7 @@ export default function ItemEditScreen() {
   const [item, setItem] = useState<Item | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const updateItemInStore = useItemStore((state) => state.updateItem);
+  const colorScheme = useColorScheme();
 
   // Load item data on mount
   useEffect(() => {
@@ -314,24 +316,30 @@ export default function ItemEditScreen() {
   // Loading state
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="mt-4 text-gray-500">항목 불러오는 중...</Text>
-        </View>
-      </SafeAreaView>
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#2563EB" />
+            <Text className="mt-4 text-gray-500">항목 불러오는 중...</Text>
+          </View>
+        </SafeAreaView>
+      </>
     );
   }
 
   // Item not found state
   if (!item) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
-        <View className="flex-1 items-center justify-center">
-          <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
-          <Text className="mt-4 text-gray-500">항목을 찾을 수 없습니다</Text>
-        </View>
-      </SafeAreaView>
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+          <View className="flex-1 items-center justify-center">
+            <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
+            <Text className="mt-4 text-gray-500">항목을 찾을 수 없습니다</Text>
+          </View>
+        </SafeAreaView>
+      </>
     );
   }
 
@@ -362,27 +370,30 @@ export default function ItemEditScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
-      {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-gray-200">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          accessibilityLabel="뒤로 가기"
-        >
-          <Ionicons name="arrow-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text className="flex-1 text-center text-lg font-semibold text-gray-900">
-          항목 편집
-        </Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+        {/* Header */}
+        <View className="flex-row items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            accessibilityLabel="뒤로 가기"
+          >
+            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
+          </TouchableOpacity>
+          <Text className="flex-1 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">
+            항목 편집
+          </Text>
+          <View style={{ width: 24 }} />
+        </View>
 
-      {/* Form */}
-      <ItemForm
-        initialData={initialData}
-        onSubmit={handleSubmit}
-        onCancel={() => router.back()}
-      />
-    </SafeAreaView>
+        {/* Form */}
+        <ItemForm
+          initialData={initialData}
+          onSubmit={handleSubmit}
+          onCancel={() => router.back()}
+        />
+      </SafeAreaView>
+    </>
   );
 }

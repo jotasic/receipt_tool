@@ -4,11 +4,12 @@
  * Provides UI for backing up and restoring app data
  */
 
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import {
   createBackup,
   shareBackup,
@@ -85,6 +86,7 @@ export default function BackupScreen() {
     customFields: 0,
     usagePurposes: 0,
   });
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     loadStats();
@@ -162,21 +164,23 @@ export default function BackupScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
-      <ScrollView className="flex-1">
-        {/* Header */}
-        <View className="px-4 py-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-row items-center">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="mr-4 w-8 h-8 items-center justify-center"
-            disabled={isLoading}
-          >
-            <Ionicons name="arrow-back" size={24} color="#3B82F6" />
-          </TouchableOpacity>
-          <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex-1">
-            백업 및 복원
-          </Text>
-        </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
+        <ScrollView className="flex-1">
+          {/* Header */}
+          <View className="px-4 py-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-row items-center">
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="mr-4 w-8 h-8 items-center justify-center"
+              disabled={isLoading}
+            >
+              <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
+            </TouchableOpacity>
+            <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex-1">
+              백업 및 복원
+            </Text>
+          </View>
 
         {/* Loading overlay */}
         {isLoading && (
@@ -320,7 +324,8 @@ export default function BackupScreen() {
             </Text>
           </Card>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 }

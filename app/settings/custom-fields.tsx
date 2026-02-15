@@ -23,10 +23,12 @@ import {
   Modal,
   TextInput,
   Switch,
+  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Input, Button } from '@/components/common';
 import {
@@ -84,6 +86,7 @@ export default function CustomFieldsScreen() {
   const [optionsText, setOptionsText] = useState('');
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [showEntityTypePicker, setShowEntityTypePicker] = useState(false);
+  const colorScheme = useColorScheme();
 
   // Load custom fields when screen is focused
   useFocusEffect(
@@ -494,7 +497,7 @@ export default function CustomFieldsScreen() {
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView className="flex-1 bg-white dark:bg-gray-800" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top']}>
         {/* Header */}
         <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <TouchableOpacity
@@ -502,7 +505,7 @@ export default function CustomFieldsScreen() {
             className="w-10 h-10 items-center justify-center"
             disabled={isSaving}
           >
-            <Ionicons name="close" size={24} color="#111827" />
+            <Ionicons name="close" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
           </TouchableOpacity>
           <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {isEdit ? '커스텀 필드 수정' : '새 커스텀 필드'}
@@ -593,7 +596,7 @@ export default function CustomFieldsScreen() {
                 선택 옵션 (한 줄에 하나씩)
               </Text>
               <TextInput
-                className="p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100"
+                className="p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100"
                 placeholder="옵션 1&#10;옵션 2&#10;옵션 3"
                 placeholderTextColor="#9CA3AF"
                 value={optionsText}
@@ -612,7 +615,7 @@ export default function CustomFieldsScreen() {
           <Text className="text-gray-700 dark:text-gray-300 text-base font-medium mb-2">
             미리보기
           </Text>
-          <View className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+          <View className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
             <View className="flex-row items-center">
               <View className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-lg items-center justify-center mr-3">
                 <Ionicons name={getFieldTypeInfo(fieldType).icon} size={20} color="#8B5CF6" />
@@ -657,13 +660,13 @@ export default function CustomFieldsScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowTypePicker(false)}
       >
-        <SafeAreaView className="flex-1 bg-white dark:bg-gray-800" edges={['top']}>
+        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top']}>
           <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               필드 타입 선택
             </Text>
             <TouchableOpacity onPress={() => setShowTypePicker(false)}>
-              <Ionicons name="close" size={24} color="#111827" />
+              <Ionicons name="close" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
             </TouchableOpacity>
           </View>
           <ScrollView className="flex-1">
@@ -699,13 +702,13 @@ export default function CustomFieldsScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowEntityTypePicker(false)}
       >
-        <SafeAreaView className="flex-1 bg-white dark:bg-gray-800" edges={['top']}>
+        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top']}>
           <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               적용 대상 선택
             </Text>
             <TouchableOpacity onPress={() => setShowEntityTypePicker(false)}>
-              <Ionicons name="close" size={24} color="#111827" />
+              <Ionicons name="close" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
             </TouchableOpacity>
           </View>
           <ScrollView className="flex-1">
@@ -734,25 +737,27 @@ export default function CustomFieldsScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center mr-2"
-        >
-          <Ionicons name="arrow-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text className="flex-1 text-xl font-bold text-gray-900 dark:text-gray-100">
-          커스텀 필드 관리
-        </Text>
-        <TouchableOpacity
-          onPress={handleOpenCreateModal}
-          className="w-10 h-10 items-center justify-center"
-        >
-          <Ionicons name="add" size={28} color="#3B82F6" />
-        </TouchableOpacity>
-      </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top']}>
+        {/* Header */}
+        <View className="flex-row items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="w-10 h-10 items-center justify-center mr-2"
+          >
+            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
+          </TouchableOpacity>
+          <Text className="flex-1 text-xl font-bold text-gray-900 dark:text-gray-100">
+            커스텀 필드 관리
+          </Text>
+          <TouchableOpacity
+            onPress={handleOpenCreateModal}
+            className="w-10 h-10 items-center justify-center"
+          >
+            <Ionicons name="add" size={28} color="#3B82F6" />
+          </TouchableOpacity>
+        </View>
 
       {/* Search bar */}
       <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -862,6 +867,7 @@ export default function CustomFieldsScreen() {
         () => setShowEditModal(false),
         handleUpdateField
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </>
   );
 }

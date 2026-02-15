@@ -26,9 +26,10 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Input, Button, Card } from '@/components/common';
 import { loadReport, updateReportDetails } from '@/services/report';
@@ -46,6 +47,7 @@ export default function ReportEditScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const { items, loadItems } = useItemStore();
   const updateReportInStore = useReportStore((state) => state.updateReport);
+  const colorScheme = useColorScheme();
 
   // Load report and items on mount
   useEffect(() => {
@@ -220,14 +222,14 @@ export default function ReportEditScreen() {
     return (
       <TouchableOpacity
         onPress={() => toggleSelect(item.id)}
-        className={`flex-row items-center p-3 rounded-lg mb-2 ${isSelected ? 'bg-blue-50 border border-blue-300' : 'bg-white border border-gray-200'}`}
+        className={`flex-row items-center p-3 rounded-lg mb-2 ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-600' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'}`}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: isSelected }}
         accessibilityLabel={`${item.storeName || item.title}, ${item.amount?.toLocaleString() || '0'}원, ${item.date}`}
       >
         {/* Checkbox */}
         <View
-          className={`w-6 h-6 rounded-md mr-3 items-center justify-center ${isSelected ? 'bg-blue-600' : 'border-2 border-gray-300'}`}
+          className={`w-6 h-6 rounded-md mr-3 items-center justify-center ${isSelected ? 'bg-blue-600' : 'border-2 border-gray-300 dark:border-gray-600'}`}
           accessibilityElementsHidden={true}
         >
           {isSelected && <Ionicons name="checkmark" size={16} color="white" />}
@@ -235,13 +237,13 @@ export default function ReportEditScreen() {
 
         {/* Item info */}
         <View className="flex-1">
-          <Text className="font-medium text-gray-900">{item.storeName || item.title}</Text>
-          <Text className="text-sm text-gray-500">{item.date}</Text>
+          <Text className="font-medium text-gray-900 dark:text-gray-100">{item.storeName || item.title}</Text>
+          <Text className="text-sm text-gray-500 dark:text-gray-400">{item.date}</Text>
         </View>
 
         {/* Amount */}
         {item.amount !== undefined && (
-          <Text className="font-semibold text-gray-900">₩{item.amount.toLocaleString()}</Text>
+          <Text className="font-semibold text-gray-900 dark:text-gray-100">₩{item.amount.toLocaleString()}</Text>
         )}
       </TouchableOpacity>
     );
@@ -250,42 +252,50 @@ export default function ReportEditScreen() {
   // Loading state
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="mt-4 text-gray-500">리포트 불러오는 중...</Text>
-        </View>
-      </SafeAreaView>
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#2563EB" />
+            <Text className="mt-4 text-gray-500">리포트 불러오는 중...</Text>
+          </View>
+        </SafeAreaView>
+      </>
     );
   }
 
   // Report not found state
   if (!report) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
-        <View className="flex-1 items-center justify-center">
-          <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
-          <Text className="mt-4 text-gray-500">리포트를 찾을 수 없습니다</Text>
-        </View>
-      </SafeAreaView>
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+          <View className="flex-1 items-center justify-center">
+            <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
+            <Text className="mt-4 text-gray-500">리포트를 찾을 수 없습니다</Text>
+          </View>
+        </SafeAreaView>
+      </>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'left', 'right', 'bottom']}>
-      {/* Header */}
-      <View className="flex-row items-center px-4 py-3 bg-white border-b border-gray-200">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          accessibilityLabel="뒤로 가기"
-        >
-          <Ionicons name="arrow-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text className="flex-1 text-center text-lg font-semibold text-gray-900">
-          리포트 편집
-        </Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+        {/* Header */}
+        <View className="flex-row items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            accessibilityLabel="뒤로 가기"
+          >
+            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
+          </TouchableOpacity>
+          <Text className="flex-1 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">
+            리포트 편집
+          </Text>
+          <View style={{ width: 24 }} />
+        </View>
 
       <ScrollView className="flex-1 p-4">
         {/* Title Input */}
@@ -305,7 +315,7 @@ export default function ReportEditScreen() {
 
         {/* Item Selection */}
         <View className="flex-row justify-between items-center mb-2">
-          <Text className="font-semibold text-gray-900">항목 선택</Text>
+          <Text className="font-semibold text-gray-900 dark:text-gray-100">항목 선택</Text>
           <TouchableOpacity
             onPress={toggleSelectAll}
             accessibilityRole="button"
@@ -332,7 +342,7 @@ export default function ReportEditScreen() {
       </ScrollView>
 
       {/* Action Buttons */}
-      <View className="p-4 bg-white border-t border-gray-200">
+      <View className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <Button
           title="수정 완료"
           onPress={handleSubmit}
@@ -341,6 +351,7 @@ export default function ReportEditScreen() {
           disabled={selectedIds.length === 0}
         />
       </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </>
   );
 }

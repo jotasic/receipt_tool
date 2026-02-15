@@ -22,10 +22,12 @@ import {
   Modal,
   TextInput,
   Switch,
+  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Input, Button } from '@/components/common';
 import { IconPicker } from '@/components/common/IconPicker';
@@ -59,6 +61,7 @@ export default function UsagePurposeManagementScreen() {
   const [purposeColor, setPurposeColor] = useState(COLORS[0].value);
   const [purposeActive, setPurposeActive] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const colorScheme = useColorScheme();
 
   // Load usage purposes when screen is focused
   useFocusEffect(
@@ -260,7 +263,7 @@ export default function UsagePurposeManagementScreen() {
     return (
       <View
         key={purpose.id}
-        className="flex-row items-center py-3 px-4 bg-white border-b border-gray-200"
+        className="flex-row items-center py-3 px-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
         style={{ opacity: purpose.isActive ? 1 : 0.5 }}
       >
         {/* Icon with colored background */}
@@ -274,24 +277,24 @@ export default function UsagePurposeManagementScreen() {
         {/* Purpose info */}
         <View className="flex-1">
           <View className="flex-row items-center flex-wrap gap-2">
-            <Text className="text-base font-medium text-gray-900">
+            <Text className="text-base font-medium text-gray-900 dark:text-gray-100">
               {purpose.name}
             </Text>
             {isDefault && (
-              <View className="px-2 py-0.5 bg-blue-100 rounded">
-                <Text className="text-xs font-medium text-blue-700">기본</Text>
+              <View className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 rounded">
+                <Text className="text-xs font-medium text-blue-700 dark:text-blue-400">기본</Text>
               </View>
             )}
             {purpose.usageCount > 0 && (
-              <View className="px-2 py-0.5 bg-green-100 rounded">
-                <Text className="text-xs font-medium text-green-700">
+              <View className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 rounded">
+                <Text className="text-xs font-medium text-green-700 dark:text-green-400">
                   사용 중
                 </Text>
               </View>
             )}
             {!purpose.isActive && (
-              <View className="px-2 py-0.5 bg-gray-100 rounded">
-                <Text className="text-xs font-medium text-gray-600">
+              <View className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
+                <Text className="text-xs font-medium text-gray-600 dark:text-gray-400">
                   비활성
                 </Text>
               </View>
@@ -299,11 +302,11 @@ export default function UsagePurposeManagementScreen() {
           </View>
           <View className="flex-row items-center mt-0.5">
             {purpose.nameEn && (
-              <Text className="text-sm text-gray-500 mr-2">
+              <Text className="text-sm text-gray-500 dark:text-gray-400 mr-2">
                 {purpose.nameEn}
               </Text>
             )}
-            <Text className="text-sm text-gray-500">
+            <Text className="text-sm text-gray-500 dark:text-gray-400">
               {purpose.usageCount}개 항목에서 사용 중
             </Text>
           </View>
@@ -348,17 +351,17 @@ export default function UsagePurposeManagementScreen() {
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top']}>
         {/* Header */}
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
+        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <TouchableOpacity
             onPress={onClose}
             className="w-10 h-10 items-center justify-center"
             disabled={isSaving}
           >
-            <Ionicons name="close" size={24} color="#111827" />
+            <Ionicons name="close" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
           </TouchableOpacity>
-          <Text className="text-lg font-semibold text-gray-900">
+          <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {isEdit ? '사용처 수정' : '새 사용처'}
           </Text>
           <View className="w-10" />
@@ -384,12 +387,12 @@ export default function UsagePurposeManagementScreen() {
 
           {/* Icon picker */}
           <View className="mb-4">
-            <Text className="text-gray-700 text-base font-medium mb-2">
+            <Text className="text-gray-700 dark:text-gray-300 text-base font-medium mb-2">
               아이콘
             </Text>
             <TouchableOpacity
               onPress={() => setShowIconPicker(true)}
-              className="flex-row items-center p-3 bg-gray-50 rounded-lg border border-gray-200"
+              className="flex-row items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
               activeOpacity={0.7}
             >
               <View
@@ -402,7 +405,7 @@ export default function UsagePurposeManagementScreen() {
                   color={purposeColor}
                 />
               </View>
-              <Text className="flex-1 text-gray-700">{purposeIcon}</Text>
+              <Text className="flex-1 text-gray-700 dark:text-gray-300">{purposeIcon}</Text>
               <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
             </TouchableOpacity>
           </View>
@@ -419,10 +422,10 @@ export default function UsagePurposeManagementScreen() {
           {isEdit && (
             <View className="flex-row items-center justify-between py-3 mb-4">
               <View>
-                <Text className="text-base font-medium text-gray-900">
+                <Text className="text-base font-medium text-gray-900 dark:text-gray-100">
                   활성화
                 </Text>
-                <Text className="text-sm text-gray-500 mt-0.5">
+                <Text className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                   비활성화하면 선택 목록에 표시되지 않습니다
                 </Text>
               </View>
@@ -436,10 +439,10 @@ export default function UsagePurposeManagementScreen() {
           )}
 
           {/* Preview */}
-          <Text className="text-gray-700 text-base font-medium mb-2">
+          <Text className="text-gray-700 dark:text-gray-300 text-base font-medium mb-2">
             미리보기
           </Text>
-          <View className="bg-gray-50 rounded-lg p-4">
+          <View className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
             <View className="flex-row items-center">
               <View
                 className="w-12 h-12 rounded-full items-center justify-center mr-3"
@@ -452,11 +455,11 @@ export default function UsagePurposeManagementScreen() {
                 />
               </View>
               <View>
-                <Text className="text-base font-medium text-gray-900">
+                <Text className="text-base font-medium text-gray-900 dark:text-gray-100">
                   {purposeName || '사용처 이름'}
                 </Text>
                 {purposeNameEn && (
-                  <Text className="text-sm text-gray-500">{purposeNameEn}</Text>
+                  <Text className="text-sm text-gray-500 dark:text-gray-400">{purposeNameEn}</Text>
                 )}
               </View>
             </View>
@@ -464,7 +467,7 @@ export default function UsagePurposeManagementScreen() {
         </ScrollView>
 
         {/* Action buttons */}
-        <View className="p-4 border-t border-gray-200">
+        <View className="p-4 border-t border-gray-200 dark:border-gray-700">
           <Button
             title={isSaving ? '저장 중...' : isEdit ? '수정' : '생성'}
             onPress={onSave}
@@ -486,32 +489,34 @@ export default function UsagePurposeManagementScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center px-4 py-3 bg-white border-b border-gray-200">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center mr-2"
-        >
-          <Ionicons name="arrow-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text className="flex-1 text-xl font-bold text-gray-900">
-          사용처 관리
-        </Text>
-        <TouchableOpacity
-          onPress={handleOpenCreateModal}
-          className="w-10 h-10 items-center justify-center"
-        >
-          <Ionicons name="add" size={28} color="#3B82F6" />
-        </TouchableOpacity>
-      </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top']}>
+        {/* Header */}
+        <View className="flex-row items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="w-10 h-10 items-center justify-center mr-2"
+          >
+            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
+          </TouchableOpacity>
+          <Text className="flex-1 text-xl font-bold text-gray-900 dark:text-gray-100">
+            사용처 관리
+          </Text>
+          <TouchableOpacity
+            onPress={handleOpenCreateModal}
+            className="w-10 h-10 items-center justify-center"
+          >
+            <Ionicons name="add" size={28} color="#3B82F6" />
+          </TouchableOpacity>
+        </View>
 
       {/* Search bar */}
-      <View className="px-4 py-3 bg-white border-b border-gray-200">
-        <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
+      <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <View className="flex-row items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
           <Ionicons name="search" size={20} color="#6B7280" />
           <TextInput
-            className="flex-1 ml-2 text-base text-gray-900"
+            className="flex-1 ml-2 text-base text-gray-900 dark:text-gray-100"
             placeholder="사용처 검색"
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
@@ -535,10 +540,10 @@ export default function UsagePurposeManagementScreen() {
       ) : filteredPurposes.length === 0 ? (
         <View className="flex-1 items-center justify-center p-6">
           <Ionicons name="pricetag-outline" size={64} color="#D1D5DB" />
-          <Text className="mt-4 text-lg font-semibold text-gray-900">
+          <Text className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
             {searchQuery ? '검색 결과가 없습니다' : '사용처가 없습니다'}
           </Text>
-          <Text className="mt-2 text-gray-500 text-center">
+          <Text className="mt-2 text-gray-500 dark:text-gray-400 text-center">
             {searchQuery
               ? '다른 검색어를 입력해보세요'
               : '새 사용처를 만들어 항목을 체계적으로 분류하세요'}
@@ -558,8 +563,8 @@ export default function UsagePurposeManagementScreen() {
       ) : (
         <ScrollView className="flex-1">
           {/* Purpose count */}
-          <View className="px-4 py-2 bg-gray-50">
-            <Text className="text-sm text-gray-600">
+          <View className="px-4 py-2 bg-gray-50 dark:bg-gray-900">
+            <Text className="text-sm text-gray-600 dark:text-gray-400">
               총 {filteredPurposes.length}개의 사용처
               {purposes.filter((p) => !p.isActive).length > 0 &&
                 ` (비활성 ${purposes.filter((p) => !p.isActive).length}개)`}
@@ -586,6 +591,7 @@ export default function UsagePurposeManagementScreen() {
         () => setShowEditModal(false),
         handleUpdatePurpose
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </>
   );
 }

@@ -24,9 +24,8 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
+        // Hide default header (screens use custom headers)
+        headerShown: false,
         tabBarStyle: {
           paddingBottom: Math.max(insets.bottom, 8),
           paddingTop: 8,

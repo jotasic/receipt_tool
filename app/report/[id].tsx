@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Card } from '@/components/common';
@@ -140,7 +141,7 @@ export default function ReportDetailScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center">
+      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center" edges={['top', 'left', 'right', 'bottom']}>
         <ActivityIndicator size="large" color="#2563EB" />
         <Text className="mt-4 text-gray-500">로딩 중...</Text>
       </SafeAreaView>
@@ -149,7 +150,7 @@ export default function ReportDetailScreen() {
 
   if (!report) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center">
+      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center" edges={['top', 'left', 'right', 'bottom']}>
         <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
         <Text className="text-gray-500 mt-4">리포트를 찾을 수 없습니다.</Text>
         <View className="mt-4">
@@ -160,7 +161,7 @@ export default function ReportDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'left', 'right', 'bottom']}>
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
         <TouchableOpacity onPress={() => router.back()}>

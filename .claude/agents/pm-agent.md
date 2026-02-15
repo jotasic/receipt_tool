@@ -41,8 +41,7 @@ model: sonnet
 | 에이전트 | 용도 |
 |---------|------|
 | `react-native-expo-developer` | UI/화면/컴포넌트 |
-| `backend-developer` | 서비스/비즈니스 로직 |
-| `database-specialist` | SQLite 스키마/쿼리 |
+| `database-specialist` | 데이터/서비스 로직 |
 | `architect` | 구조 설계 (코드 X) |
 | `doc-writer` | 문서 작성 |
 | `code-reviewer` | 코드 리뷰 |

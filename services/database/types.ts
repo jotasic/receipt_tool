@@ -197,3 +197,16 @@ export interface ReportItemRow {
   report_id: string;
   item_id: string;
 }
+
+/**
+ * Database row type for usage_purposes table
+ */
+export interface UsagePurposeRow {
+  id: string;
+  name: string;
+  name_en: string | null;
+  icon: string | null;
+  color: string | null;
+  is_active: number;
+  display_order: number;
+}

@@ -11,3 +11,9 @@ export type {
   UpdateCustomFieldInput,
   CustomFieldValue,
 } from './customField';
+export type {
+  UsagePurpose,
+  CreateUsagePurposeInput,
+  UpdateUsagePurposeInput,
+} from './usagePurpose';
+export { isDefaultUsagePurpose } from './usagePurpose';

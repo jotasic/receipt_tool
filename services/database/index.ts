@@ -60,6 +60,7 @@ export type {
   DocumentCustomValueRow,
   ItemRow,
   ReportItemRow,
+  UsagePurposeRow,
 } from './types';
 
 // Receipt service operations
@@ -172,6 +173,41 @@ export {
   deleteDocumentCustomValue,
   setDocumentCustomValues,
 } from './customFieldService';
+
+// Item service operations (unified model)
+export {
+  createItem,
+  getItems,
+  getItemById,
+  updateItem,
+  deleteItem,
+  getItemsByClassification,
+  getItemsByUsagePurpose,
+  getItemsByDateRange,
+  searchItems,
+  getTotalByUsagePurpose,
+  getTotalByClassification,
+  getItemsByClassificationAndPurpose,
+  getTotalByClassificationAndPurpose,
+  getItemsRequiringSubmission,
+  getExpenseItems,
+  getProofDocuments,
+} from './itemService';
+
+// Usage purpose service operations
+export {
+  getAllUsagePurposes,
+  getActiveUsagePurposes,
+  getUsagePurposeById,
+  createUsagePurpose,
+  updateUsagePurpose,
+  toggleUsagePurposeActive,
+  reorderUsagePurposes,
+  deleteUsagePurpose,
+  isUsagePurposeInUse,
+  getUsagePurposeUsageCount,
+  getUsagePurposeStatistics,
+} from './usagePurposeService';
 
 // Database utility functions
 export {

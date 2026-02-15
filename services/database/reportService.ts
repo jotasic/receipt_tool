@@ -2,6 +2,15 @@
  * Report Service
  *
  * Provides CRUD operations for expense reports
+ *
+ * @note Data Migration TODO
+ * If upgrading from a legacy version with existing data:
+ * 1. Copy data from report_receipts to report_items (receipt_id → item_id)
+ * 2. Copy data from report_documents to report_items (document_id → item_id)
+ * 3. After verification, optionally drop report_receipts and report_documents tables
+ * 4. Update all client code to use itemIds instead of receiptIds/documentIds
+ *
+ * Current state: Both legacy and unified models are supported for backward compatibility.
  */
 
 import { getDatabase } from './getDatabase';
@@ -36,6 +45,7 @@ function rowToItem(row: ItemRow): Item {
  */
 function rowToReport(
   row: ReportRow,
+  itemIds: string[] = [],
   receiptIds: string[] = [],
   documentIds: string[] = [],
   items?: Item[]
@@ -43,8 +53,7 @@ function rowToReport(
   const report: Report = {
     id: row.id,
     title: row.title,
-    receiptIds,
-    documentIds,
+    itemIds,
     totalAmount: row.total_amount,
     status: row.status,
     submittedAt: row.submitted_at || undefined,
@@ -52,9 +61,17 @@ function rowToReport(
     updatedAt: row.updated_at,
   };
 
+  // Legacy fields for backward compatibility
+  if (receiptIds.length > 0) {
+    report.receiptIds = receiptIds;
+  }
+  if (documentIds.length > 0) {
+    report.documentIds = documentIds;
+  }
+
   // Add items if provided (new unified model)
   if (items !== undefined) {
-    (report as any).items = items;
+    report.items = items;
   }
 
   return report;
@@ -97,14 +114,21 @@ export async function createReport(
     ]
   );
 
-  // Link receipts to report
+  // Link items to report (new unified model)
+  if (report.itemIds && report.itemIds.length > 0) {
+    for (const itemId of report.itemIds) {
+      await linkItemToReport(id, itemId);
+    }
+  }
+
+  // Legacy support: Link receipts to report
   if (report.receiptIds && report.receiptIds.length > 0) {
     for (const receiptId of report.receiptIds) {
       await linkReceiptToReport(id, receiptId);
     }
   }
 
-  // Link documents to report
+  // Legacy support: Link documents to report
   if (report.documentIds && report.documentIds.length > 0) {
     for (const documentId of report.documentIds) {
       await linkDocumentToReport(id, documentId);
@@ -132,9 +156,10 @@ export async function getReports(): Promise<Report[]> {
 
   const reports: Report[] = [];
   for (const row of rows) {
+    const itemIds = await getReportItemIds(row.id);
     const receiptIds = await getReportReceiptIds(row.id);
     const documentIds = await getReportDocumentIds(row.id);
-    reports.push(rowToReport(row, receiptIds, documentIds));
+    reports.push(rowToReport(row, itemIds, receiptIds, documentIds));
   }
 
   return reports;
@@ -157,13 +182,14 @@ export async function getReportById(id: string): Promise<Report | null> {
     return null;
   }
 
+  const itemIds = await getReportItemIds(id);
   const receiptIds = await getReportReceiptIds(id);
   const documentIds = await getReportDocumentIds(id);
 
   // Get items (new unified model)
   const items = await getReportItems(id);
 
-  return rowToReport(row, receiptIds, documentIds, items);
+  return rowToReport(row, itemIds, receiptIds, documentIds, items);
 }
 
 /**
@@ -219,7 +245,18 @@ export async function updateReport(
     await db.runAsync(query, values);
   }
 
-  // Update receipt associations if provided
+  // Update item associations if provided (new unified model)
+  if (updates.itemIds !== undefined) {
+    // Remove all existing associations
+    await db.runAsync('DELETE FROM report_items WHERE report_id = ?', [id]);
+
+    // Add new associations
+    for (const itemId of updates.itemIds) {
+      await linkItemToReport(id, itemId);
+    }
+  }
+
+  // Legacy support: Update receipt associations if provided
   if (updates.receiptIds !== undefined) {
     // Remove all existing associations
     await db.runAsync('DELETE FROM report_receipts WHERE report_id = ?', [id]);
@@ -230,7 +267,7 @@ export async function updateReport(
     }
   }
 
-  // Update document associations if provided
+  // Legacy support: Update document associations if provided
   if (updates.documentIds !== undefined) {
     // Remove all existing associations
     await db.runAsync('DELETE FROM report_documents WHERE report_id = ?', [id]);
@@ -270,9 +307,10 @@ export async function getReportsByStatus(status: ReportStatus): Promise<Report[]
 
   const reports: Report[] = [];
   for (const row of rows) {
+    const itemIds = await getReportItemIds(row.id);
     const receiptIds = await getReportReceiptIds(row.id);
     const documentIds = await getReportDocumentIds(row.id);
-    reports.push(rowToReport(row, receiptIds, documentIds));
+    reports.push(rowToReport(row, itemIds, receiptIds, documentIds));
   }
 
   return reports;
@@ -456,10 +494,11 @@ export async function getReportsByItemId(itemId: string): Promise<Report[]> {
 
     const reports: Report[] = [];
     for (const row of rows) {
+      const itemIds = await getReportItemIds(row.id);
       const receiptIds = await getReportReceiptIds(row.id);
       const documentIds = await getReportDocumentIds(row.id);
       const items = await getReportItems(row.id);
-      reports.push(rowToReport(row, receiptIds, documentIds, items));
+      reports.push(rowToReport(row, itemIds, receiptIds, documentIds, items));
     }
 
     return reports;
@@ -595,10 +634,11 @@ export async function getReportsByReceiptId(receiptId: string): Promise<Report[]
 
   const reports: Report[] = [];
   for (const row of rows) {
+    const itemIds = await getReportItemIds(row.id);
     const receiptIds = await getReportReceiptIds(row.id);
     const documentIds = await getReportDocumentIds(row.id);
     const items = await getReportItems(row.id);
-    reports.push(rowToReport(row, receiptIds, documentIds, items));
+    reports.push(rowToReport(row, itemIds, receiptIds, documentIds, items));
   }
 
   return reports;
@@ -756,10 +796,11 @@ export async function getReportsByDocumentId(documentId: string): Promise<Report
 
   const reports: Report[] = [];
   for (const row of rows) {
+    const itemIds = await getReportItemIds(row.id);
     const receiptIds = await getReportReceiptIds(row.id);
     const documentIds = await getReportDocumentIds(row.id);
     const items = await getReportItems(row.id);
-    reports.push(rowToReport(row, receiptIds, documentIds, items));
+    reports.push(rowToReport(row, itemIds, receiptIds, documentIds, items));
   }
 
   return reports;

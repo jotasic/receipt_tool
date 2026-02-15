@@ -4,9 +4,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Card } from '@/components/common';
 import { loadReport, submitReport } from '@/services/report';
-import { getReceiptById } from '@/services/database';
+import { getItemById } from '@/services/database/itemService';
 import { useReportStore } from '@/store/reportStore';
-import type { Report, Receipt } from '@/types';
+import type { Report, Item } from '@/types';
+import { isExpense } from '@/types/item';
 
 function getStatusColor(status: string) {
   switch (status) {
@@ -31,7 +32,7 @@ function getStatusLabel(status: string) {
 export default function ReportDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [report, setReport] = useState<Report | null>(null);
-  const [receipts, setReceipts] = useState<Receipt[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -46,9 +47,11 @@ export default function ReportDetailScreen() {
       const reportData = await loadReport(id);
       if (reportData) {
         setReport(reportData);
-        const receiptPromises = (reportData.receiptIds || []).map(rid => getReceiptById(rid));
-        const receiptResults = await Promise.all(receiptPromises);
-        setReceipts(receiptResults.filter((r): r is Receipt => r !== null));
+        // Use itemIds from the unified model, or fallback to receiptIds for legacy support
+        const itemIdsToLoad = reportData.itemIds || reportData.receiptIds || [];
+        const itemPromises = itemIdsToLoad.map(itemId => getItemById(itemId));
+        const itemResults = await Promise.all(itemPromises);
+        setItems(itemResults.filter((i): i is Item => i !== null));
       }
     } catch (error) {
       Alert.alert('오류', '리포트를 불러올 수 없습니다.');
@@ -139,8 +142,8 @@ export default function ReportDetailScreen() {
                 </View>
               )}
               <View className="flex-row justify-between mb-2">
-                <Text className="text-gray-500">영수증 수</Text>
-                <Text className="text-gray-900">{receipts.length}건</Text>
+                <Text className="text-gray-500">항목 수</Text>
+                <Text className="text-gray-900">{items.length}건</Text>
               </View>
             </View>
 
@@ -155,23 +158,25 @@ export default function ReportDetailScreen() {
           </Card>
         </View>
 
-        {/* Receipts */}
+        {/* Items */}
         <View className="px-4 pb-4">
-          <Text className="text-lg font-semibold mb-3">포함된 영수증</Text>
-          {receipts.map((receipt) => (
+          <Text className="text-lg font-semibold mb-3">포함된 항목</Text>
+          {items.map((item) => (
             <TouchableOpacity
-              key={receipt.id}
-              onPress={() => router.push(`/item/${receipt.id}`)}
+              key={item.id}
+              onPress={() => router.push(`/item/${item.id}`)}
               className="flex-row items-center bg-white p-3 rounded-lg mb-2"
             >
               <View className="w-10 h-10 bg-gray-100 rounded-md items-center justify-center mr-3">
                 <Ionicons name="receipt-outline" size={20} color="#6B7280" />
               </View>
               <View className="flex-1">
-                <Text className="font-medium text-gray-900">{receipt.storeName || receipt.title}</Text>
-                <Text className="text-sm text-gray-500">{receipt.date}</Text>
+                <Text className="font-medium text-gray-900">{item.storeName || item.title}</Text>
+                <Text className="text-sm text-gray-500">{item.date}</Text>
               </View>
-              <Text className="font-semibold text-gray-900">₩{receipt.amount.toLocaleString()}</Text>
+              {item.amount !== undefined && (
+                <Text className="font-semibold text-gray-900">₩{item.amount.toLocaleString()}</Text>
+              )}
             </TouchableOpacity>
           ))}
         </View>

@@ -50,7 +50,7 @@ function ReportCard({ report }: { report: Report }) {
 
       <View className="flex-row justify-between items-center mt-3 pt-3 border-t border-gray-100">
         <Text className="text-sm text-gray-500">
-          영수증 {report.receiptIds?.length || 0}건
+          항목 {report.itemIds?.length || report.receiptIds?.length || 0}건
         </Text>
         <Text className="text-lg font-bold text-blue-600">
           ₩{report.totalAmount.toLocaleString()}
@@ -68,7 +68,7 @@ function EmptyState() {
         리포트가 없습니다
       </Text>
       <Text className="text-gray-500 mt-2 text-center">
-        영수증을 모아 경비 청구 리포트를 생성해보세요
+        항목을 모아 경비 청구 리포트를 생성해보세요
       </Text>
       <View className="mt-6">
         <Button

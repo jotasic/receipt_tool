@@ -97,8 +97,8 @@ export async function example3_CreateReportWithDocuments(
 
   console.log('Created report:', {
     id: report.id,
-    receiptCount: report.receiptIds.length,
-    documentCount: report.documentIds.length,
+    receiptCount: report.receiptIds?.length || 0,
+    documentCount: report.documentIds?.length || 0,
   });
 
   return report;

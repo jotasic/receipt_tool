@@ -12,11 +12,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | 문서 | 내용 |
 |-----|-----|
-| [/docs/ARCHITECTURE.md](/docs/ARCHITECTURE.md) | 아키텍처, 기술 스택, 데이터 모델 (SSOT) |
-| [/docs/API.md](/docs/API.md) | API/함수 레퍼런스 |
+| [/docs/architecture.md](/docs/architecture.md) | 아키텍처, 기술 스택, 데이터 모델 (SSOT) |
+| [/docs/api.md](/docs/api.md) | API/함수 레퍼런스 |
 | [/docs/guides/database.md](/docs/guides/database.md) | 데이터베이스 가이드 |
 | [/docs/guides/ocr.md](/docs/guides/ocr.md) | OCR 시스템 가이드 |
-| [/docs/MIGRATION_GUIDE.md](/docs/MIGRATION_GUIDE.md) | 모델 진화 히스토리 |
+| [/docs/migration-guide.md](/docs/migration-guide.md) | 모델 진화 히스토리 |
 
 ## 개발 환경
 
@@ -109,8 +109,8 @@ npx tsc --noEmit
 
 | 변경 유형 | 업데이트 문서 |
 |----------|-------------|
-| 새 서비스/컴포넌트 | /docs/ARCHITECTURE.md |
-| 새 DB 함수 | /docs/API.md |
+| 새 서비스/컴포넌트 | /docs/architecture.md |
+| 새 DB 함수 | /docs/api.md |
 | 복잡한 기능 | /docs/guides/{기능}.md |
 
 ### 방식
@@ -118,14 +118,24 @@ npx tsc --noEmit
 - 해당 기능 커밋에 문서 변경 포함 (별도 커밋 X)
 - 예: `feat: 푸시 알림 추가` 커밋에 ARCHITECTURE.md 업데이트 포함
 
+### 문서 파일명 스타일
+
+**kebab-case 통일** (README.md 제외)
+
+```
+✅ architecture.md, api.md, migration-guide.md
+✅ getting-started.md, item-service.md
+❌ ARCHITECTURE.md, API.md, MIGRATION_GUIDE.md
+```
+
 ### 문서 크기 관리 (모듈화)
 
 문서가 커지면 논리적 단위로 모듈화:
 
 ```
 /docs/
-├── ARCHITECTURE.md          ← 요약 + 인덱스 (링크)
-├── API.md                   ← 요약 + 인덱스 (링크)
+├── architecture.md          ← 요약 + 인덱스 (링크)
+├── api.md                   ← 요약 + 인덱스 (링크)
 │
 ├── architecture/            ← 상세 내용 분리
 │   ├── services.md
@@ -138,7 +148,7 @@ npx tsc --noEmit
 ```
 
 **규칙:**
-- 메인 문서(ARCHITECTURE.md, API.md)는 요약 + 링크만 유지
+- 메인 문서(architecture.md, api.md)는 요약 + 링크만 유지
 - 상세 내용은 하위 폴더에 논리적 단위로 분리
 - 글자수 제한 없음 (논리적 단위 기준)
 

@@ -127,8 +127,8 @@ export default function ItemDetailScreen() {
   };
 
   const handleEdit = () => {
-    // TODO: Implement edit functionality
-    Alert.alert('준비 중', '편집 기능은 준비 중입니다.');
+    if (!id) return;
+    router.push(`/item/edit?id=${id}`);
   };
 
   const formatCurrency = (amount: number) => {

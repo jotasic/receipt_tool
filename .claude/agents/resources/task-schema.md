@@ -5,34 +5,34 @@
 ```yaml
 Task:
   id: "TASK-001"
-  title: "OCR 결과 파싱 기능 구현"
+  title: "Implement OCR result parsing"
   agent: react-native-expo-developer
   priority: P0  # P0=critical, P1=important, P2=nice-to-have
   dependencies: []  # List of task IDs this depends on
   acceptance_criteria:
-    - "OCR 결과에서 금액/날짜 추출"
-    - "에러 핸들링 구현"
-    - "TypeScript 타입 정의"
+    - "Extract amount/date from OCR results"
+    - "Implement error handling"
+    - "Define TypeScript types"
   estimated_complexity: medium  # low, medium, high
 ```
 
 ## Available Agents
 
-| Agent | 담당 영역 |
-|-------|----------|
-| `react-native-expo-developer` | UI, 서비스 로직 |
-| `database-specialist` | DB 스키마, 쿼리 |
-| `architect` | 구조 설계 |
-| `doc-writer` | 문서 |
-| `code-reviewer` | 코드 리뷰 |
+| Agent | Scope |
+|-------|-------|
+| `react-native-expo-developer` | UI, service logic |
+| `database-specialist` | DB schema, queries |
+| `architect` | Structural design |
+| `doc-writer` | Documentation |
+| `code-reviewer` | Code review |
 
 ## Priority Levels
 
 | Priority | Description | Example |
 |----------|-------------|---------|
-| P0 | Critical path, blocks others | DB 스키마, 핵심 서비스 |
-| P1 | Important, not blocking | 주요 기능 |
-| P2 | Nice to have | 최적화, 개선 |
+| P0 | Critical path, blocks others | DB schema, core services |
+| P1 | Important, not blocking | Main features |
+| P2 | Nice to have | Optimization, improvements |
 
 ## Complexity Estimation
 

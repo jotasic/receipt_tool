@@ -9,18 +9,18 @@ category: workflow
 
 # Lint & Format
 
-코드 스타일을 검사하고 자동 수정합니다.
+Checks code style and auto-fixes issues.
 
-## Triggers (사용 조건)
+## Triggers
 
-- "린트해줘", "lint", "포맷팅"
-- "코드 스타일 검사", "eslint 돌려줘"
-- 커밋 전 코드 정리 필요시
+- "lint", "format"
+- "check code style", "run eslint"
+- Before commit to clean up code
 
 ## Arguments
 
-- `$ARGUMENTS`: 대상 파일/경로
-- `--fix`: 자동 수정 적용
+- `$ARGUMENTS`: Target file/path
+- `--fix`: Apply auto-fix
 
 ## Workflow
 
@@ -45,12 +45,12 @@ category: workflow
 
 ## Agent Integration
 
-**자동 수정 불가 이슈:**
+**For issues that cannot be auto-fixed:**
 ```
 Use the refactorer agent to fix lint issues that cannot be auto-fixed
 ```
 
-**코드 품질 개선:**
+**For code quality improvements:**
 ```
 Use the code-reviewer agent to review code quality beyond lint rules
 ```
@@ -75,13 +75,13 @@ To auto-fix: /lint --fix
 ## Examples
 
 ```bash
-/lint                  # 전체 검사
-/lint --fix            # 자동 수정
-/lint src/components   # 특정 경로
+/lint                  # Check all
+/lint --fix            # Auto-fix
+/lint src/components   # Specific path
 ```
 
 ## Related Skills
 
-- `/build`: 빌드
-- `/code-quality`: 전체 품질 파이프라인
-- `/commit`: 커밋 (린트 후)
+- `/build`: Build
+- `/code-quality`: Full quality pipeline
+- `/commit`: Commit (after lint)

@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Commit changes (한글 커밋)
+description: Commit changes with conventional commit format
 argument-hint: [message] [--amend]
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep
@@ -10,66 +10,64 @@ category: workflow
 
 # Git Commit
 
-변경사항을 한글 커밋 메시지로 커밋합니다.
+Commits changes with conventional commit messages.
 
-## Triggers (사용 조건)
+## Triggers
 
-- "커밋해줘", "commit"
-- "변경사항 저장"
-- 코드 작업 완료 후
+- "commit", "save changes"
+- After completing code work
 
 ## Arguments
 
-- `$ARGUMENTS`: 커밋 메시지
-- `--amend`: 이전 커밋 수정
+- `$ARGUMENTS`: Commit message
+- `--amend`: Amend previous commit
 
 ## Workflow
 
 ```
 ┌─────────────────────────────────────┐
-│  1. git status & diff 확인          │
-│  2. 변경사항 스테이징                 │
-│  3. 커밋 생성                        │
-│  4. 커밋 확인                        │
+│  1. Check git status & diff         │
+│  2. Stage changes                   │
+│  3. Create commit                   │
+│  4. Verify commit                   │
 └─────────────────────────────────────┘
 ```
 
-## 커밋 메시지 형식
+## Commit Message Format
 
 ```
-{타입}({범위}): {한글 설명}
+{type}({scope}): {description}
 
-{본문 (선택)}
+{body (optional)}
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ### Types
 
-| Type | 용도 |
-|------|-----|
-| feat | 새 기능 |
-| fix | 버그 수정 |
-| docs | 문서 변경 |
-| refactor | 리팩토링 |
-| chore | 설정, 빌드 등 |
+| Type | Purpose |
+|------|---------|
+| feat | New feature |
+| fix | Bug fix |
+| docs | Documentation |
+| refactor | Refactoring |
+| chore | Config, build, etc. |
 
-## 예시
+## Examples
 
 ```bash
-/commit feat(아이템): 태그 필터링 기능 추가
-/commit fix(OCR): 금액 파싱 오류 수정
-/commit docs: API 문서 업데이트
+/commit feat(item): add tag filtering feature
+/commit fix(OCR): fix amount parsing error
+/commit docs: update API documentation
 ```
 
-## 규칙
+## Rules
 
-- **한글로 작성**
-- 제목 50자 이내
-- 원자적 커밋 (1 기능 = 1 커밋)
-- 문서 변경은 관련 기능 커밋에 포함
+- Keep title under 50 characters
+- Atomic commits (1 feature = 1 commit)
+- Include related doc changes in feature commit
 
 ## Related Skills
 
-- `/lint`: 커밋 전 린트
-- `/code-quality`: 품질 검사 후 커밋
+- `/lint`: Lint before commit
+- `/code-quality`: Quality check before commit

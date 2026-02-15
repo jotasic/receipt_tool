@@ -7,21 +7,21 @@ allowed-tools: Bash, Read, Grep, Glob
 
 # Code Quality Pipeline
 
-전체 코드 품질 검사를 순차적으로 실행합니다.
+Runs full code quality checks sequentially.
 
 ## Arguments
 
-- `--fix`: 자동 수정 가능한 문제 수정
+- `--fix`: Auto-fix fixable issues
 
 ## Pipeline Steps
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  1. Type Check    → 타입 에러 검사                    │
-│  2. Lint          → 코드 스타일 검사                   │
-│  3. Test          → 단위/통합 테스트                   │
-│  4. Security      → 보안 취약점 스캔                   │
-│  5. Build         → 빌드 검증                        │
+│  1. Type Check    → Check type errors               │
+│  2. Lint          → Check code style                │
+│  3. Test          → Run unit/integration tests      │
+│  4. Security      → Scan security vulnerabilities   │
+│  5. Build         → Verify build                    │
 └─────────────────────────────────────────────────────┘
 ```
 

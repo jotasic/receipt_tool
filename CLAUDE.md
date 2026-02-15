@@ -118,6 +118,30 @@ npx tsc --noEmit
 - 해당 기능 커밋에 문서 변경 포함 (별도 커밋 X)
 - 예: `feat: 푸시 알림 추가` 커밋에 ARCHITECTURE.md 업데이트 포함
 
+### 문서 크기 관리 (모듈화)
+
+문서가 커지면 논리적 단위로 모듈화:
+
+```
+/docs/
+├── ARCHITECTURE.md          ← 요약 + 인덱스 (링크)
+├── API.md                   ← 요약 + 인덱스 (링크)
+│
+├── architecture/            ← 상세 내용 분리
+│   ├── services.md
+│   ├── components.md
+│   └── database.md
+│
+└── api/                     ← 상세 내용 분리
+    ├── item-service.md
+    └── tag-service.md
+```
+
+**규칙:**
+- 메인 문서(ARCHITECTURE.md, API.md)는 요약 + 링크만 유지
+- 상세 내용은 하위 폴더에 논리적 단위로 분리
+- 글자수 제한 없음 (논리적 단위 기준)
+
 ---
 
 ## 코드 컨벤션

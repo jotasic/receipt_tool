@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Item, ItemClassification, UsagePurpose } from '@/types/item';
 import { requiresSubmission, isProofDocument, isExpense } from '@/types/item';
 import { getItems } from '@/services/database/itemService';
+import { getTagsForItem } from '@/services/database/tagService';
 
 interface ItemStore {
   // State
@@ -52,7 +53,16 @@ export const useItemStore = create<ItemStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const items = await getItems();
-      set({ items, isLoading: false });
+
+      // Load tags for each item
+      const itemsWithTags = await Promise.all(
+        items.map(async (item) => {
+          const tags = await getTagsForItem(item.id);
+          return { ...item, tags };
+        })
+      );
+
+      set({ items: itemsWithTags, isLoading: false });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to load items',

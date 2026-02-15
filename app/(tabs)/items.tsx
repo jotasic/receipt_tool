@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
@@ -13,8 +14,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { ItemCard } from '@/components/item';
 import { useItemStore } from '@/store/itemStore';
 import { CLASSIFICATIONS } from '@/constants/items';
-import type { Item, ItemClassification, UsagePurpose } from '@/types/item';
+import type { Item, ItemClassification, UsagePurpose, Tag } from '@/types';
 import { isExpense } from '@/types/item';
+import { getTags } from '@/services/database/tagService';
 
 type FilterType = 'all' | ItemClassification;
 
@@ -33,6 +35,8 @@ export default function ItemsScreen() {
   const { items, isLoading, loadItems } = useItemStore();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Load items when screen comes into focus
   useFocusEffect(
@@ -41,18 +45,45 @@ export default function ItemsScreen() {
     }, [loadItems])
   );
 
-  // Filter items based on selected filter
+  // Load tags on mount
+  useEffect(() => {
+    loadAllTags();
+  }, []);
+
+  const loadAllTags = async () => {
+    try {
+      const allTags = await getTags();
+      setTags(allTags);
+    } catch (error) {
+      console.error('Failed to load tags:', error);
+    }
+  };
+
+  // Filter items based on selected filter and tags
   const filteredItems = useMemo(() => {
-    const filtered =
-      selectedFilter === 'all'
-        ? items
-        : items.filter((item) => item.classification === selectedFilter);
+    let result = items;
+
+    // Filter by classification
+    if (selectedFilter !== 'all') {
+      result = result.filter((item) => item.classification === selectedFilter);
+    }
+
+    // Filter by tags (if any tags selected)
+    if (selectedTags.length > 0) {
+      result = result.filter((item) => {
+        // Item must have at least one of the selected tags
+        if (!item.tags || item.tags.length === 0) return false;
+
+        const itemTagIds = item.tags.map((tag) => tag.id);
+        return selectedTags.some((tagId) => itemTagIds.includes(tagId));
+      });
+    }
 
     // Sort by date DESC (most recent first)
-    return filtered.sort((a, b) => {
+    return result.sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
-  }, [items, selectedFilter]);
+  }, [items, selectedFilter, selectedTags]);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -91,6 +122,23 @@ export default function ItemsScreen() {
 
   const handleFilterChange = (filter: FilterType) => {
     setSelectedFilter(filter);
+  };
+
+  const toggleTag = (tagId: string) => {
+    setSelectedTags((prev) => {
+      if (prev.includes(tagId)) {
+        // Remove tag
+        return prev.filter((id) => id !== tagId);
+      } else {
+        // Add tag
+        return [...prev, tagId];
+      }
+    });
+  };
+
+  const clearFilters = () => {
+    setSelectedFilter('all');
+    setSelectedTags([]);
   };
 
   const formatAmount = (amount: number) => {
@@ -188,44 +236,134 @@ export default function ItemsScreen() {
         />
       </View>
 
+      {/* Tag Filter */}
+      {tags.length > 0 && (
+        <View className="mb-4">
+          <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            태그 필터
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8 }}
+          >
+            {/* "All" chip */}
+            <TouchableOpacity
+              onPress={() => setSelectedTags([])}
+              className={`px-4 py-2 rounded-full ${
+                selectedTags.length === 0
+                  ? 'bg-blue-600 dark:bg-blue-500'
+                  : 'bg-gray-200 dark:bg-gray-700'
+              }`}
+              activeOpacity={0.7}
+              accessibilityLabel="모든 태그"
+              accessibilityRole="button"
+              accessibilityState={{ selected: selectedTags.length === 0 }}
+            >
+              <Text
+                className={`font-medium ${
+                  selectedTags.length === 0
+                    ? 'text-white'
+                    : 'text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                전체
+              </Text>
+            </TouchableOpacity>
+
+            {/* Tag chips */}
+            {tags.map((tag) => {
+              const isSelected = selectedTags.includes(tag.id);
+              return (
+                <TouchableOpacity
+                  key={tag.id}
+                  onPress={() => toggleTag(tag.id)}
+                  className="px-4 py-2 rounded-full border"
+                  style={{
+                    backgroundColor: isSelected ? tag.color : 'transparent',
+                    borderColor: tag.color,
+                  }}
+                  activeOpacity={0.7}
+                  accessibilityLabel={`${tag.name} 태그`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                >
+                  <Text
+                    style={{
+                      color: isSelected ? '#FFFFFF' : tag.color,
+                    }}
+                    className="font-medium"
+                  >
+                    {tag.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* Clear Filter Button */}
+      {(selectedFilter !== 'all' || selectedTags.length > 0) && (
+        <View className="mb-4">
+          <TouchableOpacity
+            onPress={clearFilters}
+            className="flex-row items-center justify-center py-2 px-4 bg-gray-100 dark:bg-gray-800 rounded-lg"
+            activeOpacity={0.7}
+            accessibilityLabel="필터 초기화"
+            accessibilityRole="button"
+          >
+            <Ionicons name="close-circle-outline" size={18} color="#6B7280" />
+            <Text className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              필터 초기화
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Section Header */}
       <View className="flex-row items-center justify-between mb-3">
         <Text className="text-lg font-bold text-gray-900 dark:text-gray-100">
           항목 목록
         </Text>
         <Text className="text-sm text-gray-500 dark:text-gray-400">
-          {filteredItems.length}건
+          총 {filteredItems.length}건
+          {selectedTags.length > 0 && ` (태그: ${selectedTags.length}개)`}
         </Text>
       </View>
     </View>
   );
 
-  const renderEmptyState = () => (
-    <View className="items-center justify-center py-16">
-      <View className="bg-gray-100 dark:bg-gray-700 rounded-full p-6 mb-4">
-        <Ionicons name="receipt-outline" size={64} color="#9CA3AF" />
+  const renderEmptyState = () => {
+    const hasActiveFilters = selectedFilter !== 'all' || selectedTags.length > 0;
+
+    return (
+      <View className="items-center justify-center py-16">
+        <View className="bg-gray-100 dark:bg-gray-700 rounded-full p-6 mb-4">
+          <Ionicons name="receipt-outline" size={64} color="#9CA3AF" />
+        </View>
+        <Text className="text-gray-900 dark:text-gray-100 text-lg font-semibold mb-2">
+          {hasActiveFilters ? '필터 조건에 맞는 항목이 없습니다' : '등록된 항목이 없습니다'}
+        </Text>
+        <Text className="text-gray-500 dark:text-gray-400 text-base text-center mb-6">
+          {hasActiveFilters
+            ? '다른 필터 조건을 선택하거나\n필터를 초기화해보세요'
+            : '하단의 + 버튼을 눌러\n첫 항목을 등록해보세요'}
+        </Text>
+        {hasActiveFilters && (
+          <TouchableOpacity
+            onPress={clearFilters}
+            className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg"
+            activeOpacity={0.7}
+            accessibilityLabel="필터 초기화"
+            accessibilityRole="button"
+          >
+            <Text className="text-blue-600 dark:text-blue-400 font-medium">필터 초기화</Text>
+          </TouchableOpacity>
+        )}
       </View>
-      <Text className="text-gray-900 dark:text-gray-100 text-lg font-semibold mb-2">
-        등록된 항목이 없습니다
-      </Text>
-      <Text className="text-gray-500 dark:text-gray-400 text-base text-center mb-6">
-        {selectedFilter === 'all'
-          ? '하단의 + 버튼을 눌러\n첫 항목을 등록해보세요'
-          : `${FILTER_OPTIONS.find((f) => f.id === selectedFilter)?.name} 항목이 없습니다`}
-      </Text>
-      {selectedFilter !== 'all' && (
-        <TouchableOpacity
-          onPress={() => setSelectedFilter('all')}
-          className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg"
-          activeOpacity={0.7}
-          accessibilityLabel="전체 보기"
-          accessibilityRole="button"
-        >
-          <Text className="text-blue-600 dark:text-blue-400 font-medium">전체 보기</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
+    );
+  };
 
   const renderItem = ({ item }: { item: Item }) => (
     <ItemCard item={item} />

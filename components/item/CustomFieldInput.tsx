@@ -14,7 +14,7 @@
  * - Error state handling
  */
 
-import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Platform, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { CustomField } from '@/types';
 
@@ -31,6 +31,8 @@ export function CustomFieldInput({
   onValueChange,
   error,
 }: CustomFieldInputProps) {
+  const colorScheme = useColorScheme();
+
   /**
    * Render text input
    */
@@ -39,8 +41,8 @@ export function CustomFieldInput({
       value={value || ''}
       onChangeText={onValueChange}
       placeholder={`${field.name} 입력`}
-      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-base text-gray-900"
-      placeholderTextColor="#9CA3AF"
+      className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-base text-gray-900 dark:text-gray-100"
+      placeholderTextColor={colorScheme === 'dark' ? '#9CA3AF' : '#9CA3AF'}
       autoCapitalize="sentences"
     />
   );
@@ -54,8 +56,8 @@ export function CustomFieldInput({
       onChangeText={onValueChange}
       placeholder={`${field.name} 입력`}
       keyboardType="numeric"
-      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-base text-gray-900"
-      placeholderTextColor="#9CA3AF"
+      className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-base text-gray-900 dark:text-gray-100"
+      placeholderTextColor={colorScheme === 'dark' ? '#9CA3AF' : '#9CA3AF'}
     />
   );
 
@@ -71,11 +73,11 @@ export function CustomFieldInput({
         value={value || ''}
         onChangeText={onValueChange}
         placeholder="YYYY-MM-DD"
-        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-base text-gray-900"
-        placeholderTextColor="#9CA3AF"
+        className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-base text-gray-900 dark:text-gray-100"
+        placeholderTextColor={colorScheme === 'dark' ? '#9CA3AF' : '#9CA3AF'}
         autoCapitalize="none"
       />
-      <Text className="text-xs text-gray-500 mt-1 ml-1">
+      <Text className="text-xs text-gray-500 dark:text-gray-300 mt-1 ml-1">
         형식: YYYY-MM-DD (예: 2026-02-15)
       </Text>
     </View>
@@ -91,7 +93,7 @@ export function CustomFieldInput({
       <View className="w-full">
         {/* Selected value display */}
         <TouchableOpacity
-          className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg flex-row items-center justify-between"
+          className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg flex-row items-center justify-between"
           onPress={() => {
             // For now, cycle through options on tap
             // Future enhancement: Show a proper picker modal
@@ -100,10 +102,10 @@ export function CustomFieldInput({
             onValueChange(options[nextIndex] || null);
           }}
         >
-          <Text className={`text-base ${value ? 'text-gray-900' : 'text-gray-400'}`}>
+          <Text className={`text-base ${value ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-300'}`}>
             {value || `${field.name} 선택`}
           </Text>
-          <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
+          <Ionicons name="chevron-down" size={20} color={colorScheme === 'dark' ? '#9CA3AF' : '#9CA3AF'} />
         </TouchableOpacity>
 
         {/* Options preview */}
@@ -115,13 +117,13 @@ export function CustomFieldInput({
                 onPress={() => onValueChange(option)}
                 className={`px-3 py-1.5 rounded-full border ${
                   value === option
-                    ? 'bg-blue-50 border-blue-500'
-                    : 'bg-gray-50 border-gray-300'
+                    ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 dark:border-blue-600'
+                    : 'bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600'
                 }`}
               >
                 <Text
                   className={`text-sm ${
-                    value === option ? 'text-blue-700 font-medium' : 'text-gray-700'
+                    value === option ? 'text-blue-700 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-200'
                   }`}
                 >
                   {option}
@@ -156,7 +158,7 @@ export function CustomFieldInput({
     <View className="mb-4">
       {/* Label */}
       <View className="flex-row items-center mb-2">
-        <Text className="text-base text-gray-700 font-medium">
+        <Text className="text-base text-gray-700 dark:text-gray-200 font-medium">
           {field.name}
         </Text>
         {field.isRequired && (

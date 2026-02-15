@@ -1,4 +1,4 @@
-import { View, Text, TextInput } from 'react-native';
+import { View, Text, TextInput, useColorScheme } from 'react-native';
 
 interface InputProps {
   label?: string;
@@ -25,22 +25,24 @@ export function Input({
   multiline = false,
   numberOfLines = 1,
 }: InputProps) {
+  const colorScheme = useColorScheme();
+
   return (
     <View className="mb-4">
       {label && (
-        <Text className="text-gray-700 text-base font-medium mb-2">
+        <Text className="text-gray-700 dark:text-gray-200 text-base font-medium mb-2">
           {label}
         </Text>
       )}
 
       <TextInput
         className={`
-          border rounded-lg px-4 py-3 text-base
-          ${error ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'}
+          border rounded-lg px-4 py-3 text-base text-gray-900 dark:text-gray-100
+          ${error ? 'border-red-500 bg-red-50 dark:bg-red-900/30' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'}
           ${multiline ? 'min-h-[100px]' : ''}
         `}
         placeholder={placeholder}
-        placeholderTextColor="#9ca3af"
+        placeholderTextColor={colorScheme === 'dark' ? '#9CA3AF' : '#9CA3AF'}
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={secureTextEntry}

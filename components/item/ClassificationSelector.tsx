@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ItemClassification } from '@/types/shared';
 import { CLASSIFICATIONS } from '@/constants/items';
@@ -12,6 +12,8 @@ export function ClassificationSelector({
   selectedClassification,
   onSelect,
 }: ClassificationSelectorProps) {
+  const colorScheme = useColorScheme();
+
   return (
     <View className="w-full">
       <ScrollView
@@ -35,15 +37,15 @@ export function ClassificationSelector({
                 flex-col items-center justify-center
                 px-4 py-3 rounded-xl
                 border-2
-                ${isSelected ? 'border-opacity-100' : 'border-gray-200'}
-                ${isSelected ? 'bg-opacity-10' : 'bg-white'}
+                ${isSelected ? 'border-opacity-100' : 'border-gray-200 dark:border-gray-700'}
+                ${isSelected ? 'bg-opacity-10' : 'bg-white dark:bg-gray-800'}
                 min-w-[110px]
               `}
               style={{
-                borderColor: isSelected ? classification.color : '#E5E7EB',
+                borderColor: isSelected ? classification.color : (colorScheme === 'dark' ? '#374151' : '#E5E7EB'),
                 backgroundColor: isSelected
                   ? `${classification.color}15`
-                  : '#FFFFFF',
+                  : (colorScheme === 'dark' ? '#1F2937' : '#FFFFFF'),
               }}
               activeOpacity={0.7}
               accessibilityRole="button"
@@ -59,7 +61,7 @@ export function ClassificationSelector({
               <Text
                 className={`
                   text-base font-semibold
-                  ${isSelected ? 'text-gray-800' : 'text-gray-600'}
+                  ${isSelected ? 'text-gray-800 dark:text-gray-100' : 'text-gray-600 dark:text-gray-300'}
                 `}
               >
                 {classification.name}
@@ -67,7 +69,7 @@ export function ClassificationSelector({
               <Text
                 className={`
                   text-xs mt-1
-                  ${isSelected ? 'text-gray-600' : 'text-gray-400'}
+                  ${isSelected ? 'text-gray-600 dark:text-gray-300' : 'text-gray-500 dark:text-gray-300'}
                 `}
               >
                 {subtitle}

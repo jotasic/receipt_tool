@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { UsagePurpose } from '@/types/shared';
 import { USAGE_PURPOSES } from '@/constants/items';
@@ -12,6 +12,8 @@ export function UsagePurposeSelector({
   selectedPurpose,
   onSelect,
 }: UsagePurposeSelectorProps) {
+  const colorScheme = useColorScheme();
+
   return (
     <View className="w-full">
       <ScrollView
@@ -34,15 +36,15 @@ export function UsagePurposeSelector({
                 flex-row items-center justify-center
                 px-3 py-2 rounded-lg
                 border-2
-                ${isSelected ? 'border-opacity-100' : 'border-gray-200'}
-                ${isSelected ? 'bg-opacity-10' : 'bg-white'}
+                ${isSelected ? 'border-opacity-100' : 'border-gray-200 dark:border-gray-700'}
+                ${isSelected ? 'bg-opacity-10' : 'bg-white dark:bg-gray-800'}
                 min-w-[80px]
               `}
               style={{
-                borderColor: isSelected ? purpose.color : '#E5E7EB',
+                borderColor: isSelected ? purpose.color : (colorScheme === 'dark' ? '#374151' : '#E5E7EB'),
                 backgroundColor: isSelected
                   ? `${purpose.color}15`
-                  : '#FFFFFF',
+                  : (colorScheme === 'dark' ? '#1F2937' : '#FFFFFF'),
               }}
               activeOpacity={0.7}
               accessibilityRole="button"
@@ -58,7 +60,7 @@ export function UsagePurposeSelector({
               <Text
                 className={`
                   text-sm font-semibold
-                  ${isSelected ? 'text-gray-800' : 'text-gray-600'}
+                  ${isSelected ? 'text-gray-800 dark:text-gray-100' : 'text-gray-600 dark:text-gray-300'}
                 `}
               >
                 {purpose.name}

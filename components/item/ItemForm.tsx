@@ -487,7 +487,7 @@ export function ItemForm({
       >
         {/* Classification Selector */}
         <View className="mb-6">
-          <Text className="text-gray-700 text-base font-medium mb-3">
+          <Text className="text-gray-700 dark:text-gray-200 text-base font-medium mb-3">
             분류 (필수)
           </Text>
           <ClassificationSelector
@@ -498,7 +498,7 @@ export function ItemForm({
 
         {/* Usage Purpose Selector */}
         <View className="mb-6">
-          <Text className="text-gray-700 text-base font-medium mb-3">
+          <Text className="text-gray-700 dark:text-gray-200 text-base font-medium mb-3">
             용도 (필수)
           </Text>
           <UsagePurposeSelector
@@ -509,7 +509,7 @@ export function ItemForm({
 
         {/* Image/File Picker with OCR */}
         <View className="mb-6">
-          <Text className="text-gray-700 text-base font-medium mb-3">
+          <Text className="text-gray-700 dark:text-gray-200 text-base font-medium mb-3">
             사진 (선택)
           </Text>
 
@@ -765,7 +765,7 @@ export function ItemForm({
         {/* Custom Fields Section */}
         {customFields.length > 0 && (
           <View className="mb-6">
-            <Text className="text-base font-semibold text-gray-900 mb-3">추가 정보</Text>
+            <Text className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">추가 정보</Text>
             {customFields.map((field) => (
               <CustomFieldInput
                 key={field.id}
@@ -781,7 +781,7 @@ export function ItemForm({
       </ScrollView>
 
       {/* Action Buttons */}
-      <View className="p-4 border-t border-gray-200 gap-2">
+      <View className="p-4 border-t border-gray-200 dark:border-gray-700 gap-2">
         <Button
           title={isSaving ? '저장 중...' : '저장'}
           onPress={handleSubmit}
@@ -805,16 +805,16 @@ export function ItemForm({
         animationType="slide"
         onRequestClose={() => setShowOcrOverlay(false)}
       >
-        <SafeAreaView className="flex-1 bg-white">
+        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
           {/* Header */}
-          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <TouchableOpacity
               onPress={() => setShowOcrOverlay(false)}
               className="w-10 h-10 items-center justify-center"
             >
               <Ionicons name="close" size={24} color="#111827" />
             </TouchableOpacity>
-            <Text className="text-lg font-semibold text-gray-900">
+            <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               텍스트 영역 선택
             </Text>
             <TouchableOpacity

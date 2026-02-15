@@ -120,9 +120,9 @@ export default function CreateReportScreen() {
           <TouchableOpacity
             onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="닫기"
+            accessibilityLabel="뒤로 가기"
           >
-            <Ionicons name="close" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
+            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
           </TouchableOpacity>
           <Text className="flex-1 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">리포트 생성</Text>
           <View style={{ width: 24 }} />
@@ -139,9 +139,9 @@ export default function CreateReportScreen() {
 
         {/* 총액 표시 */}
         <Card className="my-4">
-          <Text className="text-gray-500">선택된 항목 총액</Text>
+          <Text className="text-gray-500 dark:text-gray-300">선택된 항목 총액</Text>
           <Text className="text-2xl font-bold text-blue-600 mt-1">₩{totalAmount.toLocaleString()}</Text>
-          <Text className="text-sm text-gray-400">{selectedIds.length}건 선택됨</Text>
+          <Text className="text-sm text-gray-400 dark:text-gray-300">{selectedIds.length}건 선택됨</Text>
         </Card>
 
         {/* 항목 선택 */}
@@ -160,8 +160,8 @@ export default function CreateReportScreen() {
 
         {expenseItems.length === 0 ? (
           <View className="items-center py-8">
-            <Ionicons name="receipt-outline" size={48} color="#9CA3AF" />
-            <Text className="text-gray-500 mt-2">항목이 없습니다</Text>
+            <Ionicons name="receipt-outline" size={48} color={colorScheme === 'dark' ? '#6B7280' : '#9CA3AF'} />
+            <Text className="text-gray-500 dark:text-gray-300 mt-2">항목이 없습니다</Text>
           </View>
         ) : (
           <View>

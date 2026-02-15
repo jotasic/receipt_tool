@@ -18,6 +18,7 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Input, Button } from '@/components/common';
@@ -52,6 +53,7 @@ export function TagSelector({
   onTagsChange,
   label = '태그',
 }: TagSelectorProps) {
+  const colorScheme = useColorScheme();
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [allTags, setAllTags] = useState<Tag[]>([]);
@@ -150,7 +152,7 @@ export function TagSelector({
     <View className="mb-4">
       {/* Label */}
       {label && (
-        <Text className="text-gray-700 text-base font-medium mb-2">
+        <Text className="text-gray-700 dark:text-gray-200 text-base font-medium mb-2">
           {label}
         </Text>
       )}
@@ -178,11 +180,11 @@ export function TagSelector({
         {/* Add tag button */}
         <TouchableOpacity
           onPress={() => setShowModal(true)}
-          className="px-3 py-1.5 rounded-full border-2 border-dashed border-gray-300 flex-row items-center"
+          className="px-3 py-1.5 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex-row items-center"
           activeOpacity={0.7}
         >
-          <Ionicons name="add" size={16} color="#6B7280" />
-          <Text className="text-sm text-gray-600 ml-1">태그 추가</Text>
+          <Ionicons name="add" size={16} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+          <Text className="text-sm text-gray-600 dark:text-gray-300 ml-1">태그 추가</Text>
         </TouchableOpacity>
       </View>
 
@@ -193,16 +195,16 @@ export function TagSelector({
         presentationStyle="pageSheet"
         onRequestClose={() => setShowModal(false)}
       >
-        <View className="flex-1 bg-white">
+        <View className="flex-1 bg-white dark:bg-gray-900">
           {/* Header */}
-          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <TouchableOpacity
               onPress={() => setShowModal(false)}
               className="w-10 h-10 items-center justify-center"
             >
-              <Ionicons name="close" size={24} color="#111827" />
+              <Ionicons name="close" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
             </TouchableOpacity>
-            <Text className="text-lg font-semibold text-gray-900">
+            <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               태그 선택
             </Text>
             <TouchableOpacity
@@ -217,8 +219,8 @@ export function TagSelector({
           <View className="flex-1">
             {/* Create new tag section */}
             {isCreatingTag ? (
-              <View className="p-4 border-b border-gray-200">
-                <Text className="text-base font-semibold text-gray-900 mb-3">
+              <View className="p-4 border-b border-gray-200 dark:border-gray-700">
+                <Text className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">
                   새 태그 만들기
                 </Text>
 
@@ -231,7 +233,7 @@ export function TagSelector({
                 />
 
                 {/* Color picker */}
-                <Text className="text-gray-700 text-base font-medium mb-2">
+                <Text className="text-gray-700 dark:text-gray-200 text-base font-medium mb-2">
                   색상
                 </Text>
                 <View className="flex-row flex-wrap gap-2 mb-4">
@@ -243,7 +245,7 @@ export function TagSelector({
                       style={{
                         backgroundColor: color,
                         borderWidth: newTagColor === color ? 3 : 0,
-                        borderColor: '#111827',
+                        borderColor: colorScheme === 'dark' ? '#F9FAFB' : '#111827',
                       }}
                       activeOpacity={0.7}
                     >
@@ -280,7 +282,7 @@ export function TagSelector({
                 </View>
               </View>
             ) : (
-              <View className="p-4 border-b border-gray-200">
+              <View className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <Button
                   title="새 태그 만들기"
                   onPress={() => setIsCreatingTag(true)}
@@ -291,8 +293,8 @@ export function TagSelector({
             )}
 
             {/* Search bar */}
-            <View className="px-4 py-3 border-b border-gray-200">
-              <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
+            <View className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">
                 <Ionicons name="search" size={20} color="#6B7280" />
                 <Input
                   placeholder="태그 검색"
@@ -307,12 +309,12 @@ export function TagSelector({
             {isLoading && !isCreatingTag ? (
               <View className="flex-1 items-center justify-center">
                 <ActivityIndicator size="large" color="#3B82F6" />
-                <Text className="mt-2 text-gray-600">로딩 중...</Text>
+                <Text className="mt-2 text-gray-600 dark:text-gray-300">로딩 중...</Text>
               </View>
             ) : availableTags.length === 0 ? (
               <View className="flex-1 items-center justify-center p-6">
-                <Ionicons name="pricetags-outline" size={48} color="#D1D5DB" />
-                <Text className="mt-3 text-gray-500 text-center">
+                <Ionicons name="pricetags-outline" size={48} color={colorScheme === 'dark' ? '#4B5563' : '#D1D5DB'} />
+                <Text className="mt-3 text-gray-500 dark:text-gray-300 text-center">
                   {searchQuery
                     ? '검색 결과가 없습니다'
                     : '사용 가능한 태그가 없습니다\n새 태그를 만들어보세요'}
@@ -325,7 +327,7 @@ export function TagSelector({
                     <TouchableOpacity
                       key={tag.id}
                       onPress={() => handleAddTag(tag)}
-                      className="flex-row items-center py-3 border-b border-gray-100"
+                      className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-700"
                       activeOpacity={0.7}
                     >
                       <View
@@ -338,7 +340,7 @@ export function TagSelector({
                           color={tag.color}
                         />
                       </View>
-                      <Text className="flex-1 text-base text-gray-900">
+                      <Text className="flex-1 text-base text-gray-900 dark:text-gray-100">
                         {tag.name}
                       </Text>
                       <Ionicons

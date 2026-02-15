@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import Constants from 'expo-constants';
+import { useRouter } from 'expo-router';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useItemStore } from '@/store/itemStore';
 import { getDatabase } from '@/services/database';
@@ -89,6 +90,7 @@ function SettingItem({
 }
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const [isClearing, setIsClearing] = useState(false);
   const { theme, setTheme } = useSettingsStore();
   const { loadItems } = useItemStore();
@@ -274,7 +276,23 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* 설정 그룹 2: 데이터 */}
+        {/* 설정 그룹 2: 관리 */}
+        <View className="mt-6">
+          <Text className="px-4 py-2 text-sm font-semibold text-gray-500 uppercase">
+            관리
+          </Text>
+          <View className="mt-1">
+            <SettingItem
+              icon="pricetags"
+              title="태그 관리"
+              hasArrow
+              onPress={() => router.push('/settings/tags' as any)}
+              disabled={isClearing}
+            />
+          </View>
+        </View>
+
+        {/* 설정 그룹 3: 데이터 */}
         <View className="mt-6">
           <Text className="px-4 py-2 text-sm font-semibold text-gray-500 uppercase">
             데이터
@@ -311,7 +329,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* 설정 그룹 3: 정보 */}
+        {/* 설정 그룹 4: 정보 */}
         <View className="mt-6 mb-6">
           <Text className="px-4 py-2 text-sm font-semibold text-gray-500 uppercase">
             정보

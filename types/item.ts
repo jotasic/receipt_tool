@@ -11,6 +11,8 @@
  * - Clear distinction between items requiring submission vs. tracking-only
  */
 
+import type { Tag } from './tag';
+
 /**
  * ItemClassification - Primary categorization of items
  *
@@ -65,6 +67,12 @@ export interface Item {
 
   /** Usage purpose/category - for reporting and organization */
   usagePurpose: UsagePurpose;
+
+  /**
+   * Tags associated with this item
+   * Optional - loaded when needed via JOIN query
+   */
+  tags?: Tag[];
 
   // ============================================
   // Financial Data

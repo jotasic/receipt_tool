@@ -118,6 +118,16 @@ export const SCHEMA = {
     )
   `,
 
+  item_tags: `
+    CREATE TABLE IF NOT EXISTS item_tags (
+      item_id TEXT NOT NULL,
+      tag_id TEXT NOT NULL,
+      PRIMARY KEY (item_id, tag_id),
+      FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
+      FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+    )
+  `,
+
   custom_fields: `
     CREATE TABLE IF NOT EXISTS custom_fields (
       id TEXT PRIMARY KEY,
@@ -281,6 +291,16 @@ export const INDEXES = {
   document_tags_tag: `
     CREATE INDEX IF NOT EXISTS idx_document_tags_tag
     ON document_tags(tag_id)
+  `,
+
+  item_tags_item: `
+    CREATE INDEX IF NOT EXISTS idx_item_tags_item
+    ON item_tags(item_id)
+  `,
+
+  item_tags_tag: `
+    CREATE INDEX IF NOT EXISTS idx_item_tags_tag
+    ON item_tags(tag_id)
   `,
 
   custom_fields_entity: `

@@ -210,3 +210,11 @@ export interface UsagePurposeRow {
   is_active: number;
   display_order: number;
 }
+
+/**
+ * Database row type for item_tags junction table (unified model)
+ */
+export interface ItemTagRow {
+  item_id: string;
+  tag_id: string;
+}

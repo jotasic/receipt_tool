@@ -341,3 +341,76 @@ export async function setTagsForDocument(documentId: string, tagIds: string[]): 
     );
   }
 }
+
+// ============================================================================
+// Item-Tag Association Operations
+// ============================================================================
+
+/**
+ * Add a tag to an item
+ */
+export async function addTagToItem(itemId: string, tagId: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(
+    'INSERT OR IGNORE INTO item_tags (item_id, tag_id) VALUES (?, ?)',
+    [itemId, tagId]
+  );
+}
+
+/**
+ * Remove a tag from an item
+ */
+export async function removeTagFromItem(itemId: string, tagId: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(
+    'DELETE FROM item_tags WHERE item_id = ? AND tag_id = ?',
+    [itemId, tagId]
+  );
+}
+
+/**
+ * Get all tags for an item
+ */
+export async function getTagsForItem(itemId: string): Promise<Tag[]> {
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<TagRow>(
+    `SELECT t.* FROM tags t
+     INNER JOIN item_tags it ON t.id = it.tag_id
+     WHERE it.item_id = ?
+     ORDER BY t.name ASC`,
+    [itemId]
+  );
+
+  return rows.map(rowToTag);
+}
+
+/**
+ * Get all items with a specific tag
+ */
+export async function getItemsByTag(tagId: string): Promise<string[]> {
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<{ item_id: string }>(
+    'SELECT item_id FROM item_tags WHERE tag_id = ?',
+    [tagId]
+  );
+
+  return rows.map((row) => row.item_id);
+}
+
+/**
+ * Set tags for an item (replaces existing tags)
+ */
+export async function setTagsForItem(itemId: string, tagIds: string[]): Promise<void> {
+  const db = await getDatabase();
+
+  // Remove all existing tags
+  await db.runAsync('DELETE FROM item_tags WHERE item_id = ?', [itemId]);
+
+  // Add new tags
+  for (const tagId of tagIds) {
+    await db.runAsync(
+      'INSERT INTO item_tags (item_id, tag_id) VALUES (?, ?)',
+      [itemId, tagId]
+    );
+  }
+}

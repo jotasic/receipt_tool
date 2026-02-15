@@ -345,6 +345,13 @@ export default function SettingsScreen() {
               disabled={isClearing}
             />
             <SettingItem
+              icon="create-outline"
+              title="커스텀 필드 관리"
+              hasArrow
+              onPress={() => router.push('/settings/custom-fields' as any)}
+              disabled={isClearing}
+            />
+            <SettingItem
               icon="cloud-outline"
               title="백업 및 복원"
               hasArrow

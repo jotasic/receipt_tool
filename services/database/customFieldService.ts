@@ -435,3 +435,56 @@ export async function setItemCustomValues(
     await setItemCustomValue(itemId, fieldId, value);
   }
 }
+
+// ============================================================================
+// Usage Check Operations
+// ============================================================================
+
+/**
+ * Check if custom field is in use
+ */
+export async function isCustomFieldInUse(fieldId: string): Promise<boolean> {
+  const db = await getDatabase();
+
+  // Check in all custom value tables
+  const itemCount = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM item_custom_values WHERE field_id = ?',
+    [fieldId]
+  );
+
+  const receiptCount = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM receipt_custom_values WHERE field_id = ?',
+    [fieldId]
+  );
+
+  const documentCount = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM document_custom_values WHERE field_id = ?',
+    [fieldId]
+  );
+
+  return (itemCount?.count || 0) + (receiptCount?.count || 0) + (documentCount?.count || 0) > 0;
+}
+
+/**
+ * Get usage count for a custom field
+ */
+export async function getCustomFieldUsageCount(fieldId: string): Promise<number> {
+  const db = await getDatabase();
+
+  const itemCount = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM item_custom_values WHERE field_id = ?',
+    [fieldId]
+  );
+
+  const receiptCount = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM receipt_custom_values WHERE field_id = ?',
+    [fieldId]
+  );
+
+  const documentCount = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM document_custom_values WHERE field_id = ?',
+    [fieldId]
+  );
+
+  return (itemCount?.count || 0) + (receiptCount?.count || 0) + (documentCount?.count || 0);
+}

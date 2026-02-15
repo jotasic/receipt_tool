@@ -1,0 +1,867 @@
+/**
+ * Custom Field Management Screen
+ *
+ * Features:
+ * - List all custom fields with their types and entity types
+ * - Create new custom field
+ * - Edit custom field (name, type, options, required status)
+ * - Delete custom field (with usage check)
+ * - Show usage count
+ * - Filter by entity type
+ * - Search fields
+ * - Reorder fields
+ */
+
+import { useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  Modal,
+  TextInput,
+  Switch,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { Input, Button } from '@/components/common';
+import {
+  getCustomFields,
+  createCustomField,
+  updateCustomField,
+  deleteCustomField,
+  getCustomFieldUsageCount,
+  isCustomFieldInUse,
+} from '@/services/database/customFieldService';
+import type { CustomField, CustomFieldType, CustomFieldEntityType } from '@/types/customField';
+
+interface CustomFieldWithCount extends CustomField {
+  usageCount: number;
+}
+
+// Field type options with icons
+const FIELD_TYPES: { value: CustomFieldType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { value: 'text', label: '텍스트', icon: 'text-outline' },
+  { value: 'number', label: '숫자', icon: 'calculator-outline' },
+  { value: 'date', label: '날짜', icon: 'calendar-outline' },
+  { value: 'select', label: '선택', icon: 'list-outline' },
+];
+
+// Entity type options
+const ENTITY_TYPES: { value: CustomFieldEntityType; label: string; badge: string }[] = [
+  { value: 'item', label: '항목', badge: '항목' },
+  { value: 'receipt', label: '영수증', badge: '영수증' },
+  { value: 'document', label: '문서', badge: '문서' },
+  { value: 'both', label: '전체', badge: '전체' },
+];
+
+// Filter options (includes "all")
+const FILTER_OPTIONS: { value: string; label: string }[] = [
+  { value: 'all', label: '전체' },
+  ...ENTITY_TYPES,
+];
+
+export default function CustomFieldsScreen() {
+  const router = useRouter();
+  const [fields, setFields] = useState<CustomFieldWithCount[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingField, setEditingField] = useState<CustomFieldWithCount | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Form states
+  const [fieldName, setFieldName] = useState('');
+  const [fieldType, setFieldType] = useState<CustomFieldType>('text');
+  const [entityType, setEntityType] = useState<CustomFieldEntityType>('item');
+  const [isRequired, setIsRequired] = useState(false);
+  const [optionsText, setOptionsText] = useState('');
+  const [showTypePicker, setShowTypePicker] = useState(false);
+  const [showEntityTypePicker, setShowEntityTypePicker] = useState(false);
+
+  // Load custom fields when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      loadCustomFields();
+    }, [])
+  );
+
+  const loadCustomFields = async () => {
+    setIsLoading(true);
+    try {
+      const loadedFields = await getCustomFields();
+
+      // Load usage counts for each field
+      const fieldsWithCounts: CustomFieldWithCount[] = await Promise.all(
+        loadedFields.map(async (field) => {
+          const usageCount = await getCustomFieldUsageCount(field.id);
+          return { ...field, usageCount };
+        })
+      );
+
+      setFields(fieldsWithCounts);
+    } catch (error) {
+      console.error('Failed to load custom fields:', error);
+      Alert.alert('오류', '커스텀 필드를 불러올 수 없습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Filter and search fields
+  const filteredFields = fields.filter((field) => {
+    // Filter by entity type
+    if (selectedFilter !== 'all') {
+      if (field.entityType === 'both') {
+        // "both" type matches all filters
+      } else if (field.entityType !== selectedFilter) {
+        return false;
+      }
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      return field.name.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+
+    return true;
+  });
+
+  // Open create modal
+  const handleOpenCreateModal = () => {
+    setFieldName('');
+    setFieldType('text');
+    setEntityType('item');
+    setIsRequired(false);
+    setOptionsText('');
+    setShowCreateModal(true);
+  };
+
+  // Open edit modal
+  const handleOpenEditModal = (field: CustomFieldWithCount) => {
+    setEditingField(field);
+    setFieldName(field.name);
+    setFieldType(field.fieldType);
+    setEntityType(field.entityType);
+    setIsRequired(field.isRequired);
+    setOptionsText(field.options?.join('\n') || '');
+    setShowEditModal(true);
+  };
+
+  // Create new custom field
+  const handleCreateField = async () => {
+    if (!fieldName.trim()) {
+      Alert.alert('오류', '필드 이름을 입력해주세요.');
+      return;
+    }
+
+    // Check if field name already exists
+    const existingField = fields.find(
+      (f) => f.name.toLowerCase() === fieldName.trim().toLowerCase()
+    );
+
+    if (existingField) {
+      Alert.alert('오류', '이미 존재하는 필드 이름입니다.');
+      return;
+    }
+
+    // Validate options for select type
+    if (fieldType === 'select') {
+      const options = optionsText
+        .split('\n')
+        .map((opt) => opt.trim())
+        .filter((opt) => opt.length > 0);
+
+      if (options.length === 0) {
+        Alert.alert('오류', '선택 필드는 최소 1개 이상의 옵션이 필요합니다.');
+        return;
+      }
+    }
+
+    setIsSaving(true);
+    try {
+      const options =
+        fieldType === 'select'
+          ? optionsText
+              .split('\n')
+              .map((opt) => opt.trim())
+              .filter((opt) => opt.length > 0)
+          : undefined;
+
+      // Get max display order
+      const maxOrder = fields.reduce((max, f) => Math.max(max, f.displayOrder), -1);
+
+      const newField = await createCustomField({
+        name: fieldName.trim(),
+        fieldType,
+        options,
+        isRequired,
+        entityType,
+        displayOrder: maxOrder + 1,
+      });
+
+      // Reload to get updated list
+      await loadCustomFields();
+      setShowCreateModal(false);
+      Alert.alert('성공', '커스텀 필드가 생성되었습니다.');
+    } catch (error) {
+      console.error('Failed to create custom field:', error);
+      Alert.alert(
+        '오류',
+        error instanceof Error ? error.message : '커스텀 필드를 생성할 수 없습니다.'
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Update custom field
+  const handleUpdateField = async () => {
+    if (!editingField) return;
+
+    if (!fieldName.trim()) {
+      Alert.alert('오류', '필드 이름을 입력해주세요.');
+      return;
+    }
+
+    // Check if field name already exists (excluding current field)
+    const existingField = fields.find(
+      (f) =>
+        f.id !== editingField.id &&
+        f.name.toLowerCase() === fieldName.trim().toLowerCase()
+    );
+
+    if (existingField) {
+      Alert.alert('오류', '이미 존재하는 필드 이름입니다.');
+      return;
+    }
+
+    // Validate options for select type
+    if (fieldType === 'select') {
+      const options = optionsText
+        .split('\n')
+        .map((opt) => opt.trim())
+        .filter((opt) => opt.length > 0);
+
+      if (options.length === 0) {
+        Alert.alert('오류', '선택 필드는 최소 1개 이상의 옵션이 필요합니다.');
+        return;
+      }
+    }
+
+    setIsSaving(true);
+    try {
+      const options =
+        fieldType === 'select'
+          ? optionsText
+              .split('\n')
+              .map((opt) => opt.trim())
+              .filter((opt) => opt.length > 0)
+          : undefined;
+
+      await updateCustomField(editingField.id, {
+        name: fieldName.trim(),
+        fieldType,
+        options,
+        isRequired,
+        // Note: We're not allowing entity type change to avoid orphaned data
+      });
+
+      // Reload to get updated data
+      await loadCustomFields();
+      setShowEditModal(false);
+      Alert.alert('성공', '커스텀 필드가 수정되었습니다.');
+    } catch (error) {
+      console.error('Failed to update custom field:', error);
+      Alert.alert(
+        '오류',
+        error instanceof Error ? error.message : '커스텀 필드를 수정할 수 없습니다.'
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Delete custom field
+  const handleDeleteField = async (field: CustomFieldWithCount) => {
+    const usageCount = field.usageCount;
+
+    if (usageCount > 0) {
+      Alert.alert(
+        '삭제 불가',
+        `이 필드는 ${usageCount}개의 항목에서 사용 중입니다.\n사용 중인 필드는 삭제할 수 없습니다.`
+      );
+      return;
+    }
+
+    Alert.alert(
+      '커스텀 필드 삭제',
+      '이 커스텀 필드를 삭제하시겠습니까?',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: () => confirmDeleteField(field),
+        },
+      ]
+    );
+  };
+
+  const confirmDeleteField = async (field: CustomFieldWithCount) => {
+    setIsLoading(true);
+    try {
+      await deleteCustomField(field.id);
+      await loadCustomFields();
+      Alert.alert('성공', '커스텀 필드가 삭제되었습니다.');
+    } catch (error) {
+      console.error('Failed to delete custom field:', error);
+      Alert.alert(
+        '오류',
+        error instanceof Error ? error.message : '커스텀 필드를 삭제할 수 없습니다.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Reorder fields
+  const handleReorder = async (fieldId: string, direction: 'up' | 'down') => {
+    const currentIndex = fields.findIndex((f) => f.id === fieldId);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= fields.length) return;
+
+    try {
+      // Swap display orders
+      const currentField = fields[currentIndex];
+      const swapField = fields[newIndex];
+
+      await updateCustomField(currentField.id, {
+        displayOrder: swapField.displayOrder,
+      });
+
+      await updateCustomField(swapField.id, {
+        displayOrder: currentField.displayOrder,
+      });
+
+      // Reload to get updated order
+      await loadCustomFields();
+    } catch (error) {
+      console.error('Failed to reorder fields:', error);
+      Alert.alert('오류', '필드 순서를 변경할 수 없습니다.');
+    }
+  };
+
+  // Get field type icon and label
+  const getFieldTypeInfo = (type: CustomFieldType) => {
+    return FIELD_TYPES.find((t) => t.value === type) || FIELD_TYPES[0];
+  };
+
+  // Get entity type badge
+  const getEntityTypeBadge = (type: CustomFieldEntityType) => {
+    return ENTITY_TYPES.find((t) => t.value === type)?.badge || type;
+  };
+
+  // Render field item
+  const renderFieldItem = (field: CustomFieldWithCount, index: number) => {
+    const typeInfo = getFieldTypeInfo(field.fieldType);
+    const entityBadge = getEntityTypeBadge(field.entityType);
+
+    return (
+      <View
+        key={field.id}
+        className="py-3 px-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
+      >
+        <View className="flex-row items-start">
+          {/* Field type icon */}
+          <View className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-lg items-center justify-center mr-3">
+            <Ionicons name={typeInfo.icon} size={20} color="#8B5CF6" />
+          </View>
+
+          {/* Field info */}
+          <View className="flex-1">
+            <View className="flex-row items-center flex-wrap gap-2">
+              <Text className="text-base font-medium text-gray-900 dark:text-gray-100">
+                {field.name}
+              </Text>
+              {field.isRequired && (
+                <View className="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 rounded">
+                  <Text className="text-xs font-medium text-red-700 dark:text-red-400">필수</Text>
+                </View>
+              )}
+              <View className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 rounded">
+                <Text className="text-xs font-medium text-blue-700 dark:text-blue-400">
+                  {entityBadge}
+                </Text>
+              </View>
+            </View>
+            <View className="flex-row items-center mt-1 flex-wrap gap-2">
+              <Text className="text-sm text-gray-500 dark:text-gray-400">
+                {typeInfo.label}
+              </Text>
+              {field.usageCount > 0 && (
+                <>
+                  <Text className="text-sm text-gray-400 dark:text-gray-500">•</Text>
+                  <Text className="text-sm text-gray-500 dark:text-gray-400">
+                    {field.usageCount}개 항목에서 사용 중
+                  </Text>
+                </>
+              )}
+            </View>
+            {field.fieldType === 'select' && field.options && (
+              <Text className="text-xs text-gray-400 dark:text-gray-500 mt-1" numberOfLines={1}>
+                옵션: {field.options.join(', ')}
+              </Text>
+            )}
+          </View>
+
+          {/* Action buttons */}
+          <View className="flex-row items-center ml-2">
+            {/* Reorder buttons */}
+            <View className="mr-2">
+              <TouchableOpacity
+                onPress={() => handleReorder(field.id, 'up')}
+                className="w-7 h-7 items-center justify-center"
+                activeOpacity={0.7}
+                disabled={index === 0}
+              >
+                <Ionicons
+                  name="chevron-up"
+                  size={20}
+                  color={index === 0 ? '#D1D5DB' : '#6B7280'}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleReorder(field.id, 'down')}
+                className="w-7 h-7 items-center justify-center"
+                activeOpacity={0.7}
+                disabled={index === fields.length - 1}
+              >
+                <Ionicons
+                  name="chevron-down"
+                  size={20}
+                  color={index === fields.length - 1 ? '#D1D5DB' : '#6B7280'}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Edit button */}
+            <TouchableOpacity
+              onPress={() => handleOpenEditModal(field)}
+              className="w-9 h-9 items-center justify-center mr-2"
+              activeOpacity={0.7}
+            >
+              <Ionicons name="create-outline" size={22} color="#3B82F6" />
+            </TouchableOpacity>
+
+            {/* Delete button */}
+            <TouchableOpacity
+              onPress={() => handleDeleteField(field)}
+              className="w-9 h-9 items-center justify-center"
+              activeOpacity={0.7}
+              disabled={field.usageCount > 0}
+            >
+              <Ionicons
+                name="trash-outline"
+                size={22}
+                color={field.usageCount > 0 ? '#D1D5DB' : '#EF4444'}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  // Render field form modal
+  const renderFieldFormModal = (
+    visible: boolean,
+    isEdit: boolean,
+    onClose: () => void,
+    onSave: () => void
+  ) => (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-800" edges={['top']}>
+        {/* Header */}
+        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <TouchableOpacity
+            onPress={onClose}
+            className="w-10 h-10 items-center justify-center"
+            disabled={isSaving}
+          >
+            <Ionicons name="close" size={24} color="#111827" />
+          </TouchableOpacity>
+          <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            {isEdit ? '커스텀 필드 수정' : '새 커스텀 필드'}
+          </Text>
+          <View className="w-10" />
+        </View>
+
+        {/* Form */}
+        <ScrollView className="flex-1 p-4">
+          {/* Field Name */}
+          <Input
+            label="필드 이름"
+            placeholder="예: 프로젝트 이름, 클라이언트, 인보이스 번호"
+            value={fieldName}
+            onChangeText={setFieldName}
+            autoCapitalize="none"
+          />
+
+          {/* Field Type Picker */}
+          <View className="mb-4">
+            <Text className="text-gray-700 dark:text-gray-300 text-base font-medium mb-2">
+              필드 타입
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowTypePicker(true)}
+              className="flex-row items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+              activeOpacity={0.7}
+            >
+              <View className="w-10 h-10 rounded-full items-center justify-center mr-3 bg-purple-50 dark:bg-purple-900/30">
+                <Ionicons
+                  name={getFieldTypeInfo(fieldType).icon}
+                  size={20}
+                  color="#8B5CF6"
+                />
+              </View>
+              <Text className="flex-1 text-gray-700 dark:text-gray-300">
+                {getFieldTypeInfo(fieldType).label}
+              </Text>
+              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Entity Type Picker */}
+          <View className="mb-4">
+            <Text className="text-gray-700 dark:text-gray-300 text-base font-medium mb-2">
+              적용 대상 {isEdit && '(수정 불가)'}
+            </Text>
+            <TouchableOpacity
+              onPress={() => !isEdit && setShowEntityTypePicker(true)}
+              className="flex-row items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+              activeOpacity={isEdit ? 1 : 0.7}
+              disabled={isEdit}
+            >
+              <Text className="flex-1 text-gray-700 dark:text-gray-300">
+                {ENTITY_TYPES.find((t) => t.value === entityType)?.label || entityType}
+              </Text>
+              {!isEdit && <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />}
+            </TouchableOpacity>
+            {isEdit && (
+              <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                데이터 무결성을 위해 적용 대상은 수정할 수 없습니다
+              </Text>
+            )}
+          </View>
+
+          {/* Required Toggle */}
+          <View className="flex-row items-center justify-between py-3 mb-4">
+            <View>
+              <Text className="text-base font-medium text-gray-900 dark:text-gray-100">
+                필수 입력
+              </Text>
+              <Text className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                항목 저장 시 반드시 입력해야 합니다
+              </Text>
+            </View>
+            <Switch
+              value={isRequired}
+              onValueChange={setIsRequired}
+              trackColor={{ false: '#D1D5DB', true: '#3B82F6' }}
+              thumbColor={isRequired ? '#FFFFFF' : '#F3F4F6'}
+            />
+          </View>
+
+          {/* Options (for select type only) */}
+          {fieldType === 'select' && (
+            <View className="mb-4">
+              <Text className="text-gray-700 dark:text-gray-300 text-base font-medium mb-2">
+                선택 옵션 (한 줄에 하나씩)
+              </Text>
+              <TextInput
+                className="p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100"
+                placeholder="옵션 1&#10;옵션 2&#10;옵션 3"
+                placeholderTextColor="#9CA3AF"
+                value={optionsText}
+                onChangeText={setOptionsText}
+                multiline
+                numberOfLines={6}
+                textAlignVertical="top"
+              />
+              <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                각 줄에 하나씩 옵션을 입력하세요
+              </Text>
+            </View>
+          )}
+
+          {/* Preview */}
+          <Text className="text-gray-700 dark:text-gray-300 text-base font-medium mb-2">
+            미리보기
+          </Text>
+          <View className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+            <View className="flex-row items-center">
+              <View className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-lg items-center justify-center mr-3">
+                <Ionicons name={getFieldTypeInfo(fieldType).icon} size={20} color="#8B5CF6" />
+              </View>
+              <View className="flex-1">
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-base font-medium text-gray-900 dark:text-gray-100">
+                    {fieldName || '필드 이름'}
+                  </Text>
+                  {isRequired && (
+                    <View className="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 rounded">
+                      <Text className="text-xs font-medium text-red-700 dark:text-red-400">
+                        필수
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <Text className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  {getFieldTypeInfo(fieldType).label}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Action buttons */}
+        <View className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <Button
+            title={isSaving ? '저장 중...' : isEdit ? '수정' : '생성'}
+            onPress={onSave}
+            variant="primary"
+            disabled={isSaving}
+            loading={isSaving}
+          />
+        </View>
+      </SafeAreaView>
+
+      {/* Type picker modal */}
+      <Modal
+        visible={showTypePicker}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowTypePicker(false)}
+      >
+        <SafeAreaView className="flex-1 bg-white dark:bg-gray-800" edges={['top']}>
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+            <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              필드 타입 선택
+            </Text>
+            <TouchableOpacity onPress={() => setShowTypePicker(false)}>
+              <Ionicons name="close" size={24} color="#111827" />
+            </TouchableOpacity>
+          </View>
+          <ScrollView className="flex-1">
+            {FIELD_TYPES.map((type) => (
+              <TouchableOpacity
+                key={type.value}
+                onPress={() => {
+                  setFieldType(type.value);
+                  setShowTypePicker(false);
+                }}
+                className="flex-row items-center py-4 px-4 border-b border-gray-200 dark:border-gray-700"
+                activeOpacity={0.7}
+              >
+                <View className="w-10 h-10 rounded-full items-center justify-center mr-3 bg-purple-50 dark:bg-purple-900/30">
+                  <Ionicons name={type.icon} size={20} color="#8B5CF6" />
+                </View>
+                <Text className="flex-1 text-base text-gray-900 dark:text-gray-100">
+                  {type.label}
+                </Text>
+                {fieldType === type.value && (
+                  <Ionicons name="checkmark" size={24} color="#3B82F6" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Entity type picker modal */}
+      <Modal
+        visible={showEntityTypePicker}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowEntityTypePicker(false)}
+      >
+        <SafeAreaView className="flex-1 bg-white dark:bg-gray-800" edges={['top']}>
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+            <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              적용 대상 선택
+            </Text>
+            <TouchableOpacity onPress={() => setShowEntityTypePicker(false)}>
+              <Ionicons name="close" size={24} color="#111827" />
+            </TouchableOpacity>
+          </View>
+          <ScrollView className="flex-1">
+            {ENTITY_TYPES.map((type) => (
+              <TouchableOpacity
+                key={type.value}
+                onPress={() => {
+                  setEntityType(type.value);
+                  setShowEntityTypePicker(false);
+                }}
+                className="flex-row items-center justify-between py-4 px-4 border-b border-gray-200 dark:border-gray-700"
+                activeOpacity={0.7}
+              >
+                <Text className="text-base text-gray-900 dark:text-gray-100">
+                  {type.label}
+                </Text>
+                {entityType === type.value && (
+                  <Ionicons name="checkmark" size={24} color="#3B82F6" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+    </Modal>
+  );
+
+  return (
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top']}>
+      {/* Header */}
+      <View className="flex-row items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="w-10 h-10 items-center justify-center mr-2"
+        >
+          <Ionicons name="arrow-back" size={24} color="#111827" />
+        </TouchableOpacity>
+        <Text className="flex-1 text-xl font-bold text-gray-900 dark:text-gray-100">
+          커스텀 필드 관리
+        </Text>
+        <TouchableOpacity
+          onPress={handleOpenCreateModal}
+          className="w-10 h-10 items-center justify-center"
+        >
+          <Ionicons name="add" size={28} color="#3B82F6" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Search bar */}
+      <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <View className="flex-row items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
+          <Ionicons name="search" size={20} color="#6B7280" />
+          <TextInput
+            className="flex-1 ml-2 text-base text-gray-900 dark:text-gray-100"
+            placeholder="필드 검색"
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={20} color="#6B7280" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Filter tabs */}
+      <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View className="flex-row gap-2">
+            {FILTER_OPTIONS.map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                onPress={() => setSelectedFilter(option.value)}
+                className={`px-4 py-2 rounded-full ${
+                  selectedFilter === option.value
+                    ? 'bg-blue-600'
+                    : 'bg-gray-100 dark:bg-gray-700'
+                }`}
+                activeOpacity={0.7}
+              >
+                <Text
+                  className={`text-sm font-medium ${
+                    selectedFilter === option.value
+                      ? 'text-white'
+                      : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
+
+      {/* Fields list */}
+      {isLoading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#3B82F6" />
+          <Text className="mt-2 text-gray-600 dark:text-gray-400">로딩 중...</Text>
+        </View>
+      ) : filteredFields.length === 0 ? (
+        <View className="flex-1 items-center justify-center p-6">
+          <Ionicons name="create-outline" size={64} color="#D1D5DB" />
+          <Text className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+            {searchQuery || selectedFilter !== 'all'
+              ? '검색 결과가 없습니다'
+              : '커스텀 필드가 없습니다'}
+          </Text>
+          <Text className="mt-2 text-gray-500 dark:text-gray-400 text-center">
+            {searchQuery || selectedFilter !== 'all'
+              ? '다른 검색어나 필터를 시도해보세요'
+              : '새 커스텀 필드를 만들어 항목에 추가 정보를 기록하세요'}
+          </Text>
+          {!searchQuery && selectedFilter === 'all' && (
+            <TouchableOpacity
+              onPress={handleOpenCreateModal}
+              className="mt-6 px-6 py-3 bg-blue-600 rounded-lg"
+              activeOpacity={0.7}
+            >
+              <Text className="text-white font-semibold">새 커스텀 필드 만들기</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ) : (
+        <ScrollView className="flex-1">
+          {/* Field count */}
+          <View className="px-4 py-2 bg-gray-50 dark:bg-gray-900">
+            <Text className="text-sm text-gray-600 dark:text-gray-400">
+              총 {filteredFields.length}개의 필드
+            </Text>
+          </View>
+
+          {/* Field list */}
+          {filteredFields.map((field, index) => renderFieldItem(field, index))}
+        </ScrollView>
+      )}
+
+      {/* Create field modal */}
+      {renderFieldFormModal(
+        showCreateModal,
+        false,
+        () => setShowCreateModal(false),
+        handleCreateField
+      )}
+
+      {/* Edit field modal */}
+      {renderFieldFormModal(
+        showEditModal,
+        true,
+        () => setShowEditModal(false),
+        handleUpdateField
+      )}
+    </SafeAreaView>
+  );
+}

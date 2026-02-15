@@ -128,29 +128,46 @@ npx tsc --noEmit
 ❌ ARCHITECTURE.md, API.md, MIGRATION_GUIDE.md
 ```
 
-### 문서 크기 관리 (모듈화)
+### 문서 크기 관리 (처음부터 모듈화)
 
-문서가 커지면 논리적 단위로 모듈화:
+**원칙: 나중에 분리하지 말고 처음부터 모듈화**
+
+- 나중에 분리 시 링크 깨짐, 히스토리 추적 어려움
+- 처음부터 구조화하면 새 내용 추가 위치 명확
+
+#### 현재 구조
 
 ```
 /docs/
-├── architecture.md          ← 요약 + 인덱스 (링크)
-├── api.md                   ← 요약 + 인덱스 (링크)
+├── architecture.md          ← 요약 + 인덱스
+├── architecture/
+│   ├── data-models.md       ← Item, Report, Tag 등
+│   ├── database.md          ← DB 스키마
+│   ├── folder-structure.md  ← 폴더 구조
+│   ├── tech-stack.md        ← 기술 스택
+│   └── data-flow.md         ← 데이터 흐름
 │
-├── architecture/            ← 상세 내용 분리
-│   ├── services.md
-│   ├── components.md
-│   └── database.md
+├── api.md                   ← 요약 + 인덱스
+├── api/
+│   ├── item-service.md      ← Item CRUD API
+│   ├── report-service.md    ← Report API
+│   ├── ocr-service.md       ← OCR API
+│   ├── stores.md            ← Zustand stores
+│   ├── types.md             ← TypeScript 타입
+│   └── database-utils.md    ← DB 유틸리티
 │
-└── api/                     ← 상세 내용 분리
-    ├── item-service.md
-    └── tag-service.md
+└── guides/                  ← 사용 가이드
+    ├── database.md
+    ├── getting-started.md
+    └── ocr.md
 ```
 
-**규칙:**
-- 메인 문서(architecture.md, api.md)는 요약 + 링크만 유지
-- 상세 내용은 하위 폴더에 논리적 단위로 분리
+#### 규칙
+
+- 메인 문서: Quick Reference + 링크 인덱스
+- 상세 내용: 하위 폴더에 논리적 단위로 분리
 - 글자수 제한 없음 (논리적 단위 기준)
+- Quick Reference 섹션으로 빠른 참조 지원
 
 ---
 

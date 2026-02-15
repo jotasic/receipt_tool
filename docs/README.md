@@ -4,28 +4,69 @@
 
 ## Quick Links
 
-- [Architecture](./architecture.md) - 프로젝트 아키텍처 (단일 정보원)
-- [API Reference](./api.md) - API 레퍼런스
-- [Migration Guide](./migration-guide.md) - Receipt→Document→Item 진화 과정
+| 문서 | 내용 |
+|-----|-----|
+| [architecture.md](./architecture.md) | 아키텍처 (SSOT) |
+| [api.md](./api.md) | API 레퍼런스 |
+| [migration-guide.md](./migration-guide.md) | 모델 진화 히스토리 |
+
+## Architecture
+
+| 문서 | 내용 |
+|-----|-----|
+| [data-models.md](./architecture/data-models.md) | Item, Report, Tag 데이터 모델 |
+| [database.md](./architecture/database.md) | DB 스키마, 테이블, 인덱스 |
+| [folder-structure.md](./architecture/folder-structure.md) | 프로젝트 폴더 구조 |
+| [tech-stack.md](./architecture/tech-stack.md) | 기술 스택, 코드 컨벤션 |
+| [data-flow.md](./architecture/data-flow.md) | 데이터 흐름, 상태 관리 |
+
+## API Reference
+
+| 문서 | 내용 |
+|-----|-----|
+| [item-service.md](./api/item-service.md) | Item CRUD, 조회, 통계 API |
+| [report-service.md](./api/report-service.md) | Report CRUD, 상태 관리 API |
+| [ocr-service.md](./api/ocr-service.md) | OCR 추출, 에러 처리 API |
+| [stores.md](./api/stores.md) | Zustand 스토어 |
+| [types.md](./api/types.md) | TypeScript 타입 정의 |
+| [database-utils.md](./api/database-utils.md) | 트랜잭션, 유지보수 |
 
 ## Guides
 
-- [Getting Started](./guides/getting-started.md) - 시작 가이드
-- [Database Guide](./guides/database.md) - 데이터베이스 사용법
-- [OCR Guide](./guides/ocr.md) - OCR 시스템 사용법
+| 문서 | 내용 |
+|-----|-----|
+| [getting-started.md](./guides/getting-started.md) | 시작 가이드 |
+| [database.md](./guides/database.md) | 데이터베이스 사용법 |
+| [ocr.md](./guides/ocr.md) | OCR 시스템 사용법 |
 
 ## Project Structure
 
 ```
 /docs/
-├── README.md              # 이 파일 (문서 색인)
-├── architecture.md        # 아키텍처 SSOT
-├── api.md                 # API 레퍼런스
-├── migration-guide.md     # 모델 진화 가이드
-└── guides/
-    ├── getting-started.md # 시작 가이드
-    ├── database.md        # 데이터베이스 가이드
-    └── ocr.md             # OCR 가이드
+├── README.md                # 이 파일 (문서 색인)
+├── architecture.md          # 아키텍처 요약 + 인덱스
+├── api.md                   # API 요약 + 인덱스
+├── migration-guide.md       # 모델 진화 가이드
+│
+├── architecture/            # 아키텍처 상세
+│   ├── data-models.md
+│   ├── database.md
+│   ├── folder-structure.md
+│   ├── tech-stack.md
+│   └── data-flow.md
+│
+├── api/                     # API 상세
+│   ├── item-service.md
+│   ├── report-service.md
+│   ├── ocr-service.md
+│   ├── stores.md
+│   ├── types.md
+│   └── database-utils.md
+│
+└── guides/                  # 사용 가이드
+    ├── getting-started.md
+    ├── database.md
+    └── ocr.md
 ```
 
 ## Quick Start
@@ -40,18 +81,3 @@ npm test
 # 타입 체크
 npx tsc --noEmit
 ```
-
-## For Developers
-
-- 새 기능 구현: [architecture.md](./architecture.md)에서 현재 구조 확인
-- 데이터베이스 작업: [guides/database.md](./guides/database.md) 참조
-- OCR 연동: [guides/ocr.md](./guides/ocr.md) 참조
-- API 사용: [api.md](./api.md) 참조
-
-## Documentation Updates
-
-문서 업데이트 시:
-1. 해당 가이드 파일 수정
-2. architecture.md가 SSOT임을 기억
-3. 중복 정보 작성 금지
-4. 언어 일관성 유지 (한글 또는 영어)

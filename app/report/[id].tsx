@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, useColorScheme } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Button, Card } from '@/components/common';
+import { Button, Card, FloatingActionBar } from '@/components/common';
 import { loadReport, submitReport, deleteReport } from '@/services/report';
 import { getItemById } from '@/services/database/itemService';
 import { useReportStore } from '@/store/reportStore';
@@ -228,6 +228,28 @@ export default function ReportDetailScreen() {
           ))}
         </View>
       </ScrollView>
+
+      {/* Floating Action Bar (only for draft reports) */}
+      {report && report.status === 'draft' && (
+        <FloatingActionBar
+          actions={[
+            {
+              icon: 'trash-outline',
+              onPress: handleDelete,
+              disabled: isDeleting || isSubmitting,
+              loading: isDeleting,
+              variant: 'danger',
+            },
+            {
+              icon: 'paper-plane-outline',
+              onPress: handleSubmit,
+              disabled: isDeleting,
+              loading: isSubmitting,
+              variant: 'primary',
+            },
+          ]}
+        />
+      )}
     </>
   );
 }

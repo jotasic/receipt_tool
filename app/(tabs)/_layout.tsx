@@ -25,19 +25,16 @@ export default function TabLayout() {
 
   // Get header title based on current route
   const getHeaderTitle = () => {
-    switch (pathname) {
-      case '/': return '대시보드';
-      case '/(tabs)': return '대시보드';
-      case '/items':
-      case '/(tabs)/items': return '증빙';
-      case '/calendar':
-      case '/(tabs)/calendar': return '달력';
-      case '/reports':
-      case '/(tabs)/reports': return '정산';
-      case '/settings':
-      case '/(tabs)/settings': return '설정';
-      default: return '홈';
-    }
+    // 2depth 화면으로 이동하면 tabs layout이 렌더링되지 않으므로
+    // 여기서는 1depth(탭) 화면만 처리
+    if (pathname === '/' || pathname === '/(tabs)') return '대시보드';
+    if (pathname === '/items' || pathname === '/(tabs)/items') return '증빙';
+    if (pathname === '/calendar' || pathname === '/(tabs)/calendar') return '달력';
+    if (pathname === '/reports' || pathname === '/(tabs)/reports') return '정산';
+    if (pathname === '/settings' || pathname === '/(tabs)/settings') return '설정';
+
+    // 2depth 화면 (/item/*, /report/*, /settings/*)은 해당 _layout.tsx에서 처리
+    return '대시보드';
   };
 
   // Calculate bottom padding for devices with or without safe area

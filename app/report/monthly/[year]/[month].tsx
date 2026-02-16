@@ -5,16 +5,18 @@ import {
   FlatList,
   RefreshControl,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Sharing from 'expo-sharing';
+import { FloatingActionBar } from '@/components/common';
 import { ItemCard } from '@/components/item/ItemCard';
 import { getClassificationConfig } from '@/constants/items';
 import type { Item } from '@/types/item';
 import {
   getMonthlyItems,
   calculateMonthlySummary,
+  exportMonthlySettlement,
 } from '@/services/export';
 import type { MonthlySummary } from '@/services/export/types';
 
@@ -118,6 +120,35 @@ export default function MonthlyReportScreen() {
   const [items, setItems] = useState<Item[]>([]);
   const [summary, setSummary] = useState<MonthlySummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = useCallback(async () => {
+    if (!year || !month) return;
+
+    setIsExporting(true);
+    try {
+      const result = await exportMonthlySettlement(parseInt(year), parseInt(month));
+
+      if (result.success && result.filePath) {
+        const canShare = await Sharing.isAvailableAsync();
+        if (canShare) {
+          await Sharing.shareAsync(result.filePath, {
+            mimeType: 'application/zip',
+            dialogTitle: '정산 파일 공유',
+          });
+        } else {
+          Alert.alert('성공', '정산 파일이 생성되었습니다.');
+        }
+      } else {
+        Alert.alert('오류', result.error || '파일 생성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+      Alert.alert('오류', '파일 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [year, month]);
 
   const loadMonthlyData = useCallback(async () => {
     if (!year || !month) return;
@@ -171,6 +202,19 @@ export default function MonthlyReportScreen() {
             />
           }
         />
+
+      {/* Floating Action Bar - Export */}
+      <FloatingActionBar
+        actions={[
+          {
+            icon: 'download-outline',
+            onPress: handleExport,
+            loading: isExporting,
+            disabled: isExporting,
+            variant: 'primary',
+          },
+        ]}
+      />
     </>
   );
 }

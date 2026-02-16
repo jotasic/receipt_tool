@@ -21,20 +21,23 @@ import { getTags } from '@/services/database/tagService';
 
 type FilterType = 'all' | ItemClassification;
 
+// Generate filter options from CLASSIFICATIONS constant (single source of truth)
 const FILTER_OPTIONS: Array<{
   id: FilterType;
   name: string;
   icon: keyof typeof Ionicons.glyphMap;
 }> = [
   { id: 'all', name: '전체', icon: 'apps' },
-  { id: 'personal_card', name: '개인카드', icon: 'card' },
-  { id: 'corporate_card', name: '법인카드', icon: 'business' },
-  { id: 'proof_document', name: '증명', icon: 'document-text' },
+  ...CLASSIFICATIONS.map((c) => ({
+    id: c.id as FilterType,
+    name: c.name,
+    icon: c.icon as keyof typeof Ionicons.glyphMap,
+  })),
 ];
 
 // Type guard to check if value is a valid ItemClassification
 function isItemClassification(value: string): value is ItemClassification {
-  return ['personal_card', 'corporate_card', 'proof_document'].includes(value);
+  return CLASSIFICATIONS.some((c) => c.id === value);
 }
 
 export default function ItemsScreen() {

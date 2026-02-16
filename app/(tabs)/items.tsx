@@ -11,7 +11,7 @@ import {
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ItemCard } from '@/components/item';
-import { MonthSelector } from '@/components/common';
+import { MonthSelector, SelectableChip } from '@/components/common';
 import { TabScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { CLASSIFICATIONS } from '@/constants/items';
@@ -266,36 +266,14 @@ export default function ItemsScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 4, gap: 8 }}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => {
-            const isSelected = selectedFilter === item.id;
-            return (
-              <TouchableOpacity
-                onPress={() => handleFilterChange(item.id)}
-                className={`
-                  px-4 py-2 rounded-full flex-row items-center
-                  ${isSelected ? 'bg-blue-600' : 'bg-gray-100 dark:bg-gray-700'}
-                `}
-                activeOpacity={0.7}
-                accessibilityLabel={`${item.name} 필터`}
-                accessibilityRole="button"
-                accessibilityState={{ selected: isSelected }}
-              >
-                <Ionicons
-                  name={item.icon}
-                  size={16}
-                  color={isSelected ? '#FFFFFF' : '#6B7280'}
-                />
-                <Text
-                  className={`
-                    ml-2 text-sm font-semibold
-                    ${isSelected ? 'text-white' : 'text-gray-700 dark:text-gray-300'}
-                  `}
-                >
-                  {item.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          }}
+          renderItem={({ item }) => (
+            <SelectableChip
+              label={item.name}
+              isSelected={selectedFilter === item.id}
+              onPress={() => handleFilterChange(item.id)}
+              icon={item.icon}
+            />
+          )}
         />
       </View>
 
@@ -311,57 +289,23 @@ export default function ItemsScreen() {
             contentContainerStyle={{ gap: 8 }}
           >
             {/* "All" chip */}
-            <TouchableOpacity
+            <SelectableChip
+              label="전체"
+              isSelected={selectedTags.length === 0}
               onPress={() => setSelectedTags([])}
-              className={`px-4 py-2 rounded-full ${
-                selectedTags.length === 0
-                  ? 'bg-blue-600 dark:bg-blue-500'
-                  : 'bg-gray-200 dark:bg-gray-700'
-              }`}
-              activeOpacity={0.7}
-              accessibilityLabel="모든 태그"
-              accessibilityRole="button"
-              accessibilityState={{ selected: selectedTags.length === 0 }}
-            >
-              <Text
-                className={`font-medium ${
-                  selectedTags.length === 0
-                    ? 'text-white'
-                    : 'text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                전체
-              </Text>
-            </TouchableOpacity>
+            />
 
             {/* Tag chips */}
-            {tags.map((tag) => {
-              const isSelected = selectedTags.includes(tag.id);
-              return (
-                <TouchableOpacity
-                  key={tag.id}
-                  onPress={() => toggleTag(tag.id)}
-                  className="px-4 py-2 rounded-full border"
-                  style={{
-                    backgroundColor: isSelected ? tag.color : 'transparent',
-                    borderColor: tag.color,
-                  }}
-                  activeOpacity={0.7}
-                  accessibilityLabel={`${tag.name} 태그`}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSelected }}
-                >
-                  <Text
-                    style={{
-                      color: isSelected ? '#FFFFFF' : tag.color,
-                    }}
-                    className="font-medium"
-                  >
-                    {tag.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+            {tags.map((tag) => (
+              <SelectableChip
+                key={tag.id}
+                label={tag.name}
+                isSelected={selectedTags.includes(tag.id)}
+                onPress={() => toggleTag(tag.id)}
+                color={tag.color}
+                variant="outlined"
+              />
+            ))}
           </ScrollView>
         </View>
       )}

@@ -694,6 +694,16 @@ export function ItemForm({
           error={errors.title}
         />
 
+        {/* Date Input - Common field, always visible */}
+        <Input
+          label="날짜 (필수)"
+          value={date}
+          onChangeText={setDate}
+          placeholder="YYYY-MM-DD"
+          autoCapitalize="none"
+          error={errors.date}
+        />
+
         {/* Amount Input - Conditional */}
         {showAmount && (
           <Input
@@ -716,16 +726,6 @@ export function ItemForm({
             autoCapitalize="words"
           />
         )}
-
-        {/* Date Input */}
-        <Input
-          label="날짜 (필수)"
-          value={date}
-          onChangeText={setDate}
-          placeholder="YYYY-MM-DD"
-          autoCapitalize="none"
-          error={errors.date}
-        />
 
         {/* Memo Input */}
         <Input

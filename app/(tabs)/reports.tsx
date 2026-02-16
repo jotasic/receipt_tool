@@ -13,7 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
 import { MonthSelector } from '@/components/common/MonthSelector';
 import { TabScreenLayout } from '@/design-system/layouts';
-import { getClassificationConfig, getUsagePurposeConfig } from '@/constants/items';
+import { ItemCard } from '@/components/item/ItemCard';
+import { getClassificationConfig } from '@/constants/items';
 import type { Item } from '@/types/item';
 import {
   getMonthlyItems,
@@ -103,52 +104,6 @@ function SummaryCard({ summary }: { summary: MonthlySummary }) {
   );
 }
 
-function ItemCard({ item }: { item: Item }) {
-  const config = getClassificationConfig(item.classification);
-  const usagePurposeConfig = getUsagePurposeConfig(item.usagePurpose);
-
-  return (
-    <View className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-2 border border-gray-100 dark:border-gray-700">
-      <View className="flex-row justify-between items-start mb-2">
-        <View className="flex-1">
-          <Text className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">
-            {item.title}
-          </Text>
-          {item.storeName && (
-            <Text className="text-sm text-gray-600 dark:text-gray-400">
-              {item.storeName}
-            </Text>
-          )}
-        </View>
-        {item.amount !== undefined && (
-          <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
-            {item.amount.toLocaleString('ko-KR')}원
-          </Text>
-        )}
-      </View>
-
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center gap-2">
-          {config && (
-            <View className="px-2 py-1 rounded" style={{ backgroundColor: `${config.color}20` }}>
-              <Text className="text-xs font-medium" style={{ color: config.color }}>
-                {config.name}
-              </Text>
-            </View>
-          )}
-          <Text className="text-xs text-gray-500 dark:text-gray-400">
-            {usagePurposeConfig?.name || item.usagePurpose}
-          </Text>
-        </View>
-        <Text className="text-xs text-gray-500 dark:text-gray-400">{item.date}</Text>
-      </View>
-
-      {item.memo && (
-        <Text className="text-sm text-gray-600 dark:text-gray-400 mt-2">{item.memo}</Text>
-      )}
-    </View>
-  );
-}
 
 function EmptyState({ selectedMonth }: { selectedMonth: Date | null }) {
   const monthText = selectedMonth

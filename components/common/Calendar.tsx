@@ -7,6 +7,7 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useMemo } from 'react';
+import { useColorScheme } from '@/components/useColorScheme';
 
 interface CalendarProps {
   selectedDate?: string;  // YYYY-MM-DD format
@@ -29,6 +30,7 @@ function formatDate(year: number, month: number, day: number): string {
 }
 
 export function Calendar({ selectedDate, onDateSelect, markedDates = {} }: CalendarProps) {
+  const colorScheme = useColorScheme();
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(
     selectedDate ? parseInt(selectedDate.split('-')[0]) : today.getFullYear()
@@ -144,34 +146,63 @@ export function Calendar({ selectedDate, onDateSelect, markedDates = {} }: Calen
 
           const marker = getMarkerData(day);
           const dayOfWeek = (getFirstDayOfMonth(currentYear, currentMonth) + day - 1) % 7;
+          const selected = isSelected(day);
+          const isDarkMode = colorScheme === 'dark';
+
+          // Dot indicator color based on selection and dark mode
+          const dotColor = selected
+            ? '#FFFFFF' // White dot on selected (blue background)
+            : isDarkMode
+            ? '#60A5FA' // Lighter blue for dark mode
+            : '#3B82F6'; // Default blue for light mode
 
           return (
             <TouchableOpacity
               key={day}
               onPress={() => handleDateSelect(day)}
-              className={`w-[14.28%] aspect-square items-center justify-center ${
-                isSelected(day) ? 'bg-blue-500 dark:bg-blue-600 rounded-full' : ''
-              } ${isToday(day) && !isSelected(day) ? 'border border-blue-500 dark:border-blue-400 rounded-full' : ''}`}
+              className="w-[14.28%] aspect-square relative"
             >
-              <Text
-                className={`text-base ${
-                  isSelected(day)
-                    ? 'text-white font-bold'
-                    : isToday(day)
-                    ? 'text-blue-500 dark:text-blue-400 font-bold'
-                    : dayOfWeek === 0
-                    ? 'text-red-500 dark:text-red-400'
-                    : dayOfWeek === 6
-                    ? 'text-blue-500 dark:text-blue-400'
-                    : 'text-gray-900 dark:text-gray-100'
-                }`}
-              >
-                {day}
-              </Text>
+              {/* Background circle for selected date */}
+              {selected && (
+                <View className="absolute inset-0 items-center justify-center">
+                  <View className="w-10 h-10 bg-blue-500 dark:bg-blue-600 rounded-full" />
+                </View>
+              )}
+
+              {/* Border for today (if not selected) */}
+              {isToday(day) && !selected && (
+                <View className="absolute inset-0 items-center justify-center">
+                  <View className="w-10 h-10 border border-blue-500 dark:border-blue-400 rounded-full" />
+                </View>
+              )}
+
+              {/* Date number - centered independently */}
+              <View className="flex-1 items-center justify-center">
+                <Text
+                  className={`text-base ${
+                    selected
+                      ? 'text-white font-bold'
+                      : isToday(day)
+                      ? 'text-blue-500 dark:text-blue-400 font-bold'
+                      : dayOfWeek === 0
+                      ? 'text-red-500 dark:text-red-400'
+                      : dayOfWeek === 6
+                      ? 'text-blue-500 dark:text-blue-400'
+                      : 'text-gray-900 dark:text-gray-100'
+                  }`}
+                >
+                  {day}
+                </Text>
+              </View>
+
+              {/* Dot indicator for marked dates */}
               {marker && (
                 <View
-                  className="absolute bottom-1 w-1.5 h-1.5 rounded-full"
-                  style={{ backgroundColor: marker.color || '#3B82F6' }}
+                  className="absolute bottom-1 self-center w-2 h-2 rounded-full"
+                  style={{
+                    backgroundColor: marker.color || dotColor,
+                    zIndex: 10
+                  }}
                 />
               )}
             </TouchableOpacity>

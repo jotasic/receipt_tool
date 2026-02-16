@@ -207,20 +207,25 @@ const fontWeight = tokens.fontWeight.semibold; // '600'
 
 #### 레이아웃 컴포넌트
 
+**선택 기준**
+1. 탭 바가 보이는 1depth 화면? → `TabScreenLayout`
+2. 새 화면으로 이동? (router.push) → `ScreenLayout`
+3. 현재 화면 위에서 액션? (추가/수정/삭제) → `Modal + ModalLayout`
+
 ```typescript
 import { ScreenLayout, TabScreenLayout, ModalLayout } from '@/design-system/layouts';
-
-// 기본 화면
-<ScreenLayout showHeader title="증빙 관리">
-  <ItemList />
-</ScreenLayout>
 
 // 탭 화면 (1depth)
 <TabScreenLayout title="리포트">
   <ReportList />
 </TabScreenLayout>
 
-// 모달 화면
+// 기본 화면 (새 화면)
+<ScreenLayout showHeader title="증빙 관리" showBack>
+  <ItemDetail />
+</ScreenLayout>
+
+// 모달 화면 (폼/확인)
 <ModalLayout
   title="리포트 생성"
   bottomButtons={[

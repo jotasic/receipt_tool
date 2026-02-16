@@ -197,6 +197,32 @@ export function ItemCard() {
 
 ## 레이아웃 컴포넌트
 
+### 레이아웃 선택 기준
+
+#### 판단 흐름
+
+| 순서 | 질문 | 선택 |
+|-----|------|------|
+| 1 | 탭 바가 보이는 1depth 화면인가? | **TabScreenLayout** |
+| 2 | 새 화면으로 이동하는가? (router.push) | **ScreenLayout** |
+| 3 | 현재 화면 위에서 액션하는가? | **Modal + ModalLayout** |
+
+#### 핵심 원칙
+
+- **화면과 연관된 액션** (추가/수정/삭제 폼) → `Modal + ModalLayout`
+- **실제 depth 이동** (새 화면) → `ScreenLayout`
+- **탭 바가 있는 1depth 화면** → `TabScreenLayout`
+
+#### 선택 기준 예시
+
+| 화면 유형 | 레이아웃 | 이유 |
+|----------|---------|------|
+| 홈 탭, 증빙 탭 | TabScreenLayout | 탭 바 표시, 1depth |
+| 항목 상세 보기 | ScreenLayout | 새 화면으로 이동 |
+| 항목 추가 폼 | Modal + ModalLayout | 목록 위 폼, depth 이동 아님 |
+| 항목 수정 폼 | Modal + ModalLayout | 목록 위 폼, depth 이동 아님 |
+| 항목 삭제 확인 | Modal + ModalLayout | 현재 화면의 액션 |
+
 ### ScreenLayout - 기본 화면 레이아웃
 
 일반적인 화면(2depth 이상)에서 사용합니다.

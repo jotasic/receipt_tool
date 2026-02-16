@@ -20,6 +20,7 @@ npm install
 
 ### 2. 개발 서버 실행
 
+**로컬 환경:**
 ```bash
 # 개발 서버 시작
 npx expo start
@@ -30,6 +31,14 @@ npx expo start --ios
 # Android 에뮬레이터에서 실행
 npx expo start --android
 ```
+
+**원격 환경 (SSH):**
+```bash
+# 터널 모드로 개발 서버 시작
+npx expo start --tunnel --android
+```
+
+원격 환경에서 스크린샷 등 ADB 명령어를 사용하려면 [ADB over Network 설정](./adb-network.md)이 필요합니다.
 
 ### 3. 테스트 실행
 

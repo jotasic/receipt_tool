@@ -30,8 +30,18 @@ Android 에뮬레이터/기기에서 스크린샷을 캡처합니다.
 # 1. 스크린샷 폴더 생성
 mkdir -p /tmp/screenshots
 
-# 2. 연결된 기기 확인
-~/Library/Android/sdk/platform-tools/adb devices
+# 2. ADB 연결 확인
+DEVICES=$(~/Library/Android/sdk/platform-tools/adb devices | grep -v "List of devices" | grep "device$" | wc -l)
+
+if [ "$DEVICES" -eq 0 ]; then
+  echo "❌ ADB 연결된 기기가 없습니다."
+  echo ""
+  echo "로컬 환경: USB로 기기를 연결하세요."
+  echo "원격 환경: ADB over Network 설정이 필요합니다."
+  echo ""
+  echo "설정 가이드: docs/guides/adb-network.md"
+  exit 1
+fi
 
 # 3. 스크린샷 캡처
 ~/Library/Android/sdk/platform-tools/adb exec-out screencap -p > /tmp/screenshots/{filename}

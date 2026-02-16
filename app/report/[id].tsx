@@ -172,14 +172,14 @@ export default function ReportDetailScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
         {/* Header */}
-        <View className="flex-row items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <View className="flex-row items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <TouchableOpacity
             onPress={() => router.back()}
             accessibilityLabel="뒤로 가기"
           >
             <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
           </TouchableOpacity>
-          <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">리포트 상세</Text>
+          <Text className="flex-1 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">리포트 상세</Text>
           <View style={{ width: 24 }} />
         </View>
 

@@ -279,7 +279,7 @@ export default function SettingsScreen() {
       <ScrollView className="flex-1">
         {/* Header */}
         <View className="px-4 py-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">설정</Text>
+          <Text className="text-3xl font-bold text-gray-900 dark:text-gray-100">설정</Text>
         </View>
 
         {/* Loading overlay */}

@@ -43,6 +43,75 @@ npx tsc --noEmit
 
 ---
 
+## CRITICAL: 공식 문서 우선 원칙
+
+**모든 개발 결정은 공식 문서를 기반으로 합니다.**
+
+### 강제 규칙
+
+```
+의사결정 시: 공식 문서 확인 → 패턴 적용 → 구현
+불확실할 때: 추측 금지 → 공식 문서 검색 → 확인 후 진행
+```
+
+### 적용 범위
+
+이 원칙은 **모든 기술 스택과 모든 에이전트**에 적용됩니다:
+
+| 기술 스택 | 공식 문서 |
+|----------|----------|
+| Expo | https://docs.expo.dev/ |
+| Expo Router | https://docs.expo.dev/router/introduction/ |
+| React Native | https://reactnative.dev/docs/getting-started |
+| React Navigation | https://reactnavigation.org/docs/getting-started |
+| NativeWind | https://www.nativewind.dev/ |
+| TypeScript | https://www.typescriptlang.org/docs/ |
+| SQLite | https://github.com/expo/expo/tree/main/packages/expo-sqlite |
+
+### 의무 사항
+
+1. **패턴 결정 전**: 반드시 공식 문서에서 권장 패턴 확인
+2. **불확실할 때**: 추측하지 말고 공식 문서 검색
+3. **구현 후**: 공식 패턴과 일치하는지 검증
+4. **문제 발견 시**: 공식 패턴으로 즉시 수정
+
+### 예시
+
+#### ✅ 올바른 접근
+
+```
+사용자: "Expo Router에서 레이아웃을 어떻게 구성해야 하나요?"
+Claude:
+1. Expo Router 공식 문서 검색 (WebSearch)
+2. Layouts 가이드 확인
+3. Slot pattern이 공식 권장 패턴임을 확인
+4. 해당 패턴으로 구현 제안
+```
+
+#### ❌ 잘못된 접근
+
+```
+사용자: "Expo Router에서 레이아웃을 어떻게 구성해야 하나요?"
+Claude: "제 경험상 이렇게 하면 될 것 같습니다..."
+→ 공식 문서 확인 없이 추측하여 잘못된 패턴 사용
+```
+
+### 검증 체크리스트
+
+새로운 패턴/구조 도입 시:
+- [ ] 공식 문서에서 해당 기능 검색 완료
+- [ ] 권장 패턴 확인 완료
+- [ ] 예제 코드 참고 완료
+- [ ] 우리 코드가 공식 패턴과 일치함
+
+### 중요 사항
+
+- **이 원칙은 모든 에이전트에 적용됩니다** (react-native-expo-developer, database-specialist, doc-writer, architect 등)
+- **디자인 시스템뿐만 아니라 모든 코드**에 적용됩니다
+- **기존 코드도 공식 패턴과 불일치하면 수정**해야 합니다
+
+---
+
 ## 개발 워크플로우
 
 ### CRITICAL: 워크플로우 강제 규칙

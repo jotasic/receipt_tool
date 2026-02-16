@@ -25,16 +25,39 @@ export default function TabLayout() {
 
   // Get header title based on current route
   const getHeaderTitle = () => {
-    // 2depth 화면으로 이동하면 tabs layout이 렌더링되지 않으므로
-    // 여기서는 1depth(탭) 화면만 처리
+    // 1depth (탭) 화면
     if (pathname === '/' || pathname === '/(tabs)') return '대시보드';
     if (pathname === '/items' || pathname === '/(tabs)/items') return '증빙';
     if (pathname === '/calendar' || pathname === '/(tabs)/calendar') return '달력';
     if (pathname === '/reports' || pathname === '/(tabs)/reports') return '정산';
     if (pathname === '/settings' || pathname === '/(tabs)/settings') return '설정';
 
-    // 2depth 화면 (/item/*, /report/*, /settings/*)은 해당 _layout.tsx에서 처리
+    // 2depth 화면 (tabs 내부의 Stack)
+    // index 탭의 item 상세: /(tabs)/index/item/[id]
+    if (pathname.match(/\/\(tabs\)\/index\/item\/[^/]+$/) || pathname.match(/^\/item\/[^/]+$/)) {
+      return '항목 상세';
+    }
+
+    // 기본값
     return '대시보드';
+  };
+
+  // Determine if back button should be shown
+  const shouldShowBack = () => {
+    // 2depth 화면에서는 뒤로 버튼 표시
+    if (pathname.match(/\/\(tabs\)\/index\/item\/[^/]+$/) || pathname.match(/^\/item\/[^/]+$/)) {
+      return true;
+    }
+    return false;
+  };
+
+  // Determine if tab bar should be hidden (2depth screens)
+  const shouldHideTabBar = () => {
+    // item 상세 화면에서는 탭바 숨김
+    if (pathname.match(/\/\(tabs\)\/index\/item\/[^/]+$/) || pathname.match(/^\/item\/[^/]+$/)) {
+      return true;
+    }
+    return false;
   };
 
   // Calculate bottom padding for devices with or without safe area
@@ -43,14 +66,14 @@ export default function TabLayout() {
 
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1 bg-white dark:bg-gray-900">
-      <Header title={getHeaderTitle()} showBack={false} />
+      <Header title={getHeaderTitle()} showBack={shouldShowBack()} />
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
           tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
           // Hide default header (we use custom Header component)
           headerShown: false,
-          tabBarStyle: {
+          tabBarStyle: shouldHideTabBar() ? { display: 'none' } : {
             paddingBottom: bottomPadding,
             paddingTop: 8,
             height: tabBarHeight,

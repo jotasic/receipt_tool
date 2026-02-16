@@ -107,15 +107,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <TabScreenContent
-      floatingActions={[
-        {
-          icon: 'add',
-          onPress: handleAddItem,
-          variant: 'primary',
-        },
-      ]}
-    >
+    <TabScreenContent>
       <ScrollView
         className="flex-1 bg-white dark:bg-gray-900"
         refreshControl={

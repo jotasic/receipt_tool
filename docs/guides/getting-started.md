@@ -20,30 +20,116 @@ npm install
 
 ### 2. 개발 서버 실행
 
-**로컬 환경:**
+개발 환경에 따라 적절한 방법을 선택하세요.
+
+---
+
+#### 시나리오 A: 로컬 PC + 에뮬레이터 (가장 간단)
+
+**사용 환경:**
+- 개발 PC에서 직접 작업
+- Android 에뮬레이터 또는 iOS 시뮬레이터 사용
+
+**실행 방법:**
 ```bash
-# 개발 서버 시작
-npx expo start
-
-# iOS 시뮬레이터에서 실행
-npx expo start --ios
-
 # Android 에뮬레이터에서 실행
 npx expo start --android
+
+# iOS 시뮬레이터에서 실행 (macOS만)
+npx expo start --ios
+
+# 개발 서버만 시작 (수동 선택)
+npx expo start
 ```
 
-**원격 환경 (같은 네트워크):**
+**스크린샷:**
+- `/screenshot` 스킬 사용 가능 (자동 감지)
+
+---
+
+#### 시나리오 B: 로컬 PC + 물리 기기 (USB)
+
+**사용 환경:**
+- 개발 PC에서 직접 작업
+- Android/iOS 실제 기기를 USB로 연결
+
+**실행 방법:**
+```bash
+# 1. USB로 기기 연결
+# 2. 개발 서버 시작
+npx expo start
+
+# 3. 터미널에서 'a' (Android) 또는 'i' (iOS) 입력
+# 또는 Expo Go 앱 실행 후 프로젝트 선택
+```
+
+**Android 기기에서:**
+- **Expo Go** 앱 설치 필요
+- 앱 실행 후 자동으로 개발 서버 감지
+- 또는 QR 코드 스캔
+
+**스크린샷:**
+- `/screenshot` 스킬 사용 가능 (자동 감지)
+
+---
+
+#### 시나리오 C: 원격 서버 + 물리 기기 (같은 Wi-Fi)
+
+**사용 환경:**
+- SSH로 원격 서버 접속하여 작업
+- Android 기기와 원격 서버가 **같은 Wi-Fi 네트워크**에 연결
+
+**실행 방법:**
+
+**1단계: 개발 서버 시작**
 ```bash
 # LAN 모드로 개발 서버 시작
-npx expo start --lan --android
-
-# 또는 기본 모드 (자동 감지)
-npx expo start --android
+npx expo start --lan
 ```
 
-원격 환경에서 스크린샷 등 ADB 명령어를 사용하려면 [ADB over Network 설정](./adb-network.md)이 필요합니다.
+**2단계: Android 기기에서 Expo Go 실행**
+- **Expo Go** 앱 실행
+- 홈 화면에서 자동으로 개발 서버 감지
+- "receipt_tool" 프로젝트 탭하여 실행
 
-**참고:** 원격 서버와 Android 기기가 같은 Wi-Fi 네트워크에 연결되어 있어야 합니다.
+**또는 수동 연결:**
+- Expo Go에서 "Enter URL manually"
+- 서버 IP 확인: `ifconfig | grep "inet " | grep -v 127.0.0.1`
+- URL 입력: `exp://<서버IP>:8081` (예: `exp://192.168.50.43:8081`)
+
+**3단계: ADB over Network 설정 (스크린샷용)**
+
+원격 환경에서 스크린샷 등 ADB 명령어를 사용하려면:
+
+```bash
+# Android 기기에서 무선 디버깅 활성화 후
+adb pair <기기IP>:<페어링포트>    # 처음 한 번만
+adb connect <기기IP>:<연결포트>   # 매번 연결
+
+# 예시
+adb pair 192.168.50.103:37847     # 코드 입력 필요
+adb connect 192.168.50.103:37169
+```
+
+자세한 설정 방법: [ADB over Network 가이드](./adb-network.md)
+
+**스크린샷:**
+- ADB 연결 후 `/screenshot` 스킬 사용 가능
+
+---
+
+#### 환경별 비교
+
+| 환경 | 개발 서버 | 기기 연결 | ADB | 스크린샷 |
+|------|-----------|-----------|-----|----------|
+| 로컬 + 에뮬레이터 | `npx expo start --android` | 자동 | ✅ | ✅ |
+| 로컬 + USB | `npx expo start` | Expo Go | ✅ | ✅ |
+| 원격 + Wi-Fi | `npx expo start --lan` | Expo Go | ⚙️ 설정 필요 | ⚙️ 설정 필요 |
+
+**권장:**
+- **단독 개발**: 시나리오 A (에뮬레이터) - 가장 간단
+- **실제 기기 테스트**: 시나리오 B (USB) - 중간
+- **원격 작업**: 시나리오 C (Wi-Fi) - 초기 설정 필요
 
 ### 3. 테스트 실행
 

@@ -165,30 +165,6 @@ export default function HomeScreen() {
               );
             })}
 
-            {/* Reports */}
-            <TouchableOpacity
-              onPress={() => router.push('/(tabs)/reports')}
-              activeOpacity={0.7}
-            >
-              <Card>
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center flex-1">
-                    <View className="bg-orange-100 dark:bg-orange-900/30 rounded-full p-3 mr-3">
-                      <Ionicons name="stats-chart-outline" size={24} color="#ea580c" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                        리포트
-                      </Text>
-                      <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        지출 분석 및 통계
-                      </Text>
-                    </View>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-                </View>
-              </Card>
-            </TouchableOpacity>
           </View>
         </View>
 

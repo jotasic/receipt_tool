@@ -5,7 +5,7 @@
  * Includes navigation buttons and "All" option
  */
 
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 
@@ -15,6 +15,7 @@ interface MonthSelectorProps {
 }
 
 export function MonthSelector({ selectedMonth, onMonthChange }: MonthSelectorProps) {
+  const colorScheme = useColorScheme();
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState<number>(new Date().getMonth());
 
@@ -73,6 +74,14 @@ export function MonthSelector({ selectedMonth, onMonthChange }: MonthSelectorPro
 
   const isAllSelected = selectedMonth === null;
 
+  // Get appropriate arrow color based on theme and state
+  const getArrowColor = () => {
+    if (isAllSelected) {
+      return '#9CA3AF'; // gray-400 (disabled state)
+    }
+    return colorScheme === 'dark' ? '#D1D5DB' : '#374151'; // gray-300 (dark) / gray-700 (light)
+  };
+
   return (
     <View className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-4 border border-gray-100 dark:border-gray-700">
       {/* Header */}
@@ -104,7 +113,7 @@ export function MonthSelector({ selectedMonth, onMonthChange }: MonthSelectorPro
           <Ionicons
             name="chevron-back"
             size={20}
-            color={isAllSelected ? "#9CA3AF" : "#374151"}
+            color={getArrowColor()}
           />
         </TouchableOpacity>
 
@@ -151,7 +160,7 @@ export function MonthSelector({ selectedMonth, onMonthChange }: MonthSelectorPro
           <Ionicons
             name="chevron-forward"
             size={20}
-            color={isAllSelected ? "#9CA3AF" : "#374151"}
+            color={getArrowColor()}
           />
         </TouchableOpacity>
       </View>

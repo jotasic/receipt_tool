@@ -6,7 +6,7 @@
  */
 
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 interface SegmentedControlProps {
@@ -19,6 +19,7 @@ export function SegmentedControl({ values, selectedIndex, onChange }: SegmentedC
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const slideAnim = useRef(new Animated.Value(selectedIndex)).current;
+  const [segmentWidth, setSegmentWidth] = useState(0);
 
   useEffect(() => {
     Animated.spring(slideAnim, {
@@ -29,7 +30,11 @@ export function SegmentedControl({ values, selectedIndex, onChange }: SegmentedC
     }).start();
   }, [selectedIndex, slideAnim]);
 
-  const segmentWidth = 100 / values.length;
+  const handleLayout = (event: any) => {
+    const { width } = event.nativeEvent.layout;
+    setSegmentWidth(width / values.length);
+  };
+
   const translateX = slideAnim.interpolate({
     inputRange: values.map((_, i) => i),
     outputRange: values.map((_, i) => i * segmentWidth),
@@ -39,16 +44,14 @@ export function SegmentedControl({ values, selectedIndex, onChange }: SegmentedC
     <View
       className="flex-row h-8 rounded-lg p-0.5 bg-gray-200 dark:bg-gray-700"
       style={{ minWidth: values.length * 50 }}
+      onLayout={handleLayout}
     >
       {/* Animated Background Slider */}
       <Animated.View
         className="absolute h-7 rounded-md bg-white dark:bg-gray-600 m-0.5"
         style={{
-          width: `${segmentWidth - 2}%`,
-          transform: [{ translateX: slideAnim.interpolate({
-            inputRange: values.map((_, i) => i),
-            outputRange: values.map((_, i) => i * (100 / values.length) * 0.01 * 200), // Approximate pixel width
-          }) }],
+          width: segmentWidth - 4, // Subtract padding (0.5 * 2 * 2px)
+          transform: [{ translateX }],
         }}
       />
 

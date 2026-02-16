@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
 import { MonthSelector } from '@/components/common/MonthSelector';
 import { TabScreenLayout } from '@/design-system/layouts';
-import { getClassificationConfig } from '@/constants/items';
+import { getClassificationConfig, getUsagePurposeConfig } from '@/constants/items';
 import type { Item } from '@/types/item';
 import {
   getMonthlyItems,
@@ -105,6 +105,7 @@ function SummaryCard({ summary }: { summary: MonthlySummary }) {
 
 function ItemCard({ item }: { item: Item }) {
   const config = getClassificationConfig(item.classification);
+  const usagePurposeConfig = getUsagePurposeConfig(item.usagePurpose);
 
   return (
     <View className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-2 border border-gray-100 dark:border-gray-700">
@@ -136,7 +137,7 @@ function ItemCard({ item }: { item: Item }) {
             </View>
           )}
           <Text className="text-xs text-gray-500 dark:text-gray-400">
-            {item.usagePurpose}
+            {usagePurposeConfig?.name || item.usagePurpose}
           </Text>
         </View>
         <Text className="text-xs text-gray-500 dark:text-gray-400">{item.date}</Text>

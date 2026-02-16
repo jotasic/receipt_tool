@@ -2,6 +2,74 @@
 
 디자인 시스템을 통해 일관된 UI를 구현합니다. 토큰, 레이아웃 컴포넌트, 훅을 조합하여 사용합니다.
 
+## CRITICAL: 다크모드 필수 준수
+
+**모든 UI 컴포넌트는 다크모드를 완벽히 지원해야 합니다. 이것은 선택이 아닌 필수 요구사항입니다.**
+
+### 필수 규칙 (어기면 안 됨)
+
+1. **색상은 항상 라이트/다크 모드 둘 다 정의**
+   - NativeWind `dark:` 클래스 사용 (권장)
+   - 또는 `useThemeColor()`, `useThemedStyles()` 훅 사용
+
+2. **하드코딩 색상 절대 금지 (MUST NOT)**
+   ```typescript
+   // ❌ 절대 금지
+   color="#XXXXXX"
+   backgroundColor: '#XXXXXX'
+   borderColor: '#XXXXXX'
+   shadowColor: '#000000'
+
+   // ✅ 필수
+   className="text-gray-900 dark:text-gray-100"
+   const textColor = useThemeColor('#1F2937', '#F3F4F6');
+   ```
+
+3. **기존 코드 수정 시 다크모드 확인 필수**
+   - 색상 변경 시 라이트/다크 모드 둘 다 검증
+   - 새 색상 추가 시 다크 모드 정의 필수
+   - 부분 수정도 전체 컴포넌트 다크모드 검증 필수
+
+### 자주 놓치는 부분 (체크리스트)
+
+- [ ] Ionicons, Feather 등 color prop (useThemeColor 사용)
+- [ ] ActivityIndicator color prop
+- [ ] TextInput placeholder 색상 (placeholderTextColor 속성)
+- [ ] border 색상 (dark:border-gray-700)
+- [ ] shadow 색상 (다크모드에서 더 진하게)
+- [ ] Background 그라디언트
+- [ ] Alert 메시지 배경색
+- [ ] Loading spinner 색상
+- [ ] disabled 상태 색상
+
+### 검증 방법 (필수)
+
+**커밋하기 전에 반드시 확인:**
+
+1. **코드 리뷰**: 파일의 모든 색상이 dark: 클래스 또는 훅으로 정의되어 있는가?
+   ```bash
+   # 하드코딩 색상 검색 (이 명령어의 결과가 0이어야 함)
+   grep -r "color=['\"]#" src/ | grep -v dark: | wc -l
+   grep -r "backgroundColor:[[:space:]]*['\"]#" src/ | grep -v dark: | wc -l
+   ```
+
+2. **시각적 테스트**:
+   - 라이트 모드에서 모든 텍스트/아이콘 가독성 확인
+   - 다크 모드로 토글 (Android 설정 > 디스플레이 > 테마)
+   - 모든 텍스트/아이콘 가독성 재확인
+   - 대비(contrast)가 충분한가?
+
+3. **도구 사용**:
+   ```bash
+   # TypeScript 타입 체크
+   npx tsc --noEmit
+
+   # 리스트 검색 (더 정확함)
+   grep -r 'color:.*"#\|color:.*'"'"'#' src/
+   ```
+
+**다크모드 미지원 커밋은 절대 금지됩니다.**
+
 ## 디자인 토큰
 
 ### 색상 (Colors)
@@ -197,115 +265,105 @@ export function ItemCard() {
 
 ## 레이아웃 컴포넌트
 
-### 레이아웃 선택 기준
+### 핵심 정책 (최신)
 
-#### 판단 흐름
+**모든 화면은 `ScreenLayout`을 사용합니다.**
 
-| 순서 | 질문 | 선택 |
-|-----|------|------|
-| 1 | 탭 바가 보이는 1depth 화면인가? | **TabScreenLayout** |
-| 2 | 새 화면으로 이동하는가? (router.push) | **ScreenLayout** |
-| 3 | 현재 화면 위에서 액션하는가? | **Modal + ModalLayout** |
+| 화면 유형 | 사용 컴포넌트 | 특징 |
+|----------|-------------|------|
+| 모든 일반 화면 | `ScreenLayout` | 헤더/뒤로가기는 자동 처리, 라우팅에 따라 결정 |
+| 모든 추가/수정 폼 | `FullScreenModal` | 헤더 액션 버튼만 사용 (bottomButtons 제거) |
 
-#### 핵심 원칙
+**자동 처리 로직:**
+- **1depth (탭 내부)**: 뒤로가기 없음, 탭 바 표시
+- **2depth+ (탭 외부)**: 뒤로가기 표시, 탭 바 숨김
 
-- **화면과 연관된 액션** (추가/수정/삭제 폼) → `Modal + ModalLayout`
-- **실제 depth 이동** (새 화면) → `ScreenLayout`
-- **탭 바가 있는 1depth 화면** → `TabScreenLayout`
+---
 
-#### 폼 복잡도 기준
+#### 선택 기준 (간단함)
 
-| 기준 | Modal + ModalLayout | ScreenLayout |
-|------|---------------------|--------------|
-| **폼 복잡도** | 간단 (2-3개 필드) | 복잡 (5개 이상 필드) |
-| **컨텍스트** | 현재 목록과 직접 연관 | 독립적 작업 흐름 |
-| **화면 크기** | 일부 (모달) | 전체 (몰입 필요) |
-| **예시** | 태그 추가, 사용처 추가 | 항목 추가, 리포트 생성 |
+| 상황 | 사용 컴포넌트 |
+|-----|-------------|
+| 새로운 화면 이동 (router.push 또는 탭 경로) | `ScreenLayout` |
+| 현재 화면 위에 폼 열기 (추가/수정) | `FullScreenModal` |
 
-#### 선택 기준 예시
+---
 
-| 화면 유형 | 레이아웃 | 이유 |
+#### 화면별 예시
+
+| 화면 유형 | 레이아웃 | 예시 |
 |----------|---------|------|
-| 홈 탭, 증빙 탭 | TabScreenLayout | 탭 바 표시, 1depth |
-| 항목 상세 보기 | ScreenLayout | 새 화면으로 이동 |
-| 항목 추가 폼 | ScreenLayout | 5개 이상 필드, 독립적 작업 |
-| 항목 수정 폼 | ScreenLayout | 5개 이상 필드, 독립적 작업 |
-| 항목 삭제 확인 | Modal + ModalLayout | 현재 화면의 액션 |
-| 태그 추가 | Modal + ModalLayout | 2-3개 필드, 목록 연관 |
-| 사용처 추가 | Modal + ModalLayout | 2-3개 필드, 목록 연관 |
+| 홈 탭 | ScreenLayout | `/(tabs)/index.tsx` |
+| 증빙 탭 | ScreenLayout | `/(tabs)/items.tsx` |
+| 항목 상세 | ScreenLayout | `/item/[id].tsx` |
+| 항목 추가 폼 | FullScreenModal | 증빙 탭에서 모달로 열기 |
+| 항목 수정 폼 | FullScreenModal | 상세 화면에서 모달로 열기 |
+| 태그 추가 | FullScreenModal | 설정 화면에서 모달로 열기 |
 
-### ScreenLayout - 기본 화면 레이아웃
+### ScreenLayout - 모든 화면의 기본 레이아웃
 
-일반적인 화면(2depth 이상)에서 사용합니다.
+모든 일반 화면(탭 내부, 탭 외부, 상세 화면)에서 사용합니다.
 
 #### Props
 
 ```typescript
 interface ScreenLayoutProps {
   title?: string;              // 헤더 타이틀
-  showHeader?: boolean;        // 헤더 표시 여부 (기본: false)
-  showBack?: boolean;          // 뒤로가기 버튼 표시 여부 (기본: false)
-  rightElement?: ReactNode;    // 헤더 오른쪽 요소
   children: ReactNode;         // 화면 컨텐츠
+  rightElement?: ReactNode;    // 헤더 오른쪽 요소 (선택)
   scrollable?: boolean;        // 스크롤 가능 여부 (기본: true)
-  edges?: readonly Edge[];     // SafeAreaView edges (기본: 모든 영역)
 }
 ```
 
-#### 예시 1: 헤더 없는 화면
+**주의**: `showHeader`, `showBack` 속성은 제거되었습니다. 헤더와 뒤로가기는 경로에 따라 자동으로 처리됩니다.
+
+#### 자동 처리 로직
+
+- `title` 설정 시: 헤더 자동 표시
+- 1depth 경로 (`/(tabs)/*`): 뒤로가기 버튼 없음, 탭 바 표시
+- 2depth+ 경로: 뒤로가기 버튼 자동 표시, 탭 바 자동 숨김
+
+#### 예시 1: 탭 화면 (1depth)
 
 ```typescript
 import { ScreenLayout } from '@/design-system/layouts';
 import { View, Text } from 'react-native';
 
-export function InitialScreen() {
+export function ItemsTab() {
   return (
-    <ScreenLayout>
-      <View className="flex-1 items-center justify-center">
-        <Text className="text-xl font-bold">시작 화면</Text>
-      </View>
-    </ScreenLayout>
-  );
-}
-```
-
-#### 예시 2: 헤더가 있는 1depth 화면
-
-```typescript
-export function ItemListScreen() {
-  return (
-    <ScreenLayout showHeader title="증빙 관리">
+    <ScreenLayout title="증빙">
       <ItemList />
     </ScreenLayout>
   );
+  // 자동으로: 헤더 표시, 뒤로가기 없음, 탭 바 표시
 }
 ```
 
-#### 예시 3: 뒤로가기 버튼이 있는 2depth 화면
+#### 예시 2: 상세 화면 (2depth)
 
 ```typescript
 export function ItemDetailScreen() {
   return (
-    <ScreenLayout showHeader title="증빙 상세" showBack>
+    <ScreenLayout title="증빙 상세">
       <ItemDetail />
     </ScreenLayout>
   );
+  // 자동으로: 헤더 표시, 뒤로가기 표시, 탭 바 숨김
 }
 ```
 
-#### 예시 4: 오른쪽 버튼이 있는 화면
+#### 예시 3: 오른쪽 버튼이 있는 화면
 
 ```typescript
 import { TouchableOpacity, Text } from 'react-native';
 
 export function ReportListScreen() {
   const handleAdd = () => {
-    // 새 리포트 생성
+    router.push('/report/create');
   };
 
   return (
     <ScreenLayout
-      showHeader
       title="리포트"
       rightElement={
         <TouchableOpacity onPress={handleAdd}>
@@ -319,136 +377,131 @@ export function ReportListScreen() {
 }
 ```
 
-### TabScreenLayout - 탭 화면 레이아웃
+### FullScreenModal - 추가/수정 폼 전용
 
-탭 바가 있는 1depth 화면에서만 사용합니다.
-
-#### Props
-
-```typescript
-interface TabScreenLayoutProps {
-  title: string;              // 헤더 타이틀 (필수)
-  rightElement?: ReactNode;   // 헤더 오른쪽 요소
-  children: ReactNode;        // 화면 컨텐츠
-  scrollable?: boolean;       // 스크롤 가능 여부 (기본: true)
-}
-```
-
-#### 예시
-
-```typescript
-import { TabScreenLayout } from '@/design-system/layouts';
-
-export function ItemsTab() {
-  return (
-    <TabScreenLayout title="증빙">
-      <ItemList />
-    </TabScreenLayout>
-  );
-}
-
-export function SettingsTab() {
-  const handleNotificationSettings = () => {
-    // 알림 설정
-  };
-
-  return (
-    <TabScreenLayout
-      title="설정"
-      rightElement={
-        <TouchableOpacity onPress={handleNotificationSettings}>
-          <Text className="text-blue-500">알림</Text>
-        </TouchableOpacity>
-      }
-    >
-      <SettingsList />
-    </TabScreenLayout>
-  );
-}
-```
-
-### ModalLayout - 모달 화면 레이아웃
-
-모달/바텀시트 화면에서 사용합니다.
+모든 추가/수정/삭제 확인 폼에서 사용합니다. **현재 화면 위에 모달로 열림 (새 경로 없음)**
 
 #### Props
 
 ```typescript
-interface ModalButton {
-  label: string;                           // 버튼 레이블
-  onPress: () => void;                     // 클릭 핸들러
-  variant?: 'primary' | 'secondary' | 'danger';  // 버튼 스타일
-  disabled?: boolean;                      // 비활성화 여부
-}
-
-interface ModalLayoutProps {
-  title: string;              // 헤더 타이틀 (필수)
-  onClose?: () => void;       // 닫기 핸들러
-  bottomButtons?: ModalButton[];    // 하단 버튼 배열
-  children: ReactNode;        // 화면 컨텐츠
-  scrollable?: boolean;       // 스크롤 가능 여부 (기본: true)
-}
-```
-
-#### 예시 1: 기본 모달
-
-```typescript
-import { ModalLayout } from '@/design-system/layouts';
-import { View, Text } from 'react-native';
-
-export function ConfirmationModal() {
-  const handleConfirm = () => {
-    // 확인 처리
+interface FullScreenModalProps {
+  visible: boolean;            // 모달 표시 여부
+  onClose: () => void;         // 닫기 핸들러 (X 버튼)
+  title: string;               // 헤더 타이틀
+  rightButton?: {              // 오른쪽 액션 버튼 (생성/저장/삭제 등)
+    label: string;
+    onPress: () => void | Promise<void>;
+    disabled?: boolean;
+    loading?: boolean;
   };
-
-  return (
-    <ModalLayout
-      title="확인"
-      bottomButtons={[
-        { label: '취소', onPress: handleCancel, variant: 'secondary' },
-        { label: '확인', onPress: handleConfirm, variant: 'primary' },
-      ]}
-    >
-      <View className="p-4">
-        <Text className="text-base text-gray-700 dark:text-gray-300">
-          정말 삭제하시겠습니까?
-        </Text>
-      </View>
-    </ModalLayout>
-  );
+  children: ReactNode;         // 폼 컨텐츠
 }
 ```
 
-#### 예시 2: 폼이 있는 모달
+**특징:**
+- 하단 버튼(bottomButtons) 없음
+- 왼쪽: X 버튼 (닫기)
+- 오른쪽: 액션 버튼 (생성/저장 등)
+- SafeAreaView는 top만 적용 (소프트키 회피 완벽)
+
+#### 예시 1: 항목 추가 폼
 
 ```typescript
-export function CreateReportModal() {
+import { useState } from 'react';
+import { View, TextInput, Text, Alert } from 'react-native';
+import { FullScreenModal } from '@/components/common';
+import { createItem } from '@/services/database';
+
+export function ItemFormModal({ visible, onClose }: Props) {
   const [title, setTitle] = useState('');
+  const [amount, setAmount] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = () => {
-    // 리포트 생성
+  const isValid = title.trim().length > 0;
+
+  const handleCreate = async () => {
+    try {
+      setIsLoading(true);
+      await createItem({
+        classification: 'personal_card',
+        usagePurpose: 'meal',
+        title,
+        amount: Number(amount),
+        date: new Date().toISOString().split('T')[0],
+      });
+      onClose();
+    } catch (error) {
+      Alert.alert('오류', '항목 생성에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <ModalLayout
-      title="리포트 생성"
-      bottomButtons={[
-        { label: '취소', onPress: handleCancel, variant: 'secondary' },
-        { label: '생성', onPress: handleSubmit, variant: 'primary', disabled: !title },
-      ]}
+    <FullScreenModal
+      visible={visible}
+      onClose={onClose}
+      title="새 항목"
+      rightButton={{
+        label: '생성',
+        onPress: handleCreate,
+        disabled: !isValid,
+        loading: isLoading,
+      }}
     >
       <View className="p-4 gap-4">
-        <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-          리포트 제목
-        </Text>
         <TextInput
           value={title}
           onChangeText={setTitle}
-          placeholder="제목 입력"
-          className="border border-gray-300 dark:border-gray-600 rounded-lg p-3"
+          placeholder="항목 제목"
+          className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 text-gray-900 dark:text-white"
+        />
+        <TextInput
+          value={amount}
+          onChangeText={setAmount}
+          placeholder="금액"
+          keyboardType="decimal-pad"
+          className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 text-gray-900 dark:text-white"
         />
       </View>
-    </ModalLayout>
+    </FullScreenModal>
+  );
+}
+```
+
+#### 예시 2: 삭제 확인 모달
+
+```typescript
+export function DeleteConfirmModal({ visible, onClose, onConfirm }: Props) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleDelete = async () => {
+    try {
+      setIsLoading(true);
+      await onConfirm();
+      onClose();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <FullScreenModal
+      visible={visible}
+      onClose={onClose}
+      title="삭제 확인"
+      rightButton={{
+        label: '삭제',
+        onPress: handleDelete,
+        loading: isLoading,
+      }}
+    >
+      <View className="p-4">
+        <Text className="text-gray-700 dark:text-gray-300 text-base">
+          이 항목을 정말 삭제하시겠습니까?
+        </Text>
+      </View>
+    </FullScreenModal>
   );
 }
 ```
@@ -645,7 +698,7 @@ export function MyComponent() {
 
 ```typescript
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useThemedStyles } from '@/design-system/hooks';
+import { useThemeColor, useThemedStyles } from '@/design-system/hooks';
 import { colors } from '@/design-system/tokens';
 
 interface ItemCardProps {
@@ -661,6 +714,9 @@ export function ItemCard({
   amount,
   onPress,
 }: ItemCardProps) {
+  // 배지의 텍스트 색상 (항상 흰색 또는 밝은색)
+  const badgeTextColor = useThemeColor('#FFFFFF', '#F9FAFB');
+
   const styles = useThemedStyles((themeColors) => ({
     container: {
       borderRadius: 8,
@@ -707,7 +763,7 @@ export function ItemCard({
             { backgroundColor: classificationColor },
           ]}
         >
-          <Text style={{ color: 'white', fontSize: 12, fontWeight: '500' }}>
+          <Text style={{ color: badgeTextColor, fontSize: 12, fontWeight: '500' }}>
             {classification}
           </Text>
         </View>
@@ -720,17 +776,26 @@ export function ItemCard({
 }
 ```
 
-### 리포트 폼 모달
+### 리포트 폼 모달 (FullScreenModal 사용)
 
 ```typescript
 import { useState } from 'react';
 import { View, Text, TextInput } from 'react-native';
-import { ModalLayout } from '@/design-system/layouts';
-import { useThemedStyles } from '@/design-system/hooks';
+import { FullScreenModal } from '@/components/common';
+import { useThemeColor, useThemedStyles } from '@/design-system/hooks';
 
-export function CreateReportModal({ onClose }: { onClose: () => void }) {
+export function CreateReportModal({
+  visible,
+  onClose
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const placeholderColor = useThemeColor('#9CA3AF', '#6B7280');
 
   const styles = useThemedStyles((colors) => ({
     formGroup: {
@@ -752,28 +817,27 @@ export function CreateReportModal({ onClose }: { onClose: () => void }) {
     },
   }));
 
-  const handleSubmit = () => {
-    // 리포트 생성 로직
-    onClose();
+  const handleSubmit = async () => {
+    try {
+      setIsLoading(true);
+      // 리포트 생성 로직
+      onClose();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <ModalLayout
-      title="리포트 생성"
+    <FullScreenModal
+      visible={visible}
       onClose={onClose}
-      bottomButtons={[
-        {
-          label: '취소',
-          onPress: onClose,
-          variant: 'secondary',
-        },
-        {
-          label: '생성',
-          onPress: handleSubmit,
-          variant: 'primary',
-          disabled: !title.trim(),
-        },
-      ]}
+      title="리포트 생성"
+      rightButton={{
+        label: '생성',
+        onPress: handleSubmit,
+        disabled: !title.trim(),
+        loading: isLoading,
+      }}
     >
       <View className="p-4 gap-4">
         <View style={styles.formGroup}>
@@ -783,7 +847,7 @@ export function CreateReportModal({ onClose }: { onClose: () => void }) {
             value={title}
             onChangeText={setTitle}
             placeholder="제목 입력"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={placeholderColor}
           />
         </View>
 
@@ -794,12 +858,12 @@ export function CreateReportModal({ onClose }: { onClose: () => void }) {
             value={description}
             onChangeText={setDescription}
             placeholder="설명 입력"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={placeholderColor}
             multiline
           />
         </View>
       </View>
-    </ModalLayout>
+    </FullScreenModal>
   );
 }
 ```

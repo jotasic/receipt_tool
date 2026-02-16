@@ -14,9 +14,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 |-----|-----|
 | [/docs/architecture.md](/docs/architecture.md) | 아키텍처, 기술 스택, 데이터 모델 (SSOT) |
 | [/docs/services.md](/docs/services.md) | 서비스 함수 레퍼런스 |
+| [/docs/guides/development-workflow.md](/docs/guides/development-workflow.md) | 개발 워크플로우 상세 가이드 (필독) |
+| [/docs/guides/getting-started.md](/docs/guides/getting-started.md) | 개발 환경 설정 및 시작 가이드 |
 | [/docs/guides/database.md](/docs/guides/database.md) | 데이터베이스 가이드 |
 | [/docs/guides/ocr.md](/docs/guides/ocr.md) | OCR 시스템 가이드 |
 | [/docs/guides/design-system.md](/docs/guides/design-system.md) | 디자인 시스템 사용 가이드 |
+| [/docs/guides/layout-policy.md](/docs/guides/layout-policy.md) | 레이아웃 및 모달 정책 |
 | [/docs/migration-guide.md](/docs/migration-guide.md) | 모델 진화 히스토리 |
 
 ## 개발 환경

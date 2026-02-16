@@ -128,93 +128,112 @@ letterSpacing = { tight: -0.5, normal: 0, wide: 0.5 }
 
 ```
 레이아웃 컴포넌트
-├── ScreenLayout
+├── ScreenLayout (모든 일반 화면)
 │   ├── SafeAreaView (edges: 모든 방향)
-│   ├── Header (조건부)
+│   ├── Header (자동: title 설정 시 표시)
+│   │   ├── 왼쪽: 뒤로가기 (자동: 경로에 따라)
+│   │   ├── 가운데: 제목
+│   │   └── 오른쪽: 커스텀 요소 (선택)
 │   ├── ScrollView 또는 View
 │   └── 콘텐츠
 │
-├── TabScreenLayout (ScreenLayout 변형)
-│   ├── SafeAreaView (edges: 모든 방향)
-│   ├── Header (항상)
-│   ├── ScrollView 또는 View
-│   └── 콘텐츠
-│
-└── ModalLayout (특수)
-    ├── SafeAreaView (edges: top, bottom만)
-    ├── Header (항상)
+└── FullScreenModal (추가/수정 폼)
+    ├── SafeAreaView (edges: top만)
+    ├── Modal Header (항상)
+    │   ├── 왼쪽: X 버튼
+    │   ├── 가운데: 제목
+    │   └── 오른쪽: 액션 버튼
     ├── ScrollView 또는 View
-    ├── 콘텐츠
-    └── 하단 버튼 영역
+    └── 콘텐츠
 ```
 
-### ScreenLayout - 일반 화면
+### ScreenLayout - 모든 일반 화면
 
-**사용 대상**: 모든 화면 (헤더 선택 사항)
+**사용 대상**: 모든 일반 화면 (탭, 상세, 설정 등)
 
 **특징**:
-- 헤더 선택적 표시
-- 뒤로가기 버튼 지원
-- 오른쪽 영역 요소 지원
+- 제목 설정 시 자동으로 헤더 표시
+- 뒤로가기 버튼은 경로에 따라 자동 처리
+  - 1depth (`/(tabs)/*`): 뒤로가기 없음
+  - 2depth+ (탭 외부): 뒤로가기 자동 표시
+- 탭 바는 경로에 따라 자동 표시/숨김
+- 오른쪽 커스텀 요소 지원
 - 스크롤 가능/불가 선택
+
+**Props**:
+```typescript
+interface ScreenLayoutProps {
+  title?: string;              // 헤더 타이틀
+  rightElement?: ReactNode;    // 헤더 오른쪽 요소
+  scrollable?: boolean;        // 스크롤 가능 여부
+  children: ReactNode;
+}
+```
 
 **다크모드**: `dark:bg-gray-900` 클래스로 자동 대응
 
 ```typescript
-// 1depth 탭 화면
-<ScreenLayout showHeader title="리포트">
-  <Content />
+// 1depth 탭 화면 (자동으로 뒤로가기 없음, 탭 바 표시)
+<ScreenLayout title="리포트">
+  <ReportList />
 </ScreenLayout>
 
-// 2depth 상세 화면
-<ScreenLayout showHeader showBack title="상세">
-  <DetailContent />
+// 2depth 상세 화면 (자동으로 뒤로가기 표시, 탭 바 숨김)
+<ScreenLayout title="리포트 상세">
+  <ReportDetail />
 </ScreenLayout>
-```
 
-### TabScreenLayout - 탭 화면
-
-**사용 대상**: 탭 바가 있는 1depth 화면만
-
-**특징**:
-- 헤더 항상 표시
-- 뒤로가기 버튼 없음
-- 탭 네비게이션과 함께 사용
-
-**다크모드**: 자동 대응
-
-```typescript
-// 탭 바 내에서
-<Tab.Screen name="items">
-  {() => (
-    <TabScreenLayout title="증빙">
-      <ItemList />
-    </TabScreenLayout>
-  )}
-</Tab.Screen>
-```
-
-### ModalLayout - 모달 화면
-
-**사용 대상**: 모달/바텀시트 화면
-
-**특징**:
-- SafeAreaView edges = ['top', 'bottom'] (좌우 여백 없음)
-- 하단 버튼 영역 자동 관리
-- variant 기반 버튼 스타일 (primary, secondary, danger)
-
-**다크모드**: 자동 대응
-
-```typescript
-<ModalLayout
-  title="확인"
-  bottomButtons={[
-    { label: '취소', onPress: handleCancel, variant: 'secondary' },
-    { label: '삭제', onPress: handleDelete, variant: 'danger' },
-  ]}
+// 오른쪽 요소가 있는 화면
+<ScreenLayout
+  title="설정"
+  rightElement={<TouchableOpacity onPress={handleSettings}>...</TouchableOpacity>}
 >
-  <ConfirmContent />
-</ModalLayout>
+  <SettingsList />
+</ScreenLayout>
+```
+
+### FullScreenModal - 추가/수정 폼 전용
+
+**사용 대상**: 모든 추가/수정/삭제 확인 폼
+
+**특징**:
+- 현재 화면 위에 모달로 표시 (새로운 경로 없음)
+- SafeAreaView는 top만 적용 (소프트키 완벽 회피)
+- 하단 버튼 없음 (오른쪽 액션 버튼만 사용)
+- 왼쪽 X 버튼으로 닫기
+- 오른쪽에 액션 버튼 (생성/저장/삭제 등)
+
+**Props**:
+```typescript
+interface FullScreenModalProps {
+  visible: boolean;
+  onClose: () => void;
+  title: string;
+  rightButton?: {
+    label: string;
+    onPress: () => void | Promise<void>;
+    disabled?: boolean;
+    loading?: boolean;
+  };
+  children: ReactNode;
+}
+```
+
+**다크모드**: 자동 대응
+
+```typescript
+<FullScreenModal
+  visible={showForm}
+  onClose={() => setShowForm(false)}
+  title="새 항목"
+  rightButton={{
+    label: '생성',
+    onPress: handleCreate,
+    disabled: !isValid,
+  }}
+>
+  <ItemForm />
+</FullScreenModal>
 ```
 
 ## 훅 시스템
@@ -448,9 +467,19 @@ import { colors } from '@/design-system/tokens';
 
 ✅ 레이아웃 컴포넌트:
 ```typescript
-<ScreenLayout showHeader title="...">
+<ScreenLayout title="화면 제목">
   ...
 </ScreenLayout>
+
+// 추가/수정 폼
+<FullScreenModal
+  visible={visible}
+  onClose={onClose}
+  title="항목 추가"
+  rightButton={{ label: '생성', onPress: handleCreate }}
+>
+  ...
+</FullScreenModal>
 ```
 
 ### 3. 다크모드 대응

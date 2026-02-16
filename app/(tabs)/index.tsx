@@ -1,15 +1,22 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { useState, useCallback, useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator, Alert } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '@/components/common';
+import { ItemForm } from '@/components/item';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
+import { createItem } from '@/services/database/itemService';
+import { setTagsForItem } from '@/services/database/tagService';
+import { setItemCustomValues } from '@/services/database/customFieldService';
 import { isExpense } from '@/types/item';
 import { CLASSIFICATIONS } from '@/constants/items';
-import { useCallback, useMemo } from 'react';
+import type { CreateItemInput } from '@/types';
 
 export default function HomeScreen() {
   const { items, isLoading, loadItems } = useItemStore();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load items when screen is focused
   useFocusEffect(
@@ -19,7 +26,37 @@ export default function HomeScreen() {
   );
 
   const handleAddItem = () => {
-    router.push('/item/add' as any);
+    setShowAddModal(true);
+  };
+
+  const handleCreateItem = async (data: CreateItemInput) => {
+    setIsSubmitting(true);
+    try {
+      // Separate tags and customValues from item data
+      const { tags: tagIds, customValues, ...itemData } = data;
+
+      // Create item in database
+      const item = await createItem(itemData);
+
+      // Save tags if provided
+      if (tagIds && tagIds.length > 0) {
+        await setTagsForItem(item.id, tagIds);
+      }
+
+      // Save custom field values if provided
+      if (customValues && Object.keys(customValues).length > 0) {
+        await setItemCustomValues(item.id, customValues);
+      }
+
+      await loadItems(); // Refresh the list
+      setShowAddModal(false);
+      Alert.alert('성공', '항목이 추가되었습니다.');
+    } catch (error) {
+      console.error('Failed to create item:', error);
+      Alert.alert('오류', '항목 추가에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Calculate statistics
@@ -195,6 +232,13 @@ export default function HomeScreen() {
           </View>
         )}
       </ScrollView>
+
+      {showAddModal && (
+        <ItemForm
+          onSubmit={handleCreateItem}
+          onCancel={() => setShowAddModal(false)}
+        />
+      )}
     </TabScreenContent>
   );
 }

@@ -20,10 +20,9 @@ export interface FloatingAction {
 
 interface FloatingActionBarProps {
   actions: FloatingAction[];
-  bottomOffset?: number;
 }
 
-export function FloatingActionBar({ actions, bottomOffset = 0 }: FloatingActionBarProps) {
+export function FloatingActionBar({ actions }: FloatingActionBarProps) {
   const insets = useSafeAreaInsets();
   const defaultIconColor = useThemeColor('#374151', '#D1D5DB');
   const dangerIconColor = useThemeColor('#DC2626', '#F87171');
@@ -52,7 +51,7 @@ export function FloatingActionBar({ actions, bottomOffset = 0 }: FloatingActionB
     <View
       className="absolute right-4 flex-col-reverse gap-3"
       style={{
-        bottom: insets.bottom + bottomOffset + 16,
+        bottom: insets.bottom + 16,
       }}
     >
       {actions.map((action, index) => {

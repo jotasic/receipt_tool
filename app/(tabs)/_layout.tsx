@@ -127,10 +127,7 @@ export default function TabLayout() {
 
       {/* Floating Action Bar (route-based) */}
       {getFloatingActions() && (
-        <FloatingActionBar
-          actions={getFloatingActions()!}
-          bottomOffset={tabBarHeight}
-        />
+        <FloatingActionBar actions={getFloatingActions()!} />
       )}
     </SafeAreaView>
   );

@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ItemCard } from '@/components/item';
-import { Header } from '@/components/common';
+import { Header, MonthSelector } from '@/components/common';
 import { useItemStore } from '@/store/itemStore';
 import { CLASSIFICATIONS } from '@/constants/items';
 import type { Item, ItemClassification, UsagePurpose, Tag } from '@/types';
@@ -43,6 +43,7 @@ export default function ItemsScreen() {
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<Date | null>(new Date());
 
   // Get URL parameters
   const params = useLocalSearchParams<{ classification?: string }>();
@@ -77,9 +78,23 @@ export default function ItemsScreen() {
     }
   };
 
-  // Filter items based on selected filter and tags
+  // Filter items based on selected filter, tags, and month
   const filteredItems = useMemo(() => {
     let result = items;
+
+    // Filter by month
+    if (selectedMonth !== null) {
+      const selectedYear = selectedMonth.getFullYear();
+      const selectedMonthIndex = selectedMonth.getMonth();
+
+      result = result.filter((item) => {
+        const itemDate = new Date(item.date);
+        return (
+          itemDate.getFullYear() === selectedYear &&
+          itemDate.getMonth() === selectedMonthIndex
+        );
+      });
+    }
 
     // Filter by classification
     if (selectedFilter !== 'all') {
@@ -101,7 +116,7 @@ export default function ItemsScreen() {
     return result.sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
-  }, [items, selectedFilter, selectedTags]);
+  }, [items, selectedFilter, selectedTags, selectedMonth]);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -157,16 +172,46 @@ export default function ItemsScreen() {
   const clearFilters = () => {
     setSelectedFilter('all');
     setSelectedTags([]);
+    setSelectedMonth(null);
+  };
+
+  const handleMonthChange = (month: Date | null) => {
+    setSelectedMonth(month);
   };
 
   const formatAmount = (amount: number) => {
     return `₩${amount.toLocaleString('ko-KR')}`;
   };
 
+  const getSelectedMonthText = () => {
+    if (selectedMonth === null) {
+      return '전체 기간';
+    }
+    const year = selectedMonth.getFullYear();
+    const month = selectedMonth.getMonth() + 1;
+    return `${year}년 ${month}월`;
+  };
+
   const renderHeader = () => (
     <View className="mb-4">
+      {/* Month Selector */}
+      <MonthSelector
+        selectedMonth={selectedMonth}
+        onMonthChange={handleMonthChange}
+      />
+
       {/* Stats Card */}
       <View className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-xl p-5 mb-4">
+        {/* Selected Period Indicator */}
+        <View className="mb-3 pb-3 border-b border-white/20 dark:border-white/10">
+          <Text className="text-white/80 dark:text-white/70 text-xs font-medium mb-1">
+            조회 기간
+          </Text>
+          <Text className="text-white text-base font-bold">
+            {getSelectedMonthText()}
+          </Text>
+        </View>
+
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-1">
             <Text className="text-white/80 dark:text-white/70 text-sm font-medium mb-1">
@@ -322,7 +367,7 @@ export default function ItemsScreen() {
       )}
 
       {/* Clear Filter Button */}
-      {(selectedFilter !== 'all' || selectedTags.length > 0) && (
+      {(selectedFilter !== 'all' || selectedTags.length > 0 || selectedMonth === null) && (
         <View className="mb-4">
           <TouchableOpacity
             onPress={clearFilters}
@@ -353,7 +398,7 @@ export default function ItemsScreen() {
   );
 
   const renderEmptyState = () => {
-    const hasActiveFilters = selectedFilter !== 'all' || selectedTags.length > 0;
+    const hasActiveFilters = selectedFilter !== 'all' || selectedTags.length > 0 || selectedMonth !== null;
 
     return (
       <View className="items-center justify-center py-16">

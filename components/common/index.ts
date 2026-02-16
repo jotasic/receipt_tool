@@ -2,6 +2,7 @@ export { Button } from './Button';
 export { Card } from './Card';
 export { Input } from './Input';
 export { Calendar } from './Calendar';
+export { MonthSelector } from './MonthSelector';
 export { IconPicker } from './IconPicker';
 export { ColorPicker, COLORS } from './ColorPicker';
 export { Header } from './Header';

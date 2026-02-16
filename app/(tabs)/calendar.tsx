@@ -7,11 +7,9 @@
  */
 
 import { useState, useMemo, useCallback } from 'react';
-import { View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Header, SegmentedControl } from '@/components/common';
 import { AgendaCalendar } from '@/components/calendar/AgendaCalendar';
-import { AgendaList } from '@/components/calendar/AgendaList';
 import { MonthViewCalendar } from '@/components/calendar/MonthViewCalendar';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
@@ -43,11 +41,6 @@ export default function CalendarScreen() {
     return marks;
   }, [items, selectedDate]);
 
-  // Get items for selected date
-  const selectedDateItems = useMemo(() => {
-    return items.filter((item) => item.date === selectedDate);
-  }, [items, selectedDate]);
-
   // View mode change handler
   const handleViewModeChange = (index: number) => {
     setViewMode(index === 0 ? 'agenda' : 'month');
@@ -75,14 +68,12 @@ export default function CalendarScreen() {
         {viewMode === 'month' ? (
           <MonthViewCalendar items={items} onDatePress={handleDatePress} />
         ) : (
-          <>
-            <AgendaCalendar
-              selectedDate={selectedDate}
-              onDateSelect={setSelectedDate}
-              markedDates={markedDates}
-            />
-            <AgendaList items={selectedDateItems} selectedDate={selectedDate} />
-          </>
+          <AgendaCalendar
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            markedDates={markedDates}
+            items={items}
+          />
         )}
       </TabScreenContent>
     </>

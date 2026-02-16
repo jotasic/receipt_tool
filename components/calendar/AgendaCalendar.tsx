@@ -1,7 +1,13 @@
-import { useColorScheme } from 'react-native';
-import { CalendarProvider, ExpandableCalendar, LocaleConfig } from 'react-native-calendars';
+import { useMemo } from 'react';
+import { View, Text, useColorScheme } from 'react-native';
+import { CalendarProvider, ExpandableCalendar, AgendaList, LocaleConfig } from 'react-native-calendars';
+import { Ionicons } from '@expo/vector-icons';
 import { getCalendarTheme, koreanLocaleConfig } from '@/constants/calendarTheme';
+import { ItemCard } from '@/components/item/ItemCard';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { colors } from '@/design-system/tokens/colors';
 import type { MarkedDates } from 'react-native-calendars/src/types';
+import type { Item } from '@/types/item';
 
 // 한국어 로케일 설정
 LocaleConfig.locales['kr'] = koreanLocaleConfig;
@@ -11,11 +17,18 @@ interface AgendaCalendarProps {
   selectedDate: string;  // YYYY-MM-DD
   onDateSelect: (date: string) => void;
   markedDates: { [date: string]: { marked: boolean } };
+  items: Item[];  // 전체 items
 }
 
-export function AgendaCalendar({ selectedDate, onDateSelect, markedDates }: AgendaCalendarProps) {
+interface Section {
+  title: string;  // YYYY-MM-DD
+  data: Item[];
+}
+
+export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items }: AgendaCalendarProps) {
   const colorScheme = useColorScheme();
   const theme = getCalendarTheme(colorScheme || 'light');
+  const iconColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
 
   // Merge markedDates with selected date
   // Hide marker on selected date
@@ -35,6 +48,43 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates }: Agen
     },
   };
 
+  // Convert items to section format
+  const sections = useMemo(() => {
+    // Group items by date
+    const itemsByDate = items.reduce((acc, item) => {
+      if (!acc[item.date]) {
+        acc[item.date] = [];
+      }
+      acc[item.date].push(item);
+      return acc;
+    }, {} as Record<string, Item[]>);
+
+    // Convert to section array and sort by date (newest first)
+    return Object.keys(itemsByDate)
+      .sort((a, b) => b.localeCompare(a))
+      .map(date => ({
+        title: date,
+        data: itemsByDate[date],
+      }));
+  }, [items]);
+
+  // Render item
+  const renderItem = ({ item }: { item: Item }) => {
+    return <ItemCard item={item} showDate={false} />;
+  };
+
+  // Render empty section (for dates with no items)
+  const renderEmptyDate = () => {
+    return (
+      <View className="items-center justify-center py-12">
+        <Ionicons name="receipt-outline" size={64} color={iconColor} />
+        <Text className="text-gray-500 dark:text-gray-400 mt-4 text-base">
+          이 날짜에 등록된 증빙이 없습니다
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <CalendarProvider
       date={selectedDate}
@@ -51,6 +101,28 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates }: Agen
         style={{
           borderBottomWidth: 1,
           borderBottomColor: colorScheme === 'dark' ? '#374151' : '#E5E7EB',
+        }}
+      />
+      <AgendaList
+        sections={sections}
+        renderItem={renderItem}
+        dayFormat="M월 d일 EEEE"
+        sectionStyle={{
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          backgroundColor: colorScheme === 'dark' ? '#1F2937' : '#F9FAFB',
+        }}
+        theme={{
+          ...theme,
+          agendaDayTextColor: colorScheme === 'dark' ? '#F3F4F6' : '#111827',
+          agendaDayNumColor: colorScheme === 'dark' ? '#F3F4F6' : '#111827',
+          agendaTodayColor: theme.todayTextColor,
+        }}
+        markToday={true}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          backgroundColor: colorScheme === 'dark' ? '#111827' : '#F9FAFB',
         }}
       />
     </CalendarProvider>

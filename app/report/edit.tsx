@@ -31,7 +31,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Input, Button, Card } from '@/components/common';
+import { Input, Button, Card, Header } from '@/components/common';
 import { loadReport, updateReportDetails } from '@/services/report';
 import { useItemStore } from '@/store/itemStore';
 import { useReportStore } from '@/store/reportStore';
@@ -283,19 +283,7 @@ export default function ReportEditScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-        {/* Header */}
-        <View className="flex-row items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            accessibilityLabel="뒤로 가기"
-          >
-            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
-          </TouchableOpacity>
-          <Text className="flex-1 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">
-            리포트 편집
-          </Text>
-          <View style={{ width: 24 }} />
-        </View>
+        <Header title="리포트 편집" showBack />
 
       <ScrollView className="flex-1 p-4">
         {/* Title Input */}

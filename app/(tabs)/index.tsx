@@ -2,7 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndic
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Card } from '@/components/common/Card';
+import { Card, Header } from '@/components/common';
 import { useItemStore } from '@/store/itemStore';
 import { isExpense } from '@/types/item';
 import { useCallback, useMemo } from 'react';
@@ -70,21 +70,16 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
+      <Header title="증빙 관리" />
+
       <ScrollView
         className="flex-1"
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={loadItems} />
         }
       >
-        {/* Header */}
-        <View className="px-6 pt-4 pb-6">
-          <Text className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            증빙 관리
-          </Text>
-        </View>
-
         {/* Monthly Expense Summary Card */}
-        <View className="px-6 pb-6">
+        <View className="px-6 pt-4 pb-6">
           <Card className="bg-gradient-to-br">
             <View className="mb-2">
               <Text className="text-gray-600 dark:text-gray-400 text-base font-medium">

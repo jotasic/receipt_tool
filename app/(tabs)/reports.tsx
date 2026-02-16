@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, RefreshControl } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Button } from '@/components/common/Button';
+import { Button, Header } from '@/components/common';
 import { ReportCard } from '@/components/report/ReportCard';
 import { useReportStore } from '@/store/reportStore';
 
@@ -43,15 +43,16 @@ export default function ReportsScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right']}>
-        {/* Header */}
-        <View className="flex-row justify-between items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <Text className="text-3xl font-bold text-gray-900 dark:text-gray-100">리포트</Text>
-        {reports.length > 0 && (
-          <TouchableOpacity onPress={() => router.push('/report/create')}>
-            <Ionicons name="add-circle" size={28} color="#3B82F6" />
-          </TouchableOpacity>
-        )}
-      </View>
+        <Header
+          title="리포트"
+          rightElement={
+            reports.length > 0 ? (
+              <TouchableOpacity onPress={() => router.push('/report/create')}>
+                <Ionicons name="add-circle" size={28} color="#3B82F6" />
+              </TouchableOpacity>
+            ) : undefined
+          }
+        />
 
       {reports.length === 0 ? (
         <EmptyState />

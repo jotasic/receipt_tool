@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
-import { Button } from '@/components/common';
+import { Button, Header } from '@/components/common';
 import { useItemStore } from '@/store/itemStore';
 import { getItemById, deleteItem } from '@/services/database/itemService';
 import { getTagsForItem } from '@/services/database/tagService';
@@ -195,19 +195,7 @@ export default function ItemDetailScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-        {/* Header */}
-        <View className="flex-row items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            accessibilityLabel="뒤로 가기"
-          >
-            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
-          </TouchableOpacity>
-          <Text className="flex-1 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">
-            항목 상세
-          </Text>
-          <View style={{ width: 24 }} />
-        </View>
+        <Header title="항목 상세" showBack />
 
       <ScrollView
         className="flex-1"

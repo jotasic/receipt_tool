@@ -17,12 +17,12 @@
  * - imageUri (optional): Pre-captured image URI for OCR processing
  */
 
-import { View, Text, TouchableOpacity, Alert, useColorScheme } from 'react-native';
+import { View, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ItemForm } from '@/components/item';
+import { Header } from '@/components/common';
 import { createItem } from '@/services/database/itemService';
 import { setTagsForItem } from '@/services/database/tagService';
 import { setItemCustomValues } from '@/services/database/customFieldService';
@@ -63,7 +63,6 @@ async function saveItemImage(sourceUri: string): Promise<string> {
 export default function ItemAddScreen() {
   const { imageUri } = useLocalSearchParams<{ imageUri?: string }>();
   const addItem = useItemStore((state) => state.addItem);
-  const colorScheme = useColorScheme();
 
   /**
    * Handle form submission
@@ -220,19 +219,7 @@ export default function ItemAddScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-        {/* Header */}
-        <View className="flex-row items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            accessibilityLabel="뒤로 가기"
-          >
-            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
-          </TouchableOpacity>
-          <Text className="flex-1 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">
-            항목 추가
-          </Text>
-          <View style={{ width: 24 }} />
-        </View>
+        <Header title="항목 추가" showBack />
 
         {/* Form */}
         <ItemForm

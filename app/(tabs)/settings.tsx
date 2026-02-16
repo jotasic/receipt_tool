@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { Header } from '@/components/common';
 import { useState } from 'react';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
@@ -276,12 +277,9 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
-      <ScrollView className="flex-1">
-        {/* Header */}
-        <View className="px-4 py-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <Text className="text-3xl font-bold text-gray-900 dark:text-gray-100">설정</Text>
-        </View>
+      <Header title="설정" />
 
+      <ScrollView className="flex-1">
         {/* Loading overlay */}
         {isClearing && (
           <View className="absolute inset-0 bg-black/30 items-center justify-center z-50">

@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, ScrollView, Alert, useColorSche
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Input, Button, Card } from '@/components/common';
+import { Input, Button, Card, Header } from '@/components/common';
 import { useItemStore } from '@/store/itemStore';
 import { useReportStore } from '@/store/reportStore';
 import { createReportWithItems } from '@/services/report';
@@ -115,18 +115,7 @@ export default function CreateReportScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-        {/* 헤더 */}
-        <View className="flex-row items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="뒤로 가기"
-          >
-            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
-          </TouchableOpacity>
-          <Text className="flex-1 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">리포트 생성</Text>
-          <View style={{ width: 24 }} />
-        </View>
+        <Header title="리포트 생성" showBack />
 
       <ScrollView className="flex-1 p-4">
         {/* 제목 입력 */}

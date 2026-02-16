@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ItemCard } from '@/components/item';
+import { Header } from '@/components/common';
 import { useItemStore } from '@/store/itemStore';
 import { CLASSIFICATIONS } from '@/constants/items';
 import type { Item, ItemClassification, UsagePurpose, Tag } from '@/types';
@@ -382,10 +383,7 @@ export default function ItemsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-      {/* Header */}
-      <View className="px-6 pt-4 pb-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <Text className="text-3xl font-bold text-gray-900 dark:text-gray-100">항목 관리</Text>
-      </View>
+      <Header title="항목 관리" />
 
       {/* Item List */}
       <FlatList

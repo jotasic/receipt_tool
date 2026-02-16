@@ -1,4 +1,5 @@
 import { Modal, View, Text, TouchableOpacity, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { colors } from '@/design-system/tokens/colors';
@@ -38,6 +39,7 @@ interface BottomSheetProps {
  */
 export function BottomSheet({ visible, onClose, title, options }: BottomSheetProps) {
   const iconColor = useThemeColor(colors.light.text.primary, colors.dark.text.primary);
+  const insets = useSafeAreaInsets();
 
   return (
     <Modal
@@ -99,7 +101,10 @@ export function BottomSheet({ visible, onClose, title, options }: BottomSheetPro
             </View>
 
             {/* Cancel Button */}
-            <View className="px-4 pb-6 pt-2">
+            <View
+              className="px-4 pt-2"
+              style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+            >
               <TouchableOpacity
                 onPress={onClose}
                 className="py-4 bg-gray-100 dark:bg-gray-700 rounded-lg"

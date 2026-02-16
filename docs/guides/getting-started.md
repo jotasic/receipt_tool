@@ -32,13 +32,18 @@ npx expo start --ios
 npx expo start --android
 ```
 
-**원격 환경 (SSH):**
+**원격 환경 (같은 네트워크):**
 ```bash
-# 터널 모드로 개발 서버 시작
-npx expo start --tunnel --android
+# LAN 모드로 개발 서버 시작
+npx expo start --lan --android
+
+# 또는 기본 모드 (자동 감지)
+npx expo start --android
 ```
 
 원격 환경에서 스크린샷 등 ADB 명령어를 사용하려면 [ADB over Network 설정](./adb-network.md)이 필요합니다.
+
+**참고:** 원격 서버와 Android 기기가 같은 Wi-Fi 네트워크에 연결되어 있어야 합니다.
 
 ### 3. 테스트 실행
 

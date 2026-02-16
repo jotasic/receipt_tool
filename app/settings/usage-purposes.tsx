@@ -491,7 +491,7 @@ export default function UsagePurposeManagementScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
         {/* Header */}
         <Header
           title="사용처 관리"

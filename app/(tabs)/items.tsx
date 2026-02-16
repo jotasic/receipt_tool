@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ItemCard } from '@/components/item';
 import { Header } from '@/components/common';
@@ -32,12 +32,20 @@ const FILTER_OPTIONS: Array<{
   { id: 'proof_document', name: '증명', icon: 'document-text' },
 ];
 
+// Type guard to check if value is a valid ItemClassification
+function isItemClassification(value: string): value is ItemClassification {
+  return ['personal_card', 'corporate_card', 'proof_document'].includes(value);
+}
+
 export default function ItemsScreen() {
   const { items, isLoading, loadItems } = useItemStore();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Get URL parameters
+  const params = useLocalSearchParams<{ classification?: string }>();
 
   // Load items when screen comes into focus
   useFocusEffect(
@@ -50,6 +58,15 @@ export default function ItemsScreen() {
   useEffect(() => {
     loadAllTags();
   }, []);
+
+  // Set initial filter from URL parameter
+  useEffect(() => {
+    if (params.classification && isItemClassification(params.classification)) {
+      setSelectedFilter(params.classification as FilterType);
+      // Clear URL parameter after setting filter
+      router.replace('/(tabs)/items');
+    }
+  }, [params.classification]);
 
   const loadAllTags = async () => {
     try {

@@ -115,7 +115,7 @@ export default function HomeScreen() {
           <View className="gap-3">
             {/* Personal Card */}
             <TouchableOpacity
-              onPress={() => router.push('/(tabs)/items')}
+              onPress={() => router.push('/(tabs)/items?classification=personal_card')}
               activeOpacity={0.7}
             >
               <Card>
@@ -146,7 +146,7 @@ export default function HomeScreen() {
 
             {/* Corporate Card */}
             <TouchableOpacity
-              onPress={() => router.push('/(tabs)/items')}
+              onPress={() => router.push('/(tabs)/items?classification=corporate_card')}
               activeOpacity={0.7}
             >
               <Card>
@@ -177,7 +177,7 @@ export default function HomeScreen() {
 
             {/* Proof Document */}
             <TouchableOpacity
-              onPress={() => router.push('/(tabs)/items')}
+              onPress={() => router.push('/(tabs)/items?classification=proof_document')}
               activeOpacity={0.7}
             >
               <Card>

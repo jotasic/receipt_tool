@@ -21,9 +21,15 @@ app/
     │   └── report/             (리포트 2depth)
     │       ├── _layout.tsx     (리포트 Stack)
     │       └── [id].tsx        (리포트 상세)
-    └── reports/                (리포트 탭)
-        ├── _layout.tsx         (리포트 탭의 Stack + Header + FloatingActionBar)
-        └── index.tsx           (리포트 목록)
+    ├── calendar/               (달력 탭)
+    │   ├── _layout.tsx         (달력 탭의 Stack + Header)
+    │   └── index.tsx           (달력 뷰)
+    ├── reports/                (리포트 탭)
+    │   ├── _layout.tsx         (리포트 탭의 Stack + Header + FloatingActionBar)
+    │   └── index.tsx           (리포트 목록)
+    └── settings/               (설정 탭)
+        ├── _layout.tsx         (설정 탭의 Stack + Header)
+        └── index.tsx           (설정 화면)
 ```
 
 ## 라우팅 경로
@@ -34,7 +40,9 @@ app/
 |----|------|------|
 | 홈 | `/` | `app/(tabs)/index/index.tsx` |
 | 증빙 | `/items` | `app/(tabs)/items/index.tsx` |
+| 달력 | `/calendar` | `app/(tabs)/calendar/index.tsx` |
 | 리포트 | `/reports` | `app/(tabs)/reports/index.tsx` |
+| 설정 | `/settings` | `app/(tabs)/settings/index.tsx` |
 
 ### 2depth 화면 (탭 내부 Stack)
 

@@ -8,30 +8,131 @@ Receipt Tool 앱의 레이아웃, 모달, 플로팅 버튼 사용 정책을 정�
 
 ## 핵심 정책 요약
 
-### 1. 레이아웃은 _layout.tsx에서만 정의
+### 1. 헤더는 각 화면이 직접 관리
+
+- **Header 컴포넌트**: 공통 `Header` 컴포넌트를 각 화면에서 사용
+- **조건부 렌더링**: _layout.tsx에서 라우트 경로에 따라 Header 렌더링 결정
+- **Header Props**:
+  - `title`: 화면 제목
+  - `showBack`: 뒤로가기 버튼 표시 여부 (2depth 화면용)
+  - `rightElement`: 오른쪽 영역에 표시할 커스텀 요소 (버튼, 아이콘 등)
+- 각 화면의 용도에 맞게 Header를 구성하여 일관성 유지
+
+### 2. 기본 레이아웃 구조
 
 - **화면 파일은 콘텐츠만 반환** (화면 파일은 레이아웃 컴포넌트를 사용하면 안 됨)
 - **레이아웃은 _layout.tsx에서 정의** (Header, SafeAreaView, FloatingActionBar, 네비게이터 등)
 - 각 디렉토리의 `_layout.tsx`에서 Stack/Tabs/Slot 패턴 사용
 - 공통 UI 요소는 레이아웃에서만 관리하여 일관성 보장
 
-### 2. 추가/수정 화면은 무조건 모달
+### 3. 추가/수정 화면은 무조건 모달
 
 - 항목 추가/수정, 태그 추가/수정, 사용처 추가/수정 등 모든 CRUD 폼은 **FullScreenModal**을 사용합니다
 - `router.push()` 방식 대신 상태로 관리하여 컨텍스트를 유지합니다
 
-### 3. 모달은 헤더 액션 버튼만 사용
+### 4. 모달은 헤더 액션 버튼만 사용
 
 - **하단 버튼 (bottomButtons) 제거**
 - 모달 헤더 구조: **왼쪽 X | 가운데 제목 | 오른쪽 액션 버튼**
 - 액션 버튼: "생성", "저장", "완료" 등
 
-### 4. 플로팅 버튼은 _layout.tsx에서 관리
+### 5. 플로팅 버튼은 _layout.tsx에서 관리
 
 - 모든 플로팅 버튼은 **원형 FAB (Floating Action Button)** 스타일로 통일
 - FloatingActionBar는 _layout.tsx에서 조건부로 렌더링
 - 아이콘만 표시 (텍스트 레이블 제거)
 - 여러 액션 = 세로로 배치 (하단부터 역순)
+
+---
+
+## 헤더 관리 가이드
+
+### Header 컴포넌트 개요
+
+공통 `Header` 컴포넌트를 모든 화면에서 사용합니다.
+
+```typescript
+interface HeaderProps {
+  title: string;                // 화면 제목
+  showBack?: boolean;           // 뒤로가기 버튼 표시 (2depth 화면용)
+  rightElement?: ReactNode;     // 오른쪽 액션 요소 (선택사항)
+}
+```
+
+### 사용 방법
+
+#### 1depth 화면 (탭 기본 화면)
+
+```typescript
+<Header title="증빙 관리" />
+```
+
+- 뒤로가기 버튼 없음 (탭 바로 네비게이션)
+- 오른쪽에 필요한 액션 버튼 추가 가능
+
+#### 2depth 화면 (탭 내부 상세/편집 화면)
+
+```typescript
+<Header title="항목 상세" showBack />
+```
+
+- 뒤로가기 버튼 자동 표시
+- `router.back()`으로 이전 화면으로 돌아감
+
+#### 오른쪽 액션 버튼 추가
+
+```typescript
+<Header
+  title="리포트"
+  rightElement={
+    <TouchableOpacity onPress={handleShare}>
+      <Ionicons name="share-social" size={24} color={iconColor} />
+    </TouchableOpacity>
+  }
+/>
+```
+
+### _layout.tsx에서 Header 조건부 렌더링
+
+```typescript
+import { Stack } from 'expo-router';
+import { Header } from '@/components/common';
+import { usePathname } from 'expo-router';
+
+export default function ItemsTabLayout() {
+  const pathname = usePathname();
+  const isDetailScreen = pathname.includes('report/');
+
+  const getHeaderTitle = () => {
+    if (isDetailScreen) return '리포트 상세';
+    return '증빙 관리';
+  };
+
+  return (
+    <SafeAreaView className="flex-1">
+      {/* 조건부 Header 렌더링 */}
+      <Header
+        title={getHeaderTitle()}
+        showBack={isDetailScreen}
+      />
+
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Group>
+          <Stack.Screen name="report/[id]" />
+        </Stack.Group>
+      </Stack>
+
+      {/* FloatingActionBar 등... */}
+    </SafeAreaView>
+  );
+}
+```
+
+**주요 포인트:**
+- `usePathname()`으로 현재 경로 파악
+- 경로에 따라 다른 Header 타이틀/props 설정
+- `showBack`은 2depth 화면에서만 true로 설정
 
 ---
 
@@ -225,6 +326,64 @@ Receipt Tool 앱의 레이아웃, 모달, 플로팅 버튼 사용 정책을 정�
 
 ---
 
+## 달력 탭 (Calendar Tab) 가이드
+
+### 개요
+
+달력 탭은 증빙을 월별/일별로 시각화하는 화면입니다.
+
+### 구조
+
+```
+app/(tabs)/calendar/
+├── _layout.tsx           (달력 탭의 Stack + Header)
+└── index.tsx             (달력 뷰 콘텐츠)
+```
+
+### SegmentedControl을 이용한 뷰 전환
+
+달력 탭 내에서 여러 뷰(월별, 일별, 통계 등)를 전환할 때 `SegmentedControl`을 사용합니다.
+
+```typescript
+import { SegmentedControl } from '@react-native-segmented-control/segmented-control';
+import { useState } from 'react';
+
+export default function CalendarTab() {
+  const [viewMode, setViewMode] = useState(0); // 0: 월별, 1: 일별
+
+  return (
+    <View className="flex-1">
+      {/* Header는 _layout.tsx에서 관리 */}
+
+      {/* 뷰 전환 컨트롤 */}
+      <SegmentedControl
+        values={['월별', '일별']}
+        selectedIndex={viewMode}
+        onChange={(event) => {
+          setViewMode(event.nativeEvent.selectedSegmentIndex);
+        }}
+        className="m-4"
+      />
+
+      {/* 조건부 콘텐츠 렌더링 */}
+      {viewMode === 0 ? (
+        <MonthlyCalendarView />
+      ) : (
+        <DailyCalendarView />
+      )}
+    </View>
+  );
+}
+```
+
+### 특징
+
+- **Header 통일**: 달력 탭도 다른 탭처럼 Header를 사용
+- **내부 전환**: SegmentedControl으로 탭 내 뷰만 전환 (탭 바 사용 X)
+- **상태 유지**: 뷰 전환 시 이전 뷰의 스크롤 위치나 선택 상태는 필요에 따라 관리
+
+---
+
 ## 화면별 적용 방법
 
 ### 1depth 탭 화면 (목록) - app/(tabs)/
@@ -303,8 +462,10 @@ export default function ItemsTabLayout() {
   const pathname = usePathname();
   const [showAddModal, setShowAddModal] = useState(false);
 
+  // 현재 경로에 따라 화면 판단
   const isDetailScreen = pathname.includes('report/');
 
+  // Header 제목 결정
   const getHeaderTitle = () => {
     if (isDetailScreen) {
       return '리포트 상세';
@@ -312,6 +473,7 @@ export default function ItemsTabLayout() {
     return '증빙';
   };
 
+  // FloatingActionBar 액션 결정
   const getFloatingActions = () => {
     if (isDetailScreen) {
       return [
@@ -325,8 +487,13 @@ export default function ItemsTabLayout() {
 
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1">
-      <Header title={getHeaderTitle()} showBack={isDetailScreen} />
+      {/* Header는 경로에 따라 제목과 뒤로가기 버튼 조정 */}
+      <Header
+        title={getHeaderTitle()}
+        showBack={isDetailScreen}
+      />
 
+      {/* Stack에서 headerShown: false로 설정하여 Header는 위의 Header 컴포넌트 사용 */}
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Group>
@@ -334,10 +501,12 @@ export default function ItemsTabLayout() {
         </Stack.Group>
       </Stack>
 
+      {/* FloatingActionBar는 경로에 따라 조건부 렌더링 */}
       {getFloatingActions() && (
         <FloatingActionBar actions={getFloatingActions()!} />
       )}
 
+      {/* 모달은 탭 _layout.tsx에서 상태 관리 */}
       <ItemFormModal
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
@@ -414,44 +583,51 @@ export default function HomeTabLayout() {
   const pathname = usePathname();
   const [showAddModal, setShowAddModal] = useState(false);
 
+  // 현재 경로에 따라 화면 판단
   const isDetailScreen = pathname.includes('item/');
 
+  // Header 제목 결정
   const getHeaderTitle = () => {
     if (isDetailScreen) {
-      return '항목 상세';  // Stack 화면
+      return '항목 상세';  // 2depth 화면
     }
-    return '대시보드';     // 홈 탭 기본 화면
+    return '홈';           // 1depth 기본 화면
   };
 
+  // FloatingActionBar 액션 결정
   const getFloatingActions = () => {
-    // 상세 화면에서만 수정/삭제 버튼 표시
     if (isDetailScreen) {
       return [
         { icon: 'create-outline', onPress: handleEdit, variant: 'default' },
         { icon: 'trash-outline', onPress: handleDelete, variant: 'danger' },
       ];
     }
-    // 홈 탭 기본 화면에서는 버튼 없음
+    // 홈 탭 기본 화면에서는 FloatingActionBar 없음
     return undefined;
   };
 
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1">
-      <Header title={getHeaderTitle()} showBack={isDetailScreen} />
+      {/* Header는 경로에 따라 제목과 뒤로가기 버튼 조정 */}
+      <Header
+        title={getHeaderTitle()}
+        showBack={isDetailScreen}
+      />
 
+      {/* Stack에서 headerShown: false로 설정하여 Header는 위의 Header 컴포넌트 사용 */}
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
-        <Stack.Group screenOptions={{ presentation: 'default' }}>
+        <Stack.Group>
           <Stack.Screen name="item/[id]" />
         </Stack.Group>
       </Stack>
 
-      {/* 공통 FloatingActionBar */}
+      {/* FloatingActionBar는 경로에 따라 조건부 렌더링 */}
       {getFloatingActions() && (
         <FloatingActionBar actions={getFloatingActions()!} />
       )}
 
-      {/* 항목 추가 모달 (홈 탭 레이아웃에서 관리) */}
+      {/* 모달은 탭 _layout.tsx에서 상태 관리 */}
       <ItemFormModal
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
@@ -579,6 +755,65 @@ export function TagFormModal({ visible, onClose, onSubmit }: TagFormModalProps) 
 
 ---
 
+## Header 컴포넌트 구현 상세
+
+### Header 컴포넌트 소스 (components/common/Header.tsx)
+
+```typescript
+import { View, Text, TouchableOpacity } from 'react-native';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import type { ReactNode } from 'react';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { colors } from '@/design-system/tokens/colors';
+
+interface HeaderProps {
+  title: string;
+  showBack?: boolean;
+  rightElement?: ReactNode;
+}
+
+export function Header({ title, showBack = false, rightElement }: HeaderProps) {
+  const iconColor = useThemeColor(colors.light.text.primary, colors.dark.text.primary);
+
+  return (
+    <View className="flex-row items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      {/* 뒤로가기 버튼 (2depth 화면에서만 표시) */}
+      {showBack && (
+        <TouchableOpacity
+          onPress={() => router.back()}
+          accessibilityLabel="뒤로 가기"
+          className="mr-3"
+        >
+          <Ionicons name="arrow-back" size={24} color={iconColor} />
+        </TouchableOpacity>
+      )}
+
+      {/* 타이틀 */}
+      <Text className="flex-1 text-xl font-bold text-gray-900 dark:text-gray-100">
+        {title}
+      </Text>
+
+      {/* 오른쪽 액션 요소 */}
+      {rightElement && (
+        <View className="ml-3">
+          {rightElement}
+        </View>
+      )}
+    </View>
+  );
+}
+```
+
+### 주요 특징
+
+1. **다크모드 지원**: `useThemeColor` 훅으로 자동 대응
+2. **유연한 레이아웃**: 뒤로가기 버튼과 오른쪽 요소를 독립적으로 제어
+3. **접근성**: `accessibilityLabel`로 스크린 리더 지원
+4. **타입 안정성**: TypeScript로 props 타입 정의
+
+---
+
 ## 마이그레이션 체크리스트
 
 기존 패턴에서 새 패턴으로 전환할 때:
@@ -624,42 +859,91 @@ export function TagFormModal({ visible, onClose, onSubmit }: TagFormModalProps) 
 
 ### 기존 코드 마이그레이션
 
-#### TabScreenLayout → ScreenLayout
+#### ScreenLayout → 공통 Header 컴포넌트 사용
 
-**변경 전:**
-```typescript
-import { TabScreenLayout } from '@/design-system/layouts';
-
-<TabScreenLayout title="증빙">
-  <ItemList />
-</TabScreenLayout>
-```
-
-**변경 후:**
+**변경 전 (레이아웃 컴포넌트 사용):**
 ```typescript
 import { ScreenLayout } from '@/design-system/layouts';
 
-<ScreenLayout title="증빙">
-  <ItemList />
-</ScreenLayout>
+export default function ItemsTab() {
+  return (
+    <ScreenLayout title="증빙">
+      <ItemList />
+    </ScreenLayout>
+  );
+}
 ```
+
+**변경 후 (Header 컴포넌트 + _layout.tsx 관리):**
+
+_layout.tsx:
+```typescript
+import { Header } from '@/components/common';
+import { usePathname } from 'expo-router';
+
+export default function ItemsTabLayout() {
+  const pathname = usePathname();
+  const isDetailScreen = pathname.includes('report/');
+
+  return (
+    <SafeAreaView className="flex-1">
+      <Header
+        title={isDetailScreen ? '리포트 상세' : '증빙'}
+        showBack={isDetailScreen}
+      />
+      <Stack screenOptions={{ headerShown: false }}>
+        {/* ... */}
+      </Stack>
+    </SafeAreaView>
+  );
+}
+```
+
+화면 파일 (index.tsx):
+```typescript
+// 콘텐츠만 반환
+export default function ItemsTab() {
+  return (
+    <ScrollView>
+      <ItemList />
+    </ScrollView>
+  );
+}
+```
+
+**변경 사항:**
+- `ScreenLayout` 제거
+- Header는 _layout.tsx에서 관리
+- 화면 파일은 콘텐츠만 반환
 
 ---
 
-#### showHeader, showBack 속성 제거
+#### 오른쪽 액션 버튼 추가
 
 **변경 전:**
 ```typescript
-<ScreenLayout title="항목 상세" showHeader showBack>
+<ScreenLayout
+  title="항목 상세"
+  rightButton={{
+    label: '저장',
+    onPress: handleSave,
+  }}
+>
   <ItemDetail />
 </ScreenLayout>
 ```
 
 **변경 후:**
 ```typescript
-<ScreenLayout title="항목 상세">
-  <ItemDetail />
-</ScreenLayout>
+// _layout.tsx에서
+<Header
+  title="항목 상세"
+  rightElement={
+    <TouchableOpacity onPress={handleSave}>
+      <Ionicons name="save" size={24} />
+    </TouchableOpacity>
+  }
+/>
 ```
 
 ---
@@ -776,12 +1060,14 @@ import { ScreenLayout } from '@/design-system/layouts';
 
 | 항목 | 이전 | 현재 | 설명 |
 |-----|-----|-----|-----|
+| Header 관리 | ScreenLayout 컴포넌트 | Header 컴포넌트 + _layout.tsx | 각 탭의 _layout.tsx에서 경로 기반으로 Header 관리 |
 | 2depth 화면 위치 | Root에 `/item/`, `/report/` | 각 탭 내부 (`/(tabs)/{tab}/item/`) | 탭별 독립적 Stack 관리 |
 | 헤더 깜빡임 | 있음 (Root Stack 전환) | 없음 (탭 내부 Stack) | 각 탭이 자신의 히스토리 유지 |
 | 라우팅 | `router.push('/item/[id]')` | `router.push('item/[id]')` 또는 상대 경로 | 탭 내부에서만 네비게이션 |
 | 뒤로가기 | Root Stack에서 처리 | 각 탭 Stack에서 처리 | 탭 전환 후에도 같은 화면 유지 |
 | FloatingActionBar | 각 화면마다 개별 관리 | 각 탭의 _layout.tsx에서 관리 | 위치 일관성 보장 |
 | 모달 관리 | 화면 파일에서 | 탭의 _layout.tsx에서 | 모달이 탭과 동일한 레이아웃 공유 |
+| 달력 탭 뷰 전환 | - | SegmentedControl 사용 | 월별/일별 등 뷰 전환 시 탭 내부 상태로 관리 |
 
 **최종 업데이트:** 2026-02-17
 

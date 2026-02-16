@@ -340,13 +340,18 @@ router.push('/item/add')  // 탭 A
 
 ### 핵심 원칙
 
-1. **레이아웃 구조**: Expo Router Stack 중첩 패턴 (공식 패턴)
+1. **헤더 관리**: 각 화면이 공통 `Header` 컴포넌트를 직접 관리
+   - `Header` 컴포넌트: 타이틀, 뒤로가기 버튼, 오른쪽 액션 요소를 표시
+   - `_layout.tsx`에서 선택적으로 Header 렌더링 (화면에 따라 조건부 표시)
+   - `rightElement` prop으로 헤더 오른쪽에 커스텀 액션 버튼 추가 가능
+2. **레이아웃 구조**: Expo Router Stack 중첩 패턴 (공식 패턴)
    - `app/(tabs)/_layout.tsx`: 상단 Tabs 정의
-   - `app/(tabs)/{tabName}/_layout.tsx`: 각 탭의 Stack + Header + FloatingActionBar
+   - `app/(tabs)/{tabName}/_layout.tsx`: 각 탭의 Stack + FloatingActionBar + 조건부 Header
    - 각 탭이 자신의 2depth 화면을 관리하여 헤더 깜빡임 제거
-2. **추가/수정**: 무조건 `FullScreenModal` 사용 (하단 버튼 없음, 헤더 아이콘만)
-3. **플로팅 버튼**: `FloatingActionBar` (원형 FAB 스타일, 아이콘만)
-4. **다크모드**: 필수 지원 (`dark:` 클래스 또는 `useThemeColor` 훅)
+3. **추가/수정**: 무조건 `FullScreenModal` 사용 (하단 버튼 없음, 헤더 아이콘만)
+4. **플로팅 버튼**: `FloatingActionBar` (원형 FAB 스타일, 아이콘만)
+5. **다크모드**: 필수 지원 (`dark:` 클래스 또는 `useThemeColor` 훅)
+6. **SegmentedControl**: 탭 내에서 여러 뷰를 전환할 때 사용 (예: 달력 탭의 월별/일별 뷰 전환)
 
 ### 관련 문서
 

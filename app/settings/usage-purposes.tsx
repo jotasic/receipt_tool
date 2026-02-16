@@ -29,7 +29,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { Input, Button } from '@/components/common';
+import { Input, Button, Header } from '@/components/common';
 import { IconPicker } from '@/components/common/IconPicker';
 import { ColorPicker, COLORS } from '@/components/common/ColorPicker';
 import {
@@ -351,7 +351,7 @@ export default function UsagePurposeManagementScreen() {
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'bottom']}>
         {/* Header */}
         <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <TouchableOpacity
@@ -493,23 +493,18 @@ export default function UsagePurposeManagementScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
         {/* Header */}
-        <View className="flex-row items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="w-10 h-10 items-center justify-center mr-2"
-          >
-            <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
-          </TouchableOpacity>
-          <Text className="flex-1 text-xl font-bold text-gray-900 dark:text-gray-100">
-            사용처 관리
-          </Text>
-          <TouchableOpacity
-            onPress={handleOpenCreateModal}
-            className="w-10 h-10 items-center justify-center"
-          >
-            <Ionicons name="add" size={28} color="#3B82F6" />
-          </TouchableOpacity>
-        </View>
+        <Header
+          title="사용처 관리"
+          showBack
+          rightElement={
+            <TouchableOpacity
+              onPress={handleOpenCreateModal}
+              className="w-10 h-10 items-center justify-center"
+            >
+              <Ionicons name="add" size={28} color="#3B82F6" />
+            </TouchableOpacity>
+          }
+        />
 
       {/* Search bar */}
       <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

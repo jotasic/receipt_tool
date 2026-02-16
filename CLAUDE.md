@@ -42,18 +42,61 @@ npx tsc --noEmit
 
 ## 개발 워크플로우
 
+### CRITICAL: 워크플로우 강제 규칙
+
+**코드 변경을 수반하는 모든 요청은 다음 규칙을 반드시 따릅니다:**
+
+```
+계획 수립 → 사용자 승인 대기 → 승인 후 실행 → 완료 보고
+```
+
+**이 워크플로우는 필수이며 건너뛸 수 없습니다.**
+- "진행", "해줘", "시작" 같은 명령도 예외 없음
+- 계획이 없으면 먼저 계획 수립 후 사용자 승인 대기
+- 승인 전 실행 단계 진행 금지
+
+#### 예시
+
+**❌ 나쁜 예: 워크플로우 건너뛰기**
+```
+사용자: "로그인 기능 추가해줘"
+Claude: [바로 에이전트 호출하여 구현 시작]
+→ 위반! 계획 제시 필요
+```
+
+**✅ 좋은 예: 워크플로우 준수**
+```
+사용자: "로그인 기능 추가해줘"
+Claude:
+1. /docs/architecture.md 검토
+2. 계획 수립 (TodoWrite 사용)
+3. 계획 제시 및 승인 대기
+사용자: "좋습니다, 진행하세요"
+Claude: [에이전트 호출하여 구현 시작]
+```
+
+#### 예외 케이스 (워크플로우 불필요)
+
+다음 요청은 계획 수립 없이 즉시 처리 가능:
+- **정보 조회**: 파일 읽기, 검색, 상태 확인
+- **문서 설명**: 기존 코드/기능 설명 요청
+- **질문/상담**: 개발 관련 조언, 의견 요청
+
+**구분 기준: 코드 변경이 필요하면 계획부터, 필요 없으면 즉시 답변**
+
 ### 기능 추가 요청 시 사이클
 
 ```
 요청 → 계획 수립 → 사용자 확인 → 순차 실행 → 완료 보고
 ```
 
-#### 1. 계획 단계
+#### 1. 계획 단계 (필수)
 
 - /docs/architecture.md 참조하여 현재 구조 파악
 - 기능 분석 및 우선순위 분류 (P0/P1/P2)
 - 적절한 에이전트 선정
-- **사용자에게 계획 제시 후 승인 받기**
+- **TodoWrite로 계획 작성**
+- **사용자에게 계획 제시 후 승인 대기** (승인 없이 진행 금지)
 
 #### 2. 실행 단계
 
@@ -85,90 +128,90 @@ npx tsc --noEmit
 
 ## 품질 기준
 
+모든 코드는 다음 기준을 충족해야 합니다:
+
 - [ ] TypeScript 에러 0
-- [ ] 다크 모드 지원 (`dark:` 클래스)
+- [ ] **다크 모드 완벽 지원 (필수)**
 - [ ] 한국어 UI 메시지
 - [ ] 에러 핸들링 (try-catch, Alert)
 - [ ] 로딩 상태 표시
 - [ ] Android에서 정상 동작
 
+### CRITICAL: 다크모드는 필수 요구사항
+
+**모든 색상은 다크모드를 고려해야 합니다. 하드코딩 색상은 금지입니다.**
+
+#### ✅ 올바른 방법
+
+1. **NativeWind 클래스 (권장)**
+   ```typescript
+   <View className="bg-white dark:bg-gray-800">
+     <Text className="text-gray-900 dark:text-gray-100">텍스트</Text>
+   </View>
+   ```
+
+2. **useThemeColor 훅**
+   ```typescript
+   import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+
+   const iconColor = useThemeColor('#374151', '#D1D5DB');
+   <Ionicons name="star" color={iconColor} />
+   ```
+
+3. **useThemedStyles 훅**
+   ```typescript
+   import { useThemedStyles } from '@/design-system/hooks/useThemedStyles';
+
+   const styles = useThemedStyles((colors) => ({
+     container: { backgroundColor: colors.background },
+     text: { color: colors.text },
+   }));
+   ```
+
+#### ❌ 절대 금지 (다크모드 대응 안됨)
+
+```typescript
+// ❌ 하드코딩 색상
+<View style={{ backgroundColor: '#FFFFFF' }}>
+  <Text style={{ color: '#000000' }}>텍스트</Text>
+</View>
+
+// ❌ Ionicons 고정 색상
+<Ionicons name="star" color="#374151" />
+
+// ❌ ActivityIndicator 고정 색상
+<ActivityIndicator color="#3B82F6" />
+```
+
+#### 검증 체크리스트
+
+새 코드 작성 시:
+- [ ] 모든 색상이 `dark:` 클래스 또는 훅 사용
+- [ ] 하드코딩 색상 없음 (`color="#"`, `backgroundColor: '#'`)
+- [ ] 다크모드 실행 후 시각적 확인 완료
+
 ---
 
 ## 문서화 규칙
 
-### 원칙: 문서 = 실제 코드 상태
+### 핵심 원칙
 
-```
-기능 추가 → 문서에 추가
-기능 삭제 → 문서에서 삭제
-기능 수정 → 문서도 수정
-```
+1. **문서 = 코드**: 실제 구현된 내용만 문서화 (미구현/계획 내용 제외)
+2. **동시 업데이트**: 기능 커밋에 관련 문서 변경 포함 (별도 커밋 X)
+3. **모듈화 우선**: 처음부터 구조화 (나중 분리는 링크 깨짐, 히스토리 손실)
+4. **파일명 통일**: kebab-case 사용 (README.md 제외)
 
-**미구현/계획 내용은 문서에 포함하지 않음**
+### 문서 구조
 
-### 업데이트 대상
+| 문서 | 역할 |
+|-----|------|
+| `/docs/architecture.md` | 아키텍처 개요 + 인덱스 |
+| `/docs/services.md` | 서비스 함수 개요 + 인덱스 |
+| `/docs/architecture/` | 상세 아키텍처 문서 |
+| `/docs/services/` | 상세 서비스 문서 |
+| `/docs/guides/` | 사용 가이드 |
 
-| 변경 유형 | 업데이트 문서 |
-|----------|-------------|
-| 새 서비스/컴포넌트 | /docs/architecture.md |
-| 새 DB 함수 | /docs/services.md |
-| 복잡한 기능 | /docs/guides/{기능}.md |
-
-### 방식
-
-- 해당 기능 커밋에 문서 변경 포함 (별도 커밋 X)
-- 예: `feat: 푸시 알림 추가` 커밋에 architecture.md 업데이트 포함
-
-### 문서 파일명 스타일
-
-**kebab-case 통일** (README.md 제외)
-
-```
-✅ architecture.md, services.md, migration-guide.md
-✅ getting-started.md, item-service.md
-❌ ARCHITECTURE.md, API.md, MIGRATION_GUIDE.md
-```
-
-### 문서 크기 관리 (처음부터 모듈화)
-
-**원칙: 나중에 분리하지 말고 처음부터 모듈화**
-
-- 나중에 분리 시 링크 깨짐, 히스토리 추적 어려움
-- 처음부터 구조화하면 새 내용 추가 위치 명확
-
-#### 현재 구조
-
-```
-/docs/
-├── architecture.md          ← 요약 + 인덱스
-├── architecture/
-│   ├── data-models.md       ← Item, Report, Tag 등
-│   ├── database.md          ← DB 스키마
-│   ├── folder-structure.md  ← 폴더 구조
-│   ├── tech-stack.md        ← 기술 스택
-│   └── data-flow.md         ← 데이터 흐름
-│
-├── services.md              ← 요약 + 인덱스
-├── services/
-│   ├── item-service.md      ← Item CRUD
-│   ├── report-service.md    ← Report 서비스
-│   ├── ocr-service.md       ← OCR 서비스
-│   ├── stores.md            ← Zustand stores
-│   ├── types.md             ← TypeScript 타입
-│   └── database-utils.md    ← DB 유틸리티
-│
-└── guides/                  ← 사용 가이드
-    ├── database.md
-    ├── getting-started.md
-    └── ocr.md
-```
-
-#### 규칙
-
-- 메인 문서: Quick Reference + 링크 인덱스
-- 상세 내용: 하위 폴더에 논리적 단위로 분리
-- 글자수 제한 없음 (논리적 단위 기준)
-- Quick Reference 섹션으로 빠른 참조 지원
+**원칙: 메인 문서는 Quick Reference + 링크, 상세 내용은 하위 폴더**
 
 ---
 
@@ -183,132 +226,33 @@ npx tsc --noEmit
 
 ### 컴포넌트 재사용 원칙 (필수)
 
-**규칙: 2개 이상 페이지에서 사용되는 UI는 반드시 공통 컴포넌트로 추출**
+**핵심 규칙: 2곳 이상 사용 → 즉시 공통 컴포넌트 추출**
 
-#### 강제 사항
+- ✅ **DO**: 동일 UI 패턴 발견 시 즉시 추출
+- ❌ **DON'T**: 복사-붙여넣기, "나중에 통일" 금지
 
-- ✅ **DO**: 동일한 UI 패턴이 2곳 이상에서 발견되면 즉시 공통 컴포넌트로 추출
-- ❌ **DON'T**: 복사-붙여넣기로 중복 구현 금지
-- ❌ **DON'T**: "나중에 통일하자"는 접근 금지 (기술 부채 누적)
+**위치**: `/components/common/` (범용), `/components/{domain}/` (도메인 전용)
 
-#### 공통 컴포넌트 위치
-
-```
-/components/common/     ← 범용 컴포넌트 (Button, Card, Badge 등)
-/components/item/       ← Item 도메인 전용 컴포넌트
-/components/*/          ← 도메인별 전용 컴포넌트
-```
-
-#### 예시: Badge 컴포넌트
-
-```typescript
-// ✅ 좋은 예: 공통 컴포넌트 사용
-import { ClassificationBadge, UsagePurposeBadge, TagBadge } from '@/components/common';
-
-<ClassificationBadge classification="corporate_card" variant="large" />
-<UsagePurposeBadge usagePurpose="meal" showIcon />
-<TagBadge tag={tag} showRemove onRemove={handleRemove} />
-
-// ❌ 나쁜 예: 하드코딩
-<View style={{ backgroundColor: config.color + '20' }}>
-  <Text style={{ color: config.color }}>{config.name}</Text>
-</View>
-```
-
-#### 체크리스트
-
-새 UI를 구현할 때:
-1. 이미 존재하는 컴포넌트가 있는지 확인 (`/components/common/`)
-2. 비슷한 UI가 다른 화면에 있는지 검색 (Grep 활용)
-3. 2곳 이상에서 사용될 가능성이 있으면 바로 컴포넌트로 추출
-4. `components/common/index.ts`에 export 추가
+상세 가이드는 [Design System Guide](/docs/guides/design-system.md) 참조
 
 ---
 
 ## 디자인 시스템
 
-### Quick Reference
+### 핵심 원칙
 
-디자인 토큰, 레이아웃 컴포넌트, 훅을 통해 일관된 UI를 구현합니다.
-
-#### 토큰 사용법
-
-```typescript
-import { tokens } from '@/design-system/tokens';
-
-// 색상
-const bgColor = tokens.colors.light.background;
-
-// 간격
-const padding = tokens.spacing.md; // 16px
-
-// 타이포그래피
-const fontSize = tokens.fontSize.lg; // 18px
-const fontWeight = tokens.fontWeight.semibold; // '600'
-```
-
-#### 레이아웃 컴포넌트
-
-**선택 기준**
-1. 탭 바가 보이는 1depth 화면? → `TabScreenLayout`
-2. 새 화면으로 이동? (router.push) → `ScreenLayout`
-3. 현재 화면 위에서 액션? → 폼 복잡도 확인:
-   - 간단 폼 (2-3개 필드) + 목록 연관 → `Modal + ModalLayout`
-   - 복잡 폼 (5개 이상 필드) + 독립 작업 → `ScreenLayout`
-
-```typescript
-import { ScreenLayout, TabScreenLayout, ModalLayout } from '@/design-system/layouts';
-
-// 탭 화면 (1depth)
-<TabScreenLayout title="리포트">
-  <ReportList />
-</TabScreenLayout>
-
-// 기본 화면 (새 화면)
-<ScreenLayout showHeader title="증빙 관리" showBack>
-  <ItemDetail />
-</ScreenLayout>
-
-// 모달 화면 (폼/확인)
-<ModalLayout
-  title="리포트 생성"
-  bottomButtons={[
-    { label: '취소', onPress: handleCancel, variant: 'secondary' },
-    { label: '생성', onPress: handleSubmit, variant: 'primary' },
-  ]}
->
-  <ReportForm />
-</ModalLayout>
-```
-
-#### 훅 사용법
-
-```typescript
-import { useThemeColor, useThemedStyles, useThemeColors } from '@/design-system/hooks';
-
-// 1. 단순 색상 선택
-const textColor = useThemeColor('#000000', '#FFFFFF');
-
-// 2. 스타일시트 생성
-const styles = useThemedStyles((colors) => ({
-  container: { backgroundColor: colors.background },
-  text: { color: colors.text },
-}));
-
-// 3. 색상 팔레트 접근
-const colors = useThemeColors();
-```
-
-### 다크모드 대응
-
-- **NativeWind Tailwind 클래스**: `dark:` 프리픽스 사용
-- **훅 기반 스타일**: `useThemedStyles()` 또는 `useThemeColors()` 사용
-- **고정 색상**: `useThemeColor(light, dark)` 사용
+1. **레이아웃**: 모든 화면은 `ScreenLayout` 사용 (탭 바/뒤로가기 자동 처리)
+2. **추가/수정**: 무조건 `FullScreenModal` 사용 (하단 버튼 없음, 헤더 아이콘만)
+3. **플로팅 버튼**: `FloatingActionBar` (원형 FAB 스타일, 아이콘만)
+4. **다크모드**: 필수 지원 (`dark:` 클래스 또는 `useThemeColor` 훅)
 
 ### 관련 문서
 
-- [Design System Guide](./guides/design-system.md) - 상세 사용 가이드
-- [Design System Architecture](./architecture/design-system.md) - 구조 및 확장 방법
+상세한 사용법은 다음 문서를 참고하세요:
+
+- [Layout Policy](/docs/guides/layout-policy.md) - 레이아웃 및 모달 정책 (필독)
+- [Design System Guide](/docs/guides/design-system.md) - 토큰, 훅, 컴포넌트 사용법
+- [Design System Architecture](/docs/architecture/design-system.md) - 구조 및 확장 방법
 
 ---
 

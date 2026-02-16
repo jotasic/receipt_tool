@@ -332,7 +332,6 @@ export default function ItemDetailScreen() {
 
       {/* Floating Action Buttons */}
       <FloatingActionBar
-        compact
         actions={[
           {
             icon: 'create-outline',

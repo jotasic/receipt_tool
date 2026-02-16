@@ -238,7 +238,6 @@ export default function ReportDetailScreen() {
       {/* Floating Action Buttons (only for draft) */}
       {report.status === 'draft' && (
         <FloatingActionBar
-          compact
           actions={[
             {
               icon: 'trash-outline',

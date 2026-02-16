@@ -197,7 +197,7 @@ export function TagSelector({
         onClose={() => setShowModal(false)}
         title="태그 선택"
         rightButton={{
-          label: '완료',
+          icon: 'checkmark',
           onPress: () => setShowModal(false),
         }}
         scrollable={false}

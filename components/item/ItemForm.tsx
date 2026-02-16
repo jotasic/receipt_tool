@@ -481,15 +481,12 @@ export function ItemForm({
       visible={true}
       onClose={onCancel || (() => {})}
       title={modalTitle}
-      bottomButtons={[
-        {
-          label: isSaving ? '저장 중...' : initialData ? '수정' : '저장',
-          onPress: handleSubmit,
-          variant: 'primary',
-          disabled: isSaving || isOcrLoading,
-          loading: isSaving,
-        },
-      ]}
+      rightButton={{
+        icon: 'checkmark',
+        onPress: handleSubmit,
+        disabled: isSaving || isOcrLoading,
+        loading: isSaving,
+      }}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -802,7 +799,7 @@ export function ItemForm({
         onClose={() => setShowOcrOverlay(false)}
         title="텍스트 영역 선택"
         rightButton={{
-          label: '완료',
+          icon: 'checkmark',
           onPress: () => setShowOcrOverlay(false),
         }}
         scrollable={false}

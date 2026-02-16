@@ -7,17 +7,21 @@ import {
   RefreshControl,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { ItemCard } from '@/components/item';
-import { MonthSelector, SelectableChip } from '@/components/common';
+import { ItemCard, ItemForm } from '@/components/item';
+import { MonthSelector, SelectableChip, FloatingActionBar, FullScreenModal } from '@/components/common';
 import { TabScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { CLASSIFICATIONS } from '@/constants/items';
-import type { Item, ItemClassification, UsagePurpose, Tag } from '@/types';
+import type { Item, ItemClassification, UsagePurpose, Tag, CreateItemInput } from '@/types';
 import { isExpense } from '@/types/item';
 import { getTags } from '@/services/database/tagService';
+import { createItem } from '@/services/database/itemService';
+import { setTagsForItem } from '@/services/database/tagService';
+import { setItemCustomValues } from '@/services/database/customFieldService';
 
 type FilterType = 'all' | ItemClassification;
 
@@ -47,6 +51,8 @@ export default function ItemsScreen() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<Date | null>(new Date());
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get URL parameters
   const params = useLocalSearchParams<{ classification?: string }>();
@@ -153,7 +159,37 @@ export default function ItemsScreen() {
   };
 
   const handleAddItem = () => {
-    router.push('/item/add' as any);
+    setShowAddModal(true);
+  };
+
+  const handleCreateItem = async (data: CreateItemInput) => {
+    setIsSubmitting(true);
+    try {
+      // Separate tags and customValues from item data
+      const { tags: tagIds, customValues, ...itemData } = data;
+
+      // Create item in database
+      const item = await createItem(itemData);
+
+      // Save tags if provided
+      if (tagIds && tagIds.length > 0) {
+        await setTagsForItem(item.id, tagIds);
+      }
+
+      // Save custom field values if provided
+      if (customValues && Object.keys(customValues).length > 0) {
+        await setItemCustomValues(item.id, customValues);
+      }
+
+      await loadItems(); // Refresh the list
+      setShowAddModal(false);
+      Alert.alert('성공', '항목이 추가되었습니다.');
+    } catch (error) {
+      console.error('Failed to create item:', error);
+      Alert.alert('오류', '항목 추가에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFilterChange = (filter: FilterType) => {
@@ -391,45 +427,43 @@ export default function ItemsScreen() {
   }
 
   return (
-    <TabScreenLayout title="증빙" scrollable={false}>
-      <FlatList
-        data={filteredItems}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16 }}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmptyState}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            colors={['#2563EB']}
-            tintColor="#2563EB"
-          />
-        }
-        showsVerticalScrollIndicator={false}
+    <>
+      <TabScreenLayout title="증빙" scrollable={false}>
+        <FlatList
+          data={filteredItems}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={renderEmptyState}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              colors={['#2563EB']}
+              tintColor="#2563EB"
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        />
+      </TabScreenLayout>
+
+      <FloatingActionBar
+        actions={[
+          {
+            icon: 'add',
+            onPress: handleAddItem,
+            variant: 'primary',
+          },
+        ]}
       />
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        onPress={handleAddItem}
-        className="absolute bottom-6 right-6 bg-blue-600 rounded-full w-16 h-16 items-center justify-center active:bg-blue-700"
-        style={{
-          shadowColor: '#2563eb',
-          shadowOffset: {
-            width: 0,
-            height: 4,
-          },
-          shadowOpacity: 0.3,
-          shadowRadius: 4.65,
-          elevation: 8,
-        }}
-        activeOpacity={0.8}
-        accessibilityLabel="항목 추가"
-        accessibilityRole="button"
-      >
-        <Ionicons name="add" size={32} color="#ffffff" />
-      </TouchableOpacity>
-    </TabScreenLayout>
+      {showAddModal && (
+        <ItemForm
+          onSubmit={handleCreateItem}
+          onCancel={() => setShowAddModal(false)}
+        />
+      )}
+    </>
   );
 }

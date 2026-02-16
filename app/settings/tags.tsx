@@ -24,7 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { Input, Button, FullScreenModal } from '@/components/common';
+import { Input, Button, FullScreenModal, FloatingActionBar } from '@/components/common';
 import { ScreenLayout } from '@/design-system/layouts';
 import {
   getTags,
@@ -292,7 +292,7 @@ export default function TagManagementScreen() {
       onClose={onClose}
       title={isEdit ? '태그 수정' : '새 태그'}
       rightButton={{
-        label: isEdit ? '수정' : '생성',
+        icon: 'checkmark',
         onPress: onSave,
         loading: isSaving,
         disabled: isSaving,
@@ -360,14 +360,6 @@ export default function TagManagementScreen() {
         showHeader
         showBack
         scrollable={false}
-        rightElement={
-          <TouchableOpacity
-            onPress={handleOpenCreateModal}
-            className="w-10 h-10 items-center justify-center"
-          >
-            <Ionicons name="add" size={28} color="#3B82F6" />
-          </TouchableOpacity>
-        }
       >
         {/* Search bar */}
         <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -419,7 +411,7 @@ export default function TagManagementScreen() {
           )}
         </View>
       ) : (
-        <ScrollView className="flex-1">
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
           {/* Tag count */}
           <View className="px-4 py-2 bg-gray-50 dark:bg-gray-900">
             <Text className="text-sm text-gray-600 dark:text-gray-400">
@@ -448,6 +440,16 @@ export default function TagManagementScreen() {
         handleUpdateTag
       )}
       </ScreenLayout>
+
+      <FloatingActionBar
+        actions={[
+          {
+            icon: 'add',
+            onPress: handleOpenCreateModal,
+            variant: 'primary',
+          },
+        ]}
+      />
     </>
   );
 }

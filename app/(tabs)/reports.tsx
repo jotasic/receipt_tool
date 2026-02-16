@@ -1,76 +1,330 @@
-import { useEffect, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Button, Header } from '@/components/common';
-import { ReportCard } from '@/components/report/ReportCard';
-import { useReportStore } from '@/store/reportStore';
+import * as Sharing from 'expo-sharing';
+import { Header } from '@/components/common';
+import { MonthSelector } from '@/components/common/MonthSelector';
+import type { Item } from '@/types/item';
+import {
+  getMonthlyItems,
+  calculateMonthlySummary,
+  exportMonthlySettlement,
+} from '@/services/export';
+import type { MonthlySummary } from '@/services/export/types';
 
-function EmptyState() {
+function SummaryCard({ summary }: { summary: MonthlySummary }) {
   return (
-    <View className="flex-1 items-center justify-center px-6">
-      <Ionicons name="document-text-outline" size={64} color="#9CA3AF" />
-      <Text className="text-lg font-semibold mt-4 text-gray-900 dark:text-gray-100">
-        리포트가 없습니다
+    <View className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-4 border border-gray-100 dark:border-gray-700">
+      <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+        월별 요약
       </Text>
-      <Text className="text-gray-500 dark:text-gray-400 mt-2 text-center">
-        항목을 모아 경비 청구 리포트를 생성해보세요
-      </Text>
-      <View className="mt-6">
-        <Button
-          title="리포트 생성"
-          onPress={() => router.push('/report/create')}
-          variant="primary"
-        />
+
+      {/* Personal Card */}
+      <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+        <View className="flex-row items-center">
+          <View className="w-3 h-3 rounded-full bg-blue-500 mr-2" />
+          <Text className="text-sm text-gray-700 dark:text-gray-300">개인카드</Text>
+        </View>
+        <View className="items-end">
+          <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
+            {summary.personalCard.totalAmount.toLocaleString('ko-KR')}원
+          </Text>
+          <Text className="text-xs text-gray-500 dark:text-gray-400">
+            {summary.personalCard.count}건
+          </Text>
+        </View>
+      </View>
+
+      {/* Corporate Card */}
+      <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+        <View className="flex-row items-center">
+          <View className="w-3 h-3 rounded-full bg-green-500 mr-2" />
+          <Text className="text-sm text-gray-700 dark:text-gray-300">법인카드</Text>
+        </View>
+        <View className="items-end">
+          <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
+            {summary.corporateCard.totalAmount.toLocaleString('ko-KR')}원
+          </Text>
+          <Text className="text-xs text-gray-500 dark:text-gray-400">
+            {summary.corporateCard.count}건
+          </Text>
+        </View>
+      </View>
+
+      {/* Proof Documents */}
+      <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+        <View className="flex-row items-center">
+          <View className="w-3 h-3 rounded-full bg-purple-500 mr-2" />
+          <Text className="text-sm text-gray-700 dark:text-gray-300">증명서류</Text>
+        </View>
+        <View className="items-end">
+          <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
+            {summary.proofDocument.totalAmount.toLocaleString('ko-KR')}원
+          </Text>
+          <Text className="text-xs text-gray-500 dark:text-gray-400">
+            {summary.proofDocument.count}건
+          </Text>
+        </View>
+      </View>
+
+      {/* Total */}
+      <View className="flex-row justify-between items-center pt-3 mt-1">
+        <Text className="text-base font-bold text-gray-900 dark:text-gray-100">합계</Text>
+        <View className="items-end">
+          <Text className="text-xl font-bold text-blue-600 dark:text-blue-400">
+            {summary.total.totalAmount.toLocaleString('ko-KR')}원
+          </Text>
+          <Text className="text-xs text-gray-500 dark:text-gray-400">
+            총 {summary.total.count}건
+          </Text>
+        </View>
       </View>
     </View>
   );
 }
 
-export default function ReportsScreen() {
-  const { reports, isLoading, loadReports } = useReportStore();
+function ItemCard({ item }: { item: Item }) {
+  const getClassificationColor = () => {
+    switch (item.classification) {
+      case 'personal_card':
+        return 'bg-blue-100 dark:bg-blue-900';
+      case 'corporate_card':
+        return 'bg-green-100 dark:bg-green-900';
+      case 'proof_document':
+        return 'bg-purple-100 dark:bg-purple-900';
+      default:
+        return 'bg-gray-100 dark:bg-gray-700';
+    }
+  };
+
+  const getClassificationLabel = () => {
+    switch (item.classification) {
+      case 'personal_card':
+        return '개인카드';
+      case 'corporate_card':
+        return '법인카드';
+      case 'proof_document':
+        return '증명서류';
+      default:
+        return item.classification;
+    }
+  };
+
+  return (
+    <View className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-2 border border-gray-100 dark:border-gray-700">
+      <View className="flex-row justify-between items-start mb-2">
+        <View className="flex-1">
+          <Text className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">
+            {item.title}
+          </Text>
+          {item.storeName && (
+            <Text className="text-sm text-gray-600 dark:text-gray-400">
+              {item.storeName}
+            </Text>
+          )}
+        </View>
+        {item.amount !== undefined && (
+          <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
+            {item.amount.toLocaleString('ko-KR')}원
+          </Text>
+        )}
+      </View>
+
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center gap-2">
+          <View className={`px-2 py-1 rounded ${getClassificationColor()}`}>
+            <Text className="text-xs font-medium text-gray-700 dark:text-gray-300">
+              {getClassificationLabel()}
+            </Text>
+          </View>
+          <Text className="text-xs text-gray-500 dark:text-gray-400">
+            {item.usagePurpose}
+          </Text>
+        </View>
+        <Text className="text-xs text-gray-500 dark:text-gray-400">{item.date}</Text>
+      </View>
+
+      {item.memo && (
+        <Text className="text-sm text-gray-600 dark:text-gray-400 mt-2">{item.memo}</Text>
+      )}
+    </View>
+  );
+}
+
+function EmptyState({ selectedMonth }: { selectedMonth: Date | null }) {
+  const monthText = selectedMonth
+    ? `${selectedMonth.getFullYear()}년 ${selectedMonth.getMonth() + 1}월`
+    : '전체 기간';
+
+  return (
+    <View className="flex-1 items-center justify-center px-6">
+      <Ionicons name="receipt-outline" size={64} color="#9CA3AF" />
+      <Text className="text-lg font-semibold mt-4 text-gray-900 dark:text-gray-100">
+        {monthText}에 항목이 없습니다
+      </Text>
+      <Text className="text-gray-500 dark:text-gray-400 mt-2 text-center">
+        항목을 추가하면 여기에 표시됩니다
+      </Text>
+    </View>
+  );
+}
+
+export default function SettlementScreen() {
+  const [selectedMonth, setSelectedMonth] = useState<Date | null>(new Date());
+  const [items, setItems] = useState<Item[]>([]);
+  const [summary, setSummary] = useState<MonthlySummary | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const loadMonthlyData = useCallback(async () => {
+    if (!selectedMonth) {
+      setItems([]);
+      setSummary(null);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const year = selectedMonth.getFullYear();
+      const month = selectedMonth.getMonth() + 1;
+
+      const monthlyItems = await getMonthlyItems(year, month);
+      setItems(monthlyItems);
+
+      const monthlySummary = calculateMonthlySummary(monthlyItems);
+      setSummary(monthlySummary);
+    } catch (error) {
+      console.error('Failed to load monthly data:', error);
+      Alert.alert('오류', '데이터를 불러오는데 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedMonth]);
 
   useEffect(() => {
-    loadReports();
-  }, []);
+    loadMonthlyData();
+  }, [loadMonthlyData]);
 
-  const onRefresh = useCallback(async () => {
-    await loadReports();
-  }, [loadReports]);
+  const handleExport = async () => {
+    if (!selectedMonth) {
+      Alert.alert('알림', '월을 선택해주세요.');
+      return;
+    }
+
+    if (items.length === 0) {
+      Alert.alert('알림', '내보낼 항목이 없습니다.');
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const year = selectedMonth.getFullYear();
+      const month = selectedMonth.getMonth() + 1;
+
+      const result = await exportMonthlySettlement(year, month);
+
+      if (result.success && result.filePath) {
+        // Share the ZIP file
+        const canShare = await Sharing.isAvailableAsync();
+        if (canShare) {
+          await Sharing.shareAsync(result.filePath, {
+            mimeType: 'application/zip',
+            dialogTitle: '정산 파일 공유',
+          });
+        } else {
+          Alert.alert('성공', '정산 파일이 생성되었습니다.');
+        }
+      } else {
+        Alert.alert('오류', result.error || '파일 생성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+      Alert.alert('오류', '파일 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right']}>
-        <Header
-          title="리포트"
-          rightElement={
-            reports.length > 0 ? (
-              <TouchableOpacity onPress={() => router.push('/report/create')}>
-                <Ionicons name="add-circle" size={28} color="#3B82F6" />
-              </TouchableOpacity>
-            ) : undefined
-          }
-        />
+      <SafeAreaView
+        className="flex-1 bg-gray-50 dark:bg-gray-900"
+        edges={['top', 'left', 'right']}
+      >
+        <Header title="정산" />
 
-      {reports.length === 0 ? (
-        <EmptyState />
-      ) : (
         <FlatList
-          data={reports}
+          data={items}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ReportCard report={item} />}
-          contentContainerStyle={{ padding: 16 }}
+          renderItem={({ item }) => <ItemCard item={item} />}
+          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          ListHeaderComponent={
+            <>
+              <MonthSelector
+                selectedMonth={selectedMonth}
+                onMonthChange={setSelectedMonth}
+              />
+              {summary && <SummaryCard summary={summary} />}
+              {items.length > 0 && (
+                <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  항목 목록
+                </Text>
+              )}
+            </>
+          }
+          ListEmptyComponent={
+            !isLoading ? <EmptyState selectedMonth={selectedMonth} /> : null
+          }
           refreshControl={
             <RefreshControl
               refreshing={isLoading}
-              onRefresh={onRefresh}
+              onRefresh={loadMonthlyData}
               tintColor="#3B82F6"
             />
           }
         />
-      )}
+
+        {/* Export Button (Fixed at bottom) */}
+        {items.length > 0 && (
+          <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+            <TouchableOpacity
+              onPress={handleExport}
+              disabled={isExporting}
+              className={`
+                flex-row items-center justify-center py-4 rounded-xl
+                ${isExporting ? 'bg-gray-400' : 'bg-blue-600'}
+              `}
+              activeOpacity={0.7}
+            >
+              {isExporting ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <>
+                  <Ionicons
+                    name="download-outline"
+                    size={20}
+                    color="#FFFFFF"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text className="text-base font-bold text-white">
+                    CSV/이미지 내보내기
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
       </SafeAreaView>
     </>
   );

@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Card } from '@/components/common';
+import { Card, FloatingActionBar } from '@/components/common';
 import { TabScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { isExpense } from '@/types/item';
@@ -188,26 +188,15 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        onPress={handleAddItem}
-        className="absolute bottom-6 right-6 bg-blue-600 rounded-full w-16 h-16 items-center justify-center active:bg-blue-700"
-        style={{
-          shadowColor: '#2563eb',
-          shadowOffset: {
-            width: 0,
-            height: 4,
+      <FloatingActionBar
+        actions={[
+          {
+            icon: 'add',
+            onPress: handleAddItem,
+            variant: 'primary',
           },
-          shadowOpacity: 0.3,
-          shadowRadius: 4.65,
-          elevation: 8,
-        }}
-        activeOpacity={0.8}
-        accessibilityLabel="증빙 추가"
-        accessibilityRole="button"
-      >
-        <Ionicons name="add" size={32} color="#ffffff" />
-      </TouchableOpacity>
+        ]}
+      />
     </TabScreenLayout>
   );
 }

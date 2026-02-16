@@ -12,3 +12,4 @@ export { UsagePurposeBadge } from './UsagePurposeBadge';
 export { TagBadge } from './TagBadge';
 export { SelectableChip } from './SelectableChip';
 export { FullScreenModal } from './FullScreenModal';
+export { FloatingActionBar, type FloatingAction } from './FloatingActionBar';

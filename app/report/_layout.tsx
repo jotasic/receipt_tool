@@ -9,13 +9,6 @@ export default function ReportLayout() {
       }}
     >
       <Stack.Screen
-        name="create"
-        options={{
-          title: '리포트 생성',
-          presentation: 'modal',
-        }}
-      />
-      <Stack.Screen
         name="[id]"
         options={{
           title: '리포트 상세',

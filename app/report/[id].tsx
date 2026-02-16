@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, useColorScheme } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Button, Card } from '@/components/common';
+import { Button, Card, FloatingActionBar } from '@/components/common';
 import { ScreenLayout } from '@/design-system/layouts';
 import { loadReport, submitReport, deleteReport } from '@/services/report';
 import { getItemById } from '@/services/database/itemService';
@@ -88,11 +88,6 @@ export default function ReportDetailScreen() {
         }
       ]
     );
-  };
-
-  const handleEdit = () => {
-    if (!id) return;
-    router.push(`/report/edit?id=${id}`);
   };
 
   const handleDelete = () => {
@@ -240,42 +235,28 @@ export default function ReportDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Action Buttons (only for draft) */}
+      {/* Floating Action Buttons (only for draft) */}
       {report.status === 'draft' && (
-        <View className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-          <View className="flex-row gap-3 mb-3">
-            <View className="flex-1">
-              <Button
-                title="편집"
-                onPress={handleEdit}
-                variant="outline"
-                disabled={isDeleting || isSubmitting}
-                icon={<Ionicons name="create-outline" size={20} color="#2563eb" />}
-              />
-            </View>
-            <View className="flex-1">
-              <Button
-                title={isDeleting ? '삭제 중...' : '삭제'}
-                onPress={handleDelete}
-                variant="outline"
-                disabled={isDeleting || isSubmitting}
-                loading={isDeleting}
-                icon={
-                  !isDeleting ? (
-                    <Ionicons name="trash-outline" size={20} color="#2563eb" />
-                  ) : undefined
-                }
-              />
-            </View>
-          </View>
-          <Button
-            title="리포트 제출"
-            onPress={handleSubmit}
-            variant="primary"
-            loading={isSubmitting}
-            disabled={isDeleting}
-          />
-        </View>
+        <FloatingActionBar
+          actions={[
+            {
+              icon: 'trash-outline',
+              label: isDeleting ? '삭제 중...' : '삭제',
+              onPress: handleDelete,
+              disabled: isDeleting || isSubmitting,
+              loading: isDeleting,
+              variant: 'danger',
+            },
+            {
+              icon: 'paper-plane-outline',
+              label: '제출',
+              onPress: handleSubmit,
+              disabled: isDeleting,
+              loading: isSubmitting,
+              variant: 'primary',
+            },
+          ]}
+        />
       )}
       </ScreenLayout>
     </>

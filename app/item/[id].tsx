@@ -12,7 +12,7 @@ import {
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
-import { Button, ClassificationBadge, UsagePurposeBadge, TagBadge } from '@/components/common';
+import { ClassificationBadge, UsagePurposeBadge, TagBadge, FloatingActionBar } from '@/components/common';
 import { ScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { getItemById, deleteItem } from '@/services/database/itemService';
@@ -330,34 +330,25 @@ export default function ItemDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Action Buttons */}
-      <View className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <View className="flex-row gap-3 mb-3">
-          <View className="flex-1">
-            <Button
-              title="편집"
-              onPress={handleEdit}
-              variant="outline"
-              disabled={isDeleting}
-              icon={<Ionicons name="create-outline" size={20} color="#2563eb" />}
-            />
-          </View>
-          <View className="flex-1">
-            <Button
-              title={isDeleting ? '삭제 중...' : '삭제'}
-              onPress={handleDelete}
-              variant="outline"
-              disabled={isDeleting}
-              loading={isDeleting}
-              icon={
-                !isDeleting ? (
-                  <Ionicons name="trash-outline" size={20} color="#2563eb" />
-                ) : undefined
-              }
-            />
-          </View>
-        </View>
-      </View>
+      {/* Floating Action Buttons */}
+      <FloatingActionBar
+        actions={[
+          {
+            icon: 'create-outline',
+            label: '편집',
+            onPress: handleEdit,
+            disabled: isDeleting,
+          },
+          {
+            icon: 'trash-outline',
+            label: isDeleting ? '삭제 중...' : '삭제',
+            onPress: handleDelete,
+            disabled: isDeleting,
+            loading: isDeleting,
+            variant: 'danger',
+          },
+        ]}
+      />
       </ScreenLayout>
     </>
   );

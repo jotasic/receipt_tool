@@ -68,6 +68,9 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     await db.execAsync(SCHEMA.document_tags);
     console.log('Created document_tags table');
 
+    await db.execAsync(SCHEMA.item_tags);
+    console.log('Created item_tags table');
+
     // Custom fields tables
     await db.execAsync(SCHEMA.custom_fields);
     console.log('Created custom_fields table');
@@ -77,6 +80,9 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
 
     await db.execAsync(SCHEMA.document_custom_values);
     console.log('Created document_custom_values table');
+
+    await db.execAsync(SCHEMA.item_custom_values);
+    console.log('Created item_custom_values table');
 
     // Unified model tables
     await db.execAsync(SCHEMA.usage_purposes);
@@ -117,6 +123,8 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     await db.execAsync(INDEXES.receipt_tags_tag);
     await db.execAsync(INDEXES.document_tags_document);
     await db.execAsync(INDEXES.document_tags_tag);
+    await db.execAsync(INDEXES.item_tags_item);
+    await db.execAsync(INDEXES.item_tags_tag);
 
     // Custom field indexes
     await db.execAsync(INDEXES.custom_fields_entity);
@@ -124,6 +132,8 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     await db.execAsync(INDEXES.receipt_custom_values_field);
     await db.execAsync(INDEXES.document_custom_values_document);
     await db.execAsync(INDEXES.document_custom_values_field);
+    await db.execAsync(INDEXES.item_custom_values_item);
+    await db.execAsync(INDEXES.item_custom_values_field);
 
     // Unified items indexes
     await db.execAsync(INDEXES.items_classification);

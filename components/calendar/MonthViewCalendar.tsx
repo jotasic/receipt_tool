@@ -52,10 +52,19 @@ export function MonthViewCalendar({
   const today = new Date().toISOString().split('T')[0];
 
   return (
-    <View className="flex-1 bg-white dark:bg-gray-900 p-4">
+    <View className="flex-1 bg-white dark:bg-gray-900">
       <Calendar
         current={currentMonth}
-        theme={theme}
+        theme={{
+          ...theme,
+          // Calendar height 증가
+          'stylesheet.calendar.main': {
+            container: {
+              paddingLeft: 0,
+              paddingRight: 0,
+            },
+          },
+        }}
         // 날짜 셀 커스터마이징
         dayComponent={({ date, state, marking }) => {
           if (!date) return null;
@@ -89,12 +98,6 @@ export function MonthViewCalendar({
         enableSwipeMonths={true} // 좌우 스와이프로 월 이동
         hideExtraDays={false} // 이전/다음 달 날짜도 표시
         monthFormat="M월" // 월 형식
-        // 스타일
-        style={{
-          borderWidth: 1,
-          borderColor: colorScheme === 'dark' ? '#374151' : '#E5E7EB',
-          borderRadius: 8,
-        }}
       />
     </View>
   );

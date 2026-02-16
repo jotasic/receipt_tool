@@ -48,7 +48,8 @@ export function DateCellWithItems({
       onPress={onPress}
       disabled={isDisabled}
       activeOpacity={0.7}
-      className="flex-1 border-r border-b border-gray-200 dark:border-gray-700 p-2 min-h-[100px]"
+      className="border-r border-b border-gray-200 dark:border-gray-700 p-2"
+      style={{ height: 120 }}
     >
       {/* 날짜 숫자 */}
       <View className="flex-row justify-between items-start mb-1.5">

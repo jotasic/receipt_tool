@@ -21,6 +21,7 @@ import { Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ItemForm } from '@/components/item';
+import { ScreenLayout } from '@/design-system/layouts';
 import { createItem } from '@/services/database/itemService';
 import { setTagsForItem } from '@/services/database/tagService';
 import { setItemCustomValues } from '@/services/database/customFieldService';
@@ -214,10 +215,12 @@ export default function ItemAddScreen() {
   };
 
   return (
-    <ItemForm
-      imageUri={imageUri}
-      onSubmit={handleSubmit}
-      onCancel={() => router.back()}
-    />
+    <ScreenLayout showHeader title="항목 추가" showBack scrollable={false}>
+      <ItemForm
+        imageUri={imageUri}
+        onSubmit={handleSubmit}
+        onCancel={() => router.back()}
+      />
+    </ScreenLayout>
   );
 }

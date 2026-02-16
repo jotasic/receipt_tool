@@ -2,17 +2,17 @@ import { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   Image,
   Alert,
   ActivityIndicator,
   useColorScheme,
 } from 'react-native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ClassificationBadge, UsagePurposeBadge, TagBadge } from '@/components/common';
+import { ScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { getItemById, deleteItem } from '@/services/database/itemService';
 import { getTagsForItem } from '@/services/database/tagService';
@@ -153,13 +153,12 @@ export default function ItemDetailScreen() {
 
   if (isLoading) {
     return (
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
+      <ScreenLayout showHeader title="항목 상세" showBack>
+        <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#2563EB" />
           <Text className="mt-4 text-gray-500 dark:text-gray-400">항목 불러오는 중...</Text>
         </View>
-      </>
+      </ScreenLayout>
     );
   }
 
@@ -175,14 +174,34 @@ export default function ItemDetailScreen() {
     return null;
   }
 
-  return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView
-        className="flex-1 bg-white dark:bg-gray-900"
-        contentContainerStyle={{ padding: 16 }}
-        showsVerticalScrollIndicator={false}
+  // Right element: Edit and Delete buttons
+  const rightElement = (
+    <View className="flex-row gap-2">
+      <TouchableOpacity
+        onPress={handleEdit}
+        className="px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30"
+        activeOpacity={0.7}
       >
+        <Ionicons name="create-outline" size={20} color={colorScheme === 'dark' ? '#60A5FA' : '#2563EB'} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={handleDelete}
+        disabled={isDeleting}
+        className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/30"
+        activeOpacity={0.7}
+      >
+        {isDeleting ? (
+          <ActivityIndicator size="small" color={colorScheme === 'dark' ? '#F87171' : '#DC2626'} />
+        ) : (
+          <Ionicons name="trash-outline" size={20} color={colorScheme === 'dark' ? '#F87171' : '#DC2626'} />
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <ScreenLayout showHeader title="항목 상세" showBack rightElement={rightElement} scrollable>
+      <View className="p-4">
         {/* Item Image */}
         {item.filePath && (
           <View className="mb-6">
@@ -324,7 +343,7 @@ export default function ItemDetailScreen() {
             </View>
           )}
         </View>
-      </ScrollView>
-    </>
+      </View>
+    </ScreenLayout>
   );
 }

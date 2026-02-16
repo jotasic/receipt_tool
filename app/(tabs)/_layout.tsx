@@ -60,7 +60,7 @@ export default function TabLayout() {
   const tabBarHeight = TAB_BAR_HEIGHT + bottomPadding;
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-white dark:bg-gray-900">
+    <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1 bg-white dark:bg-gray-900">
       <Header title={getHeaderTitle()} showBack={false} />
       <Tabs
         screenOptions={{
@@ -127,7 +127,10 @@ export default function TabLayout() {
 
       {/* Floating Action Bar (route-based) */}
       {getFloatingActions() && (
-        <FloatingActionBar actions={getFloatingActions()!} />
+        <FloatingActionBar
+          actions={getFloatingActions()!}
+          bottomOffset={tabBarHeight}
+        />
       )}
     </SafeAreaView>
   );

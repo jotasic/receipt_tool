@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { View, TouchableOpacity, Text, Alert, Platform } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 import * as MediaLibrary from 'expo-media-library';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 /**
  * Development-only floating screenshot button

@@ -1,7 +1,9 @@
-import { View, Text, TouchableOpacity, useColorScheme } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { colors } from '@/design-system/tokens/colors';
 
 interface HeaderProps {
   title: string;
@@ -27,8 +29,7 @@ interface HeaderProps {
  * <Header title="리포트" rightElement={<AddButton />} />
  */
 export function Header({ title, showBack = false, rightElement }: HeaderProps) {
-  const colorScheme = useColorScheme();
-  const iconColor = colorScheme === 'dark' ? '#F9FAFB' : '#111827';
+  const iconColor = useThemeColor(colors.light.text.primary, colors.dark.text.primary);
 
   return (
     <View className="flex-row items-center px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

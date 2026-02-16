@@ -8,6 +8,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useMemo } from 'react';
 import { useColorScheme } from '@/components/useColorScheme';
+import { colors } from '@/design-system/tokens/colors';
 
 interface CalendarProps {
   selectedDate?: string;  // YYYY-MM-DD format
@@ -108,7 +109,7 @@ export function Calendar({ selectedDate, onDateSelect, markedDates = {} }: Calen
       {/* Header */}
       <View className="flex-row items-center justify-between mb-4">
         <TouchableOpacity onPress={goToPreviousMonth} className="p-2">
-          <Ionicons name="chevron-back" size={24} color="#6B7280" />
+          <Ionicons name="chevron-back" size={24} color={colors.secondary} />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={goToToday} className="flex-row items-center">
@@ -118,7 +119,7 @@ export function Calendar({ selectedDate, onDateSelect, markedDates = {} }: Calen
         </TouchableOpacity>
 
         <TouchableOpacity onPress={goToNextMonth} className="p-2">
-          <Ionicons name="chevron-forward" size={24} color="#6B7280" />
+          <Ionicons name="chevron-forward" size={24} color={colors.secondary} />
         </TouchableOpacity>
       </View>
 
@@ -151,10 +152,10 @@ export function Calendar({ selectedDate, onDateSelect, markedDates = {} }: Calen
 
           // Dot indicator color based on selection and dark mode
           const dotColor = selected
-            ? '#FFFFFF' // White dot on selected (blue background)
+            ? colors.light.surface // White dot on selected (blue background)
             : isDarkMode
             ? '#60A5FA' // Lighter blue for dark mode
-            : '#3B82F6'; // Default blue for light mode
+            : colors.primary; // Default blue for light mode
 
           return (
             <TouchableOpacity

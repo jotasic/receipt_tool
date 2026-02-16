@@ -21,12 +21,11 @@
 
 import { useState, useEffect } from 'react';
 import { View, Text, Alert, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ItemForm } from '@/components/item';
-import { Header } from '@/components/common';
+import { ScreenLayout } from '@/design-system/layouts';
 import { getItemById, updateItem } from '@/services/database/itemService';
 import { getTagsForItem, setTagsForItem } from '@/services/database/tagService';
 import { getItemCustomValues, setItemCustomValues } from '@/services/database/customFieldService';
@@ -311,12 +310,12 @@ export default function ItemEditScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+        <ScreenLayout title="항목 편집" showHeader showBack>
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#2563EB" />
             <Text className="mt-4 text-gray-500">항목 불러오는 중...</Text>
           </View>
-        </SafeAreaView>
+        </ScreenLayout>
       </>
     );
   }
@@ -326,12 +325,12 @@ export default function ItemEditScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+        <ScreenLayout title="항목 편집" showHeader showBack>
           <View className="flex-1 items-center justify-center">
             <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
             <Text className="mt-4 text-gray-500">항목을 찾을 수 없습니다</Text>
           </View>
-        </SafeAreaView>
+        </ScreenLayout>
       </>
     );
   }
@@ -365,16 +364,13 @@ export default function ItemEditScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-        <Header title="항목 편집" showBack />
-
-        {/* Form */}
+      <ScreenLayout title="항목 편집" showHeader showBack scrollable={false}>
         <ItemForm
           initialData={initialData}
           onSubmit={handleSubmit}
           onCancel={() => router.back()}
         />
-      </SafeAreaView>
+      </ScreenLayout>
     </>
   );
 }

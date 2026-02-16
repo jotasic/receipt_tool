@@ -1,7 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Header } from '@/components/common';
+import { TabScreenLayout } from '@/design-system/layouts';
 import { useState } from 'react';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
@@ -276,9 +275,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
-      <Header title="설정" />
-
+    <TabScreenLayout title="설정">
       <ScrollView className="flex-1">
         {/* Loading overlay */}
         {isClearing && (
@@ -406,6 +403,6 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </TabScreenLayout>
   );
 }

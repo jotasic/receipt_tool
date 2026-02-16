@@ -8,11 +8,11 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ItemCard } from '@/components/item';
-import { Header, MonthSelector } from '@/components/common';
+import { MonthSelector } from '@/components/common';
+import { TabScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { CLASSIFICATIONS } from '@/constants/items';
 import type { Item, ItemClassification, UsagePurpose, Tag } from '@/types';
@@ -434,20 +434,17 @@ export default function ItemsScreen() {
 
   if (isLoading && !isRefreshing) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+      <TabScreenLayout title="증빙">
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#2563EB" />
           <Text className="mt-4 text-gray-500 dark:text-gray-400">항목 불러오는 중...</Text>
         </View>
-      </SafeAreaView>
+      </TabScreenLayout>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-      <Header title="증빙" />
-
-      {/* Item List */}
+    <TabScreenLayout title="증빙" scrollable={false}>
       <FlatList
         data={filteredItems}
         renderItem={renderItem}
@@ -486,6 +483,6 @@ export default function ItemsScreen() {
       >
         <Ionicons name="add" size={32} color="#ffffff" />
       </TouchableOpacity>
-    </SafeAreaView>
+    </TabScreenLayout>
   );
 }

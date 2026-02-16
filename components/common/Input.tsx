@@ -1,4 +1,6 @@
-import { View, Text, TextInput, useColorScheme } from 'react-native';
+import { View, Text, TextInput } from 'react-native';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { colors } from '@/design-system/tokens/colors';
 
 interface InputProps {
   label?: string;
@@ -25,7 +27,7 @@ export function Input({
   multiline = false,
   numberOfLines = 1,
 }: InputProps) {
-  const colorScheme = useColorScheme();
+  const placeholderColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
 
   return (
     <View className="mb-4">
@@ -42,7 +44,7 @@ export function Input({
           ${multiline ? 'min-h-[100px]' : ''}
         `}
         placeholder={placeholder}
-        placeholderTextColor={colorScheme === 'dark' ? '#9CA3AF' : '#9CA3AF'}
+        placeholderTextColor={placeholderColor}
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={secureTextEntry}

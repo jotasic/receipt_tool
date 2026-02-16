@@ -16,6 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | [/docs/services.md](/docs/services.md) | 서비스 함수 레퍼런스 |
 | [/docs/guides/database.md](/docs/guides/database.md) | 데이터베이스 가이드 |
 | [/docs/guides/ocr.md](/docs/guides/ocr.md) | OCR 시스템 가이드 |
+| [/docs/guides/design-system.md](/docs/guides/design-system.md) | 디자인 시스템 사용 가이드 |
 | [/docs/migration-guide.md](/docs/migration-guide.md) | 모델 진화 히스토리 |
 
 ## 개발 환경
@@ -179,6 +180,86 @@ npx tsc --noEmit
 - 컴포넌트명: PascalCase
 - 파일명: kebab-case 또는 camelCase
 - 스타일: NativeWind (Tailwind CSS)
+
+---
+
+## 디자인 시스템
+
+### Quick Reference
+
+디자인 토큰, 레이아웃 컴포넌트, 훅을 통해 일관된 UI를 구현합니다.
+
+#### 토큰 사용법
+
+```typescript
+import { tokens } from '@/design-system/tokens';
+
+// 색상
+const bgColor = tokens.colors.light.background;
+
+// 간격
+const padding = tokens.spacing.md; // 16px
+
+// 타이포그래피
+const fontSize = tokens.fontSize.lg; // 18px
+const fontWeight = tokens.fontWeight.semibold; // '600'
+```
+
+#### 레이아웃 컴포넌트
+
+```typescript
+import { ScreenLayout, TabScreenLayout, ModalLayout } from '@/design-system/layouts';
+
+// 기본 화면
+<ScreenLayout showHeader title="증빙 관리">
+  <ItemList />
+</ScreenLayout>
+
+// 탭 화면 (1depth)
+<TabScreenLayout title="리포트">
+  <ReportList />
+</TabScreenLayout>
+
+// 모달 화면
+<ModalLayout
+  title="리포트 생성"
+  bottomButtons={[
+    { label: '취소', onPress: handleCancel, variant: 'secondary' },
+    { label: '생성', onPress: handleSubmit, variant: 'primary' },
+  ]}
+>
+  <ReportForm />
+</ModalLayout>
+```
+
+#### 훅 사용법
+
+```typescript
+import { useThemeColor, useThemedStyles, useThemeColors } from '@/design-system/hooks';
+
+// 1. 단순 색상 선택
+const textColor = useThemeColor('#000000', '#FFFFFF');
+
+// 2. 스타일시트 생성
+const styles = useThemedStyles((colors) => ({
+  container: { backgroundColor: colors.background },
+  text: { color: colors.text },
+}));
+
+// 3. 색상 팔레트 접근
+const colors = useThemeColors();
+```
+
+### 다크모드 대응
+
+- **NativeWind Tailwind 클래스**: `dark:` 프리픽스 사용
+- **훅 기반 스타일**: `useThemedStyles()` 또는 `useThemeColors()` 사용
+- **고정 색상**: `useThemeColor(light, dark)` 사용
+
+### 관련 문서
+
+- [Design System Guide](./guides/design-system.md) - 상세 사용 가이드
+- [Design System Architecture](./architecture/design-system.md) - 구조 및 확장 방법
 
 ---
 

@@ -13,6 +13,7 @@
 | 상태 관리 | Zustand |
 | DB | SQLite (expo-sqlite) |
 | 스타일 | NativeWind (Tailwind CSS) |
+| 디자인 시스템 | 토큰 + 레이아웃 컴포넌트 + 훅 |
 | OCR | expo-ocr (ML Kit) |
 
 ---
@@ -39,6 +40,7 @@
 | [folder-structure.md](./architecture/folder-structure.md) | 프로젝트 폴더 구조 |
 | [tech-stack.md](./architecture/tech-stack.md) | 기술 스택, 코드 컨벤션 |
 | [data-flow.md](./architecture/data-flow.md) | 데이터 흐름, 상태 관리 |
+| [design-system.md](./architecture/design-system.md) | 디자인 시스템 구조, 토큰, 레이아웃 컴포넌트 |
 
 ---
 

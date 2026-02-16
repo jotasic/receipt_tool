@@ -48,6 +48,7 @@ import { getCustomFieldsByEntityType } from '@/services/database/customFieldServ
 import type { OcrError, OcrBlock } from '@/services/ocr';
 import type { CreateItemInput } from '@/types/item';
 import type { ItemClassification, UsagePurpose } from '@/types/shared';
+import { colors } from '@/design-system/tokens/colors';
 import type { Tag } from '@/types/tag';
 import type { CustomField } from '@/types';
 
@@ -542,13 +543,13 @@ export function ItemForm({
                 }}
                 accessibilityLabel="이미지 삭제"
               >
-                <Ionicons name="close" size={20} color="#FFFFFF" />
+                <Ionicons name="close" size={20} color="{colors.light.surface}" />
               </TouchableOpacity>
 
               {/* OCR Loading indicator */}
               {isOcrLoading && (
                 <View className="absolute inset-0 bg-black/50 rounded-lg items-center justify-center">
-                  <ActivityIndicator size="large" color="#FFFFFF" />
+                  <ActivityIndicator size="large" color="{colors.light.surface}" />
                   <Text className="text-white mt-2 font-medium">OCR 분석 중...</Text>
                 </View>
               )}
@@ -560,7 +561,7 @@ export function ItemForm({
                   className="mt-2 flex-row items-center justify-center py-2 bg-blue-50 border border-blue-200 rounded-lg"
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="scan-outline" size={18} color="#2563EB" />
+                  <Ionicons name="scan-outline" size={18} color="{colors.primary}" />
                   <Text className="ml-2 text-blue-600 font-medium">
                     텍스트 영역에서 직접 선택
                   </Text>
@@ -575,10 +576,10 @@ export function ItemForm({
               activeOpacity={0.7}
             >
               {isLoadingImage ? (
-                <ActivityIndicator size="small" color="#2563EB" />
+                <ActivityIndicator size="small" color="{colors.primary}" />
               ) : (
                 <>
-                  <Ionicons name="camera-outline" size={32} color="#2563EB" />
+                  <Ionicons name="camera-outline" size={32} color="{colors.primary}" />
                   <Text className="text-blue-600 dark:text-blue-400 font-medium mt-2">
                     사진 등록
                   </Text>
@@ -592,7 +593,7 @@ export function ItemForm({
         {isMockMode && (
           <View className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <View className="flex-row items-center mb-2">
-              <Ionicons name="flask" size={20} color="#D97706" />
+              <Ionicons name="flask" size={20} color="{colors.warning}" />
               <Text className="ml-2 text-amber-700 font-semibold">테스트 모드</Text>
             </View>
             <Text className="text-amber-600 text-sm">
@@ -606,7 +607,7 @@ export function ItemForm({
         {ocrError ? (
           <View className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
             <View className="flex-row items-center mb-2">
-              <Ionicons name="alert-circle" size={20} color="#DC2626" />
+              <Ionicons name="alert-circle" size={20} color="{colors.error}" />
               <Text className="ml-2 text-red-700 font-semibold">OCR 처리 실패</Text>
             </View>
             <Text className="text-red-600 text-sm">{ocrError.userMessage}</Text>
@@ -636,9 +637,9 @@ export function ItemForm({
                     size={20}
                     color={
                       confidence >= 0.7
-                        ? '#16A34A'
+                        ? colors.success
                         : confidence >= 0.4
-                        ? '#CA8A04'
+                        ? colors.warning
                         : '#EA580C'
                     }
                   />
@@ -814,7 +815,7 @@ export function ItemForm({
               onPress={() => setShowOcrOverlay(false)}
               className="w-10 h-10 items-center justify-center"
             >
-              <Ionicons name="close" size={24} color="#111827" />
+              <Ionicons name="close" size={24} color="{colors.light.text.primary}" />
             </TouchableOpacity>
             <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               텍스트 영역 선택
@@ -855,10 +856,10 @@ export function ItemForm({
                     style={{
                       color:
                         item.mode === 'storeName'
-                          ? '#1D4ED8'
+                          ? colors.primary
                           : item.mode === 'amount'
-                          ? '#047857'
-                          : '#B45309',
+                          ? colors.success
+                          : colors.warning,
                     }}
                   >
                     {item.mode === 'storeName'

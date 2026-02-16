@@ -28,10 +28,10 @@ import {
   ActivityIndicator,
   useColorScheme,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Input, Button, Card, Header } from '@/components/common';
+import { Input, Button, Card } from '@/components/common';
+import { ScreenLayout } from '@/design-system/layouts';
 import { loadReport, updateReportDetails } from '@/services/report';
 import { useItemStore } from '@/store/itemStore';
 import { useReportStore } from '@/store/reportStore';
@@ -254,12 +254,12 @@ export default function ReportEditScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+        <ScreenLayout title="리포트 편집" showHeader showBack>
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#2563EB" />
             <Text className="mt-4 text-gray-500">리포트 불러오는 중...</Text>
           </View>
-        </SafeAreaView>
+        </ScreenLayout>
       </>
     );
   }
@@ -269,12 +269,12 @@ export default function ReportEditScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+        <ScreenLayout title="리포트 편집" showHeader showBack>
           <View className="flex-1 items-center justify-center">
             <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
             <Text className="mt-4 text-gray-500">리포트를 찾을 수 없습니다</Text>
           </View>
-        </SafeAreaView>
+        </ScreenLayout>
       </>
     );
   }
@@ -282,10 +282,8 @@ export default function ReportEditScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-        <Header title="리포트 편집" showBack />
-
-      <ScrollView className="flex-1 p-4">
+      <ScreenLayout title="리포트 편집" showHeader showBack scrollable={false}>
+        <ScrollView className="flex-1 p-4">
         {/* Title Input */}
         <Input
           label="리포트 제목"
@@ -339,7 +337,7 @@ export default function ReportEditScreen() {
           disabled={selectedIds.length === 0}
         />
       </View>
-      </SafeAreaView>
+      </ScreenLayout>
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
 import { ReactNode } from 'react';
+import { colors } from '@/design-system/tokens/colors';
 
 interface ButtonProps {
   title: string;
@@ -76,7 +77,7 @@ export function Button({
         <View className="mr-2">
           <ActivityIndicator
             size="small"
-            color={variant === 'outline' ? '#2563eb' : '#ffffff'}
+            color={variant === 'outline' ? colors.primary : '#ffffff'}
           />
         </View>
       )}

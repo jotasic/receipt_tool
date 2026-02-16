@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/design-system/tokens/colors';
 
 // Common icons for usage purposes and tags
 const COMMON_ICONS = [
@@ -145,25 +146,25 @@ export function IconPicker({
             onPress={onClose}
             className="w-10 h-10 items-center justify-center"
           >
-            <Ionicons name="close" size={24} color="#111827" />
+            <Ionicons name="close" size={24} color={colors.light.text.primary} />
           </TouchableOpacity>
         </View>
 
         {/* Search bar */}
         <View className="px-4 py-3 border-b border-gray-200">
           <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
-            <Ionicons name="search" size={20} color="#6B7280" />
+            <Ionicons name="search" size={20} color={colors.light.text.secondary} />
             <TextInput
               className="flex-1 ml-2 text-base text-gray-900"
               placeholder="아이콘 검색"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.light.text.muted}
               value={searchQuery}
               onChangeText={setSearchQuery}
               autoCapitalize="none"
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={20} color="#6B7280" />
+                <Ionicons name="close-circle" size={20} color={colors.light.text.secondary} />
               </TouchableOpacity>
             )}
           </View>
@@ -179,16 +180,16 @@ export function IconPicker({
                 className="w-16 h-16 items-center justify-center rounded-lg border-2"
                 style={{
                   borderColor:
-                    selectedIcon === icon ? '#3B82F6' : '#E5E7EB',
+                    selectedIcon === icon ? colors.primary : colors.light.border,
                   backgroundColor:
-                    selectedIcon === icon ? '#EFF6FF' : '#F9FAFB',
+                    selectedIcon === icon ? '#EFF6FF' : colors.light.background,
                 }}
                 activeOpacity={0.7}
               >
                 <Ionicons
                   name={icon as any}
                   size={28}
-                  color={selectedIcon === icon ? '#3B82F6' : '#6B7280'}
+                  color={selectedIcon === icon ? colors.primary : colors.light.text.secondary}
                 />
               </TouchableOpacity>
             ))}
@@ -196,7 +197,7 @@ export function IconPicker({
 
           {filteredIcons.length === 0 && (
             <View className="items-center justify-center py-12">
-              <Ionicons name="search" size={48} color="#D1D5DB" />
+              <Ionicons name="search" size={48} color={colors.light.text.muted} />
               <Text className="mt-4 text-gray-500">
                 검색 결과가 없습니다
               </Text>
@@ -210,7 +211,7 @@ export function IconPicker({
             <Text className="text-sm text-gray-600 mb-2">선택된 아이콘</Text>
             <View className="flex-row items-center">
               <View className="w-12 h-12 bg-blue-50 rounded-lg items-center justify-center mr-3">
-                <Ionicons name={selectedIcon as any} size={24} color="#3B82F6" />
+                <Ionicons name={selectedIcon as any} size={24} color={colors.primary} />
               </View>
               <Text className="text-base text-gray-900">{selectedIcon}</Text>
             </View>

@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { OcrBlock, OcrLine } from '@/services/ocr/types';
+import { colors } from '@/design-system/tokens/colors';
 
 export type SelectionMode = 'storeName' | 'amount' | 'date';
 
@@ -46,17 +47,17 @@ interface OcrOverlayProps {
 const MODE_CONFIG = {
   storeName: {
     label: '상호명',
-    color: '#3B82F6', // blue-500
+    color: colors.primary,
     icon: 'business' as const,
   },
   amount: {
     label: '금액',
-    color: '#10B981', // green-500
+    color: colors.success,
     icon: 'cash' as const,
   },
   date: {
     label: '날짜',
-    color: '#F59E0B', // amber-500
+    color: colors.warning,
     icon: 'calendar' as const,
   },
 };
@@ -325,7 +326,7 @@ export function OcrOverlay({
                   onPress={() => setModalVisible(false)}
                   className="w-8 h-8 items-center justify-center"
                 >
-                  <Ionicons name="close" size={24} color="#6B7280" />
+                  <Ionicons name="close" size={24} color={colors.secondary} />
                 </TouchableOpacity>
               </View>
 

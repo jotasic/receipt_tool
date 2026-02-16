@@ -5,11 +5,11 @@
  */
 
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, useColorScheme } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
+import { ScreenLayout } from '@/design-system/layouts';
 import {
   createBackup,
   shareBackup,
@@ -166,22 +166,7 @@ export default function BackupScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-        <ScrollView className="flex-1">
-          {/* Header */}
-          <View className="px-4 py-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-row items-center">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="mr-4 w-8 h-8 items-center justify-center"
-              disabled={isLoading}
-            >
-              <Ionicons name="arrow-back" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
-            </TouchableOpacity>
-            <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex-1">
-              백업 및 복원
-            </Text>
-          </View>
-
+      <ScreenLayout title="백업 및 복원" showHeader showBack>
         {/* Loading overlay */}
         {isLoading && (
           <View className="absolute inset-0 bg-black/30 items-center justify-center z-50">
@@ -192,7 +177,7 @@ export default function BackupScreen() {
           </View>
         )}
 
-        <View className="p-4">
+        <ScrollView className="flex-1 p-4">
           {/* Info Banner */}
           <Card className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
             <View className="flex-row items-start">
@@ -323,9 +308,8 @@ export default function BackupScreen() {
               • 중요한 데이터는 주기적으로 백업하는 것을 권장합니다.
             </Text>
           </Card>
-        </View>
         </ScrollView>
-      </SafeAreaView>
+      </ScreenLayout>
     </>
   );
 }

@@ -5,9 +5,11 @@
  * Includes navigation buttons and "All" option
  */
 
-import { View, Text, TouchableOpacity, useColorScheme } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { colors } from '@/design-system/tokens/colors';
 
 interface MonthSelectorProps {
   selectedMonth: Date | null; // null = "All", Date = specific month
@@ -15,9 +17,12 @@ interface MonthSelectorProps {
 }
 
 export function MonthSelector({ selectedMonth, onMonthChange }: MonthSelectorProps) {
-  const colorScheme = useColorScheme();
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState<number>(new Date().getMonth());
+
+  const calendarIconColor = useThemeColor(colors.light.text.secondary, colors.dark.text.secondary);
+  const arrowEnabledColor = useThemeColor(colors.light.text.secondary, colors.dark.text.secondary);
+  const arrowDisabledColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
 
   // Initialize from selectedMonth if provided
   useEffect(() => {
@@ -74,14 +79,6 @@ export function MonthSelector({ selectedMonth, onMonthChange }: MonthSelectorPro
 
   const isAllSelected = selectedMonth === null;
 
-  // Get appropriate arrow color based on theme and state
-  const getArrowColor = () => {
-    if (isAllSelected) {
-      return '#9CA3AF'; // gray-400 (disabled state)
-    }
-    return colorScheme === 'dark' ? '#D1D5DB' : '#374151'; // gray-300 (dark) / gray-700 (light)
-  };
-
   return (
     <View className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-4 border border-gray-100 dark:border-gray-700">
       {/* Header */}
@@ -90,7 +87,7 @@ export function MonthSelector({ selectedMonth, onMonthChange }: MonthSelectorPro
           <Ionicons
             name="calendar-outline"
             size={20}
-            color="#6B7280"
+            color={calendarIconColor}
             style={{ marginRight: 8 }}
           />
           <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -113,7 +110,7 @@ export function MonthSelector({ selectedMonth, onMonthChange }: MonthSelectorPro
           <Ionicons
             name="chevron-back"
             size={20}
-            color={getArrowColor()}
+            color={isAllSelected ? arrowDisabledColor : arrowEnabledColor}
           />
         </TouchableOpacity>
 
@@ -134,7 +131,7 @@ export function MonthSelector({ selectedMonth, onMonthChange }: MonthSelectorPro
         >
           {isAllSelected ? (
             <View className="flex-row items-center">
-              <Ionicons name="infinite" size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
+              <Ionicons name="infinite" size={20} color={colors.light.surface} style={{ marginRight: 6 }} />
               <Text className="text-base font-bold text-white">
                 전체
               </Text>
@@ -160,7 +157,7 @@ export function MonthSelector({ selectedMonth, onMonthChange }: MonthSelectorPro
           <Ionicons
             name="chevron-forward"
             size={20}
-            color={getArrowColor()}
+            color={isAllSelected ? arrowDisabledColor : arrowEnabledColor}
           />
         </TouchableOpacity>
       </View>

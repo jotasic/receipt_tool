@@ -24,6 +24,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Input, Button } from '@/components/common';
 import { getTags, createTag } from '@/services/database/tagService';
 import type { Tag } from '@/types/tag';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { colors } from '@/design-system/tokens/colors';
 
 interface TagSelectorProps {
   /** Currently selected tags */
@@ -34,15 +36,15 @@ interface TagSelectorProps {
   label?: string;
 }
 
-// Predefined color palette
+// Predefined color palette (using design tokens)
 const TAG_COLORS = [
-  '#EF4444', // red
-  '#F59E0B', // amber
-  '#10B981', // green
-  '#3B82F6', // blue
+  colors.error, // red
+  colors.warning, // amber
+  colors.success, // green
+  colors.primary, // blue
   '#8B5CF6', // purple
   '#EC4899', // pink
-  '#6B7280', // gray
+  colors.secondary, // gray
   '#14B8A6', // teal
   '#F97316', // orange
   '#06B6D4', // cyan
@@ -54,6 +56,11 @@ export function TagSelector({
   label = '태그',
 }: TagSelectorProps) {
   const colorScheme = useColorScheme();
+  const addIconColor = useThemeColor(colors.light.text.secondary, colors.dark.text.muted);
+  const closeIconColor = useThemeColor(colors.light.text.primary, colors.dark.text.primary);
+  const borderColorForCheckmark = useThemeColor(colors.light.text.primary, colors.dark.text.primary);
+  const emptyStateIconColor = useThemeColor(colors.light.text.muted, colors.dark.text.secondary);
+
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [allTags, setAllTags] = useState<Tag[]>([]);
@@ -183,7 +190,7 @@ export function TagSelector({
           className="px-3 py-1.5 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex-row items-center"
           activeOpacity={0.7}
         >
-          <Ionicons name="add" size={16} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+          <Ionicons name="add" size={16} color={addIconColor} />
           <Text className="text-sm text-gray-600 dark:text-gray-300 ml-1">태그 추가</Text>
         </TouchableOpacity>
       </View>
@@ -202,7 +209,7 @@ export function TagSelector({
               onPress={() => setShowModal(false)}
               className="w-10 h-10 items-center justify-center"
             >
-              <Ionicons name="close" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
+              <Ionicons name="close" size={24} color={closeIconColor} />
             </TouchableOpacity>
             <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               태그 선택
@@ -245,12 +252,12 @@ export function TagSelector({
                       style={{
                         backgroundColor: color,
                         borderWidth: newTagColor === color ? 3 : 0,
-                        borderColor: colorScheme === 'dark' ? '#F9FAFB' : '#111827',
+                        borderColor: borderColorForCheckmark,
                       }}
                       activeOpacity={0.7}
                     >
                       {newTagColor === color && (
-                        <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+                        <Ionicons name="checkmark" size={20} color={colors.light.surface} />
                       )}
                     </TouchableOpacity>
                   ))}
@@ -287,7 +294,7 @@ export function TagSelector({
                   title="새 태그 만들기"
                   onPress={() => setIsCreatingTag(true)}
                   variant="outline"
-                  icon={<Ionicons name="add" size={18} color="#2563EB" />}
+                  icon={<Ionicons name="add" size={18} color={colors.primary} />}
                 />
               </View>
             )}
@@ -295,7 +302,7 @@ export function TagSelector({
             {/* Search bar */}
             <View className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
               <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">
-                <Ionicons name="search" size={20} color="#6B7280" />
+                <Ionicons name="search" size={20} color={colors.secondary} />
                 <Input
                   placeholder="태그 검색"
                   value={searchQuery}
@@ -308,12 +315,12 @@ export function TagSelector({
             {/* Tags list */}
             {isLoading && !isCreatingTag ? (
               <View className="flex-1 items-center justify-center">
-                <ActivityIndicator size="large" color="#3B82F6" />
+                <ActivityIndicator size="large" color={colors.primary} />
                 <Text className="mt-2 text-gray-600 dark:text-gray-300">로딩 중...</Text>
               </View>
             ) : availableTags.length === 0 ? (
               <View className="flex-1 items-center justify-center p-6">
-                <Ionicons name="pricetags-outline" size={48} color={colorScheme === 'dark' ? '#4B5563' : '#D1D5DB'} />
+                <Ionicons name="pricetags-outline" size={48} color={emptyStateIconColor} />
                 <Text className="mt-3 text-gray-500 dark:text-gray-300 text-center">
                   {searchQuery
                     ? '검색 결과가 없습니다'
@@ -346,7 +353,7 @@ export function TagSelector({
                       <Ionicons
                         name="add-circle-outline"
                         size={24}
-                        color="#3B82F6"
+                        color={colors.primary}
                       />
                     </TouchableOpacity>
                   ))}

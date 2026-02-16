@@ -14,9 +14,11 @@
  * - Error state handling
  */
 
-import { View, Text, TextInput, TouchableOpacity, Platform, useColorScheme } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { CustomField } from '@/types';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { colors } from '@/design-system/tokens/colors';
 
 interface CustomFieldInputProps {
   field: CustomField;
@@ -31,7 +33,8 @@ export function CustomFieldInput({
   onValueChange,
   error,
 }: CustomFieldInputProps) {
-  const colorScheme = useColorScheme();
+  const placeholderColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
+  const chevronColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
 
   /**
    * Render text input
@@ -42,7 +45,7 @@ export function CustomFieldInput({
       onChangeText={onValueChange}
       placeholder={`${field.name} 입력`}
       className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-base text-gray-900 dark:text-gray-100"
-      placeholderTextColor={colorScheme === 'dark' ? '#9CA3AF' : '#9CA3AF'}
+      placeholderTextColor={placeholderColor}
       autoCapitalize="sentences"
     />
   );
@@ -57,7 +60,7 @@ export function CustomFieldInput({
       placeholder={`${field.name} 입력`}
       keyboardType="numeric"
       className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-base text-gray-900 dark:text-gray-100"
-      placeholderTextColor={colorScheme === 'dark' ? '#9CA3AF' : '#9CA3AF'}
+      placeholderTextColor={placeholderColor}
     />
   );
 
@@ -74,7 +77,7 @@ export function CustomFieldInput({
         onChangeText={onValueChange}
         placeholder="YYYY-MM-DD"
         className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-base text-gray-900 dark:text-gray-100"
-        placeholderTextColor={colorScheme === 'dark' ? '#9CA3AF' : '#9CA3AF'}
+        placeholderTextColor={placeholderColor}
         autoCapitalize="none"
       />
       <Text className="text-xs text-gray-500 dark:text-gray-300 mt-1 ml-1">
@@ -105,7 +108,7 @@ export function CustomFieldInput({
           <Text className={`text-base ${value ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-300'}`}>
             {value || `${field.name} 선택`}
           </Text>
-          <Ionicons name="chevron-down" size={20} color={colorScheme === 'dark' ? '#9CA3AF' : '#9CA3AF'} />
+          <Ionicons name="chevron-down" size={20} color={chevronColor} />
         </TouchableOpacity>
 
         {/* Options preview */}
@@ -172,7 +175,7 @@ export function CustomFieldInput({
       {/* Error message */}
       {error && (
         <View className="flex-row items-center mt-1 ml-1">
-          <Ionicons name="alert-circle" size={14} color="#EF4444" />
+          <Ionicons name="alert-circle" size={14} color={colors.error} />
           <Text className="text-sm text-red-500 ml-1">{error}</Text>
         </View>
       )}

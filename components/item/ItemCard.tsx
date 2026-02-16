@@ -3,6 +3,8 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Item } from '@/types/item';
 import { CLASSIFICATIONS, USAGE_PURPOSES, getClassificationConfig, getUsagePurposeConfig } from '@/constants/items';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { colors } from '@/design-system/tokens/colors';
 
 interface ItemCardProps {
   item: Item;
@@ -12,6 +14,8 @@ interface ItemCardProps {
 export function ItemCard({ item, onPress }: ItemCardProps) {
   const classificationConfig = getClassificationConfig(item.classification);
   const usagePurposeConfig = getUsagePurposeConfig(item.usagePurpose);
+  const chevronColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
+  const defaultColor = useThemeColor(colors.light.text.secondary, colors.dark.text.secondary);
 
   const handlePress = () => {
     if (onPress) {
@@ -59,12 +63,12 @@ export function ItemCard({ item, onPress }: ItemCardProps) {
         {/* Classification Icon */}
         <View
           className="w-10 h-10 rounded-full items-center justify-center mr-3"
-          style={{ backgroundColor: `${classificationConfig?.color || '#6B7280'}15` }}
+          style={{ backgroundColor: `${classificationConfig?.color || defaultColor}15` }}
         >
           <Ionicons
             name={classificationConfig?.icon as keyof typeof Ionicons.glyphMap || 'document'}
             size={20}
-            color={classificationConfig?.color || '#6B7280'}
+            color={classificationConfig?.color || defaultColor}
           />
         </View>
 
@@ -88,11 +92,11 @@ export function ItemCard({ item, onPress }: ItemCardProps) {
         {/* Classification Badge */}
         <View
           className="px-2 py-1 rounded-full"
-          style={{ backgroundColor: `${classificationConfig?.color || '#6B7280'}15` }}
+          style={{ backgroundColor: `${classificationConfig?.color || defaultColor}15` }}
         >
           <Text
             className="text-xs font-medium"
-            style={{ color: classificationConfig?.color || '#6B7280' }}
+            style={{ color: classificationConfig?.color || defaultColor }}
           >
             {classificationConfig?.name || item.classification}
           </Text>
@@ -104,17 +108,17 @@ export function ItemCard({ item, onPress }: ItemCardProps) {
         {/* Usage Purpose Badge */}
         <View
           className="px-2 py-1 rounded-full flex-row items-center"
-          style={{ backgroundColor: `${usagePurposeConfig?.color || '#C7CEEA'}15` }}
+          style={{ backgroundColor: `${usagePurposeConfig?.color || colors.usagePurpose.other}15` }}
         >
           <Ionicons
             name={usagePurposeConfig?.icon as keyof typeof Ionicons.glyphMap || 'ellipsis-horizontal'}
             size={12}
-            color={usagePurposeConfig?.color || '#C7CEEA'}
+            color={usagePurposeConfig?.color || colors.usagePurpose.other}
             style={{ marginRight: 4 }}
           />
           <Text
             className="text-xs font-medium"
-            style={{ color: usagePurposeConfig?.color || '#C7CEEA' }}
+            style={{ color: usagePurposeConfig?.color || colors.usagePurpose.other }}
           >
             {usagePurposeConfig?.name || item.usagePurpose}
           </Text>
@@ -129,7 +133,7 @@ export function ItemCard({ item, onPress }: ItemCardProps) {
         </Text>
 
         {/* Chevron */}
-        <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+        <Ionicons name="chevron-forward" size={18} color={chevronColor} />
       </View>
     </TouchableOpacity>
   );

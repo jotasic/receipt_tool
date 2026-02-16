@@ -7,10 +7,10 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Calendar, Card, Header } from '@/components/common';
+import { Calendar, Card } from '@/components/common';
+import { TabScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { isExpense } from '@/types/item';
 import { getClassificationConfig } from '@/constants/items';
@@ -70,9 +70,7 @@ export default function CalendarScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right']}>
-      <Header title="달력" />
-
+    <TabScreenLayout title="달력">
       <ScrollView className="flex-1">
         {/* Calendar */}
         <View className="p-4">
@@ -200,6 +198,6 @@ export default function CalendarScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </TabScreenLayout>
   );
 }

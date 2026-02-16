@@ -8,12 +8,11 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
-import { Header } from '@/components/common';
 import { MonthSelector } from '@/components/common/MonthSelector';
+import { TabScreenLayout } from '@/design-system/layouts';
 import { getClassificationConfig } from '@/constants/items';
 import type { Item } from '@/types/item';
 import {
@@ -247,12 +246,7 @@ export default function SettlementScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView
-        className="flex-1 bg-gray-50 dark:bg-gray-900"
-        edges={['top', 'left', 'right']}
-      >
-        <Header title="정산" />
-
+      <TabScreenLayout title="정산" scrollable={false}>
         <FlatList
           data={items}
           keyExtractor={(item) => item.id}
@@ -314,7 +308,7 @@ export default function SettlementScreen() {
             </TouchableOpacity>
           </View>
         )}
-      </SafeAreaView>
+      </TabScreenLayout>
     </>
   );
 }

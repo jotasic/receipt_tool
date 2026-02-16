@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, useColorScheme } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Button, Card, Header } from '@/components/common';
+import { Button, Card } from '@/components/common';
+import { ScreenLayout } from '@/design-system/layouts';
 import { loadReport, submitReport, deleteReport } from '@/services/report';
 import { getItemById } from '@/services/database/itemService';
 import { useReportStore } from '@/store/reportStore';
@@ -144,10 +144,12 @@ export default function ReportDetailScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900 items-center justify-center" edges={['top', 'left', 'right', 'bottom']}>
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="mt-4 text-gray-500">로딩 중...</Text>
-        </SafeAreaView>
+        <ScreenLayout title="리포트 상세" showHeader showBack>
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#2563EB" />
+            <Text className="mt-4 text-gray-500">로딩 중...</Text>
+          </View>
+        </ScreenLayout>
       </>
     );
   }
@@ -156,13 +158,15 @@ export default function ReportDetailScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900 items-center justify-center" edges={['top', 'left', 'right', 'bottom']}>
-          <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
-          <Text className="text-gray-500 mt-4">리포트를 찾을 수 없습니다.</Text>
-          <View className="mt-4">
-            <Button title="돌아가기" onPress={() => router.back()} variant="outline" />
+        <ScreenLayout title="리포트 상세" showHeader showBack>
+          <View className="flex-1 items-center justify-center">
+            <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
+            <Text className="text-gray-500 mt-4">리포트를 찾을 수 없습니다.</Text>
+            <View className="mt-4">
+              <Button title="돌아가기" onPress={() => router.back()} variant="outline" />
+            </View>
           </View>
-        </SafeAreaView>
+        </ScreenLayout>
       </>
     );
   }
@@ -170,10 +174,8 @@ export default function ReportDetailScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-        <Header title="리포트 상세" showBack />
-
-      <ScrollView className="flex-1">
+      <ScreenLayout title="리포트 상세" showHeader showBack scrollable={false}>
+        <ScrollView className="flex-1">
         {/* Report Info */}
         <View className="p-4">
           <Card>
@@ -275,7 +277,7 @@ export default function ReportDetailScreen() {
           />
         </View>
       )}
-      </SafeAreaView>
+      </ScreenLayout>
     </>
   );
 }

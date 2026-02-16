@@ -9,11 +9,11 @@ import {
   ActivityIndicator,
   useColorScheme,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
-import { Button, Header } from '@/components/common';
+import { Button } from '@/components/common';
+import { ScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { getItemById, deleteItem } from '@/services/database/itemService';
 import { getTagsForItem } from '@/services/database/tagService';
@@ -164,12 +164,12 @@ export default function ItemDetailScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
+        <ScreenLayout title="항목 상세" showHeader showBack>
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#2563EB" />
             <Text className="mt-4 text-gray-500">항목 불러오는 중...</Text>
           </View>
-        </SafeAreaView>
+        </ScreenLayout>
       </>
     );
   }
@@ -190,14 +190,12 @@ export default function ItemDetailScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-        <Header title="항목 상세" showBack />
-
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ padding: 16 }}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScreenLayout title="항목 상세" showHeader showBack scrollable={false}>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ padding: 16 }}
+          showsVerticalScrollIndicator={false}
+        >
         {/* Item Image */}
         {item.filePath && (
           <View className="mb-6">
@@ -400,7 +398,7 @@ export default function ItemDetailScreen() {
           </View>
         </View>
       </View>
-      </SafeAreaView>
+      </ScreenLayout>
     </>
   );
 }

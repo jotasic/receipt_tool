@@ -1,7 +1,9 @@
-import { View, Text, TouchableOpacity, ScrollView, useColorScheme } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { UsagePurpose } from '@/types/shared';
 import { USAGE_PURPOSES } from '@/constants/items';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { colors } from '@/design-system/tokens/colors';
 
 interface UsagePurposeSelectorProps {
   selectedPurpose?: UsagePurpose;
@@ -12,7 +14,8 @@ export function UsagePurposeSelector({
   selectedPurpose,
   onSelect,
 }: UsagePurposeSelectorProps) {
-  const colorScheme = useColorScheme();
+  const borderColor = useThemeColor(colors.light.border, colors.dark.border);
+  const bgColor = useThemeColor(colors.light.surface, colors.dark.surface);
 
   return (
     <View className="w-full">
@@ -41,10 +44,10 @@ export function UsagePurposeSelector({
                 min-w-[80px]
               `}
               style={{
-                borderColor: isSelected ? purpose.color : (colorScheme === 'dark' ? '#374151' : '#E5E7EB'),
+                borderColor: isSelected ? purpose.color : borderColor,
                 backgroundColor: isSelected
                   ? `${purpose.color}15`
-                  : (colorScheme === 'dark' ? '#1F2937' : '#FFFFFF'),
+                  : bgColor,
               }}
               activeOpacity={0.7}
               accessibilityRole="button"

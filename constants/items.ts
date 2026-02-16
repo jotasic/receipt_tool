@@ -1,4 +1,5 @@
 import type { UsagePurposeConfig, ClassificationConfig } from '@/types/shared';
+import { colors } from '@/design-system/tokens';
 
 /**
  * Usage purpose configurations for UI
@@ -9,7 +10,7 @@ export const USAGE_PURPOSES: UsagePurposeConfig[] = [
     name: '식대',
     nameEn: 'Meal',
     icon: 'restaurant',
-    color: '#FF6B6B',
+    color: colors.usagePurpose.meal,
     displayOrder: 1
   },
   {
@@ -17,7 +18,7 @@ export const USAGE_PURPOSES: UsagePurposeConfig[] = [
     name: '기타',
     nameEn: 'Other',
     icon: 'ellipsis-horizontal',
-    color: '#C7CEEA',
+    color: colors.usagePurpose.other,
     displayOrder: 2
   },
 ];
@@ -31,7 +32,7 @@ export const CLASSIFICATIONS: ClassificationConfig[] = [
     name: '법인카드',
     description: '법인카드 사용 - 기록용',
     icon: 'business',
-    color: '#10B981',
+    color: colors.classification.corporateCard,
     requiresSubmission: false,
   },
   {
@@ -39,7 +40,7 @@ export const CLASSIFICATIONS: ClassificationConfig[] = [
     name: '개인카드',
     description: '개인카드 사용 - 영수증 제출 필요',
     icon: 'card',
-    color: '#3B82F6',
+    color: colors.classification.personalCard,
     requiresSubmission: true,
   },
   {
@@ -47,7 +48,7 @@ export const CLASSIFICATIONS: ClassificationConfig[] = [
     name: '증명',
     description: '증빙 서류 (의료 세부내역서 등)',
     icon: 'document-text',
-    color: '#8B5CF6',
+    color: colors.classification.proofDocument,
     requiresSubmission: true,
   },
 ];

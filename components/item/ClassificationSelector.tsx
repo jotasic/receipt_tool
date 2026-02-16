@@ -1,7 +1,9 @@
-import { View, Text, TouchableOpacity, ScrollView, useColorScheme } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ItemClassification } from '@/types/shared';
 import { CLASSIFICATIONS } from '@/constants/items';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { colors } from '@/design-system/tokens/colors';
 
 interface ClassificationSelectorProps {
   selectedClassification?: ItemClassification;
@@ -12,7 +14,8 @@ export function ClassificationSelector({
   selectedClassification,
   onSelect,
 }: ClassificationSelectorProps) {
-  const colorScheme = useColorScheme();
+  const borderColor = useThemeColor(colors.light.border, colors.dark.border);
+  const bgColor = useThemeColor(colors.light.surface, colors.dark.surface);
 
   return (
     <View className="w-full">
@@ -42,10 +45,10 @@ export function ClassificationSelector({
                 min-w-[110px]
               `}
               style={{
-                borderColor: isSelected ? classification.color : (colorScheme === 'dark' ? '#374151' : '#E5E7EB'),
+                borderColor: isSelected ? classification.color : borderColor,
                 backgroundColor: isSelected
                   ? `${classification.color}15`
-                  : (colorScheme === 'dark' ? '#1F2937' : '#FFFFFF'),
+                  : bgColor,
               }}
               activeOpacity={0.7}
               accessibilityRole="button"

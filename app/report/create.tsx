@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ScrollView, Alert, useColorScheme } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Input, Button, Card, Header } from '@/components/common';
+import { Input, Button, Card } from '@/components/common';
+import { ScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { useReportStore } from '@/store/reportStore';
 import { createReportWithItems } from '@/services/report';
@@ -114,10 +114,8 @@ export default function CreateReportScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-        <Header title="리포트 생성" showBack />
-
-      <ScrollView className="flex-1 p-4">
+      <ScreenLayout title="리포트 생성" showHeader showBack scrollable={false}>
+        <ScrollView className="flex-1 p-4">
         {/* 제목 입력 */}
         <Input
           label="리포트 제목"
@@ -171,7 +169,7 @@ export default function CreateReportScreen() {
           disabled={selectedIds.length === 0}
         />
       </View>
-      </SafeAreaView>
+      </ScreenLayout>
     </>
   );
 }

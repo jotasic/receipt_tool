@@ -1,6 +1,7 @@
 import { Modal, View, Text, TouchableOpacity, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { colors } from '@/design-system/tokens/colors';
 
 interface BottomSheetOption {
   label: string;
@@ -36,7 +37,7 @@ interface BottomSheetProps {
  * />
  */
 export function BottomSheet({ visible, onClose, title, options }: BottomSheetProps) {
-  const colorScheme = useColorScheme();
+  const iconColor = useThemeColor(colors.light.text.primary, colors.dark.text.primary);
 
   return (
     <Modal
@@ -80,13 +81,7 @@ export function BottomSheet({ visible, onClose, title, options }: BottomSheetPro
                     <Ionicons
                       name={option.icon}
                       size={24}
-                      color={
-                        option.destructive
-                          ? '#EF4444'
-                          : colorScheme === 'dark'
-                          ? '#F9FAFB'
-                          : '#111827'
-                      }
+                      color={option.destructive ? colors.error : iconColor}
                       style={{ marginRight: 12 }}
                     />
                   )}

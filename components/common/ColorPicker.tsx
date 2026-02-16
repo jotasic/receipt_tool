@@ -6,16 +6,18 @@
 
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { colors } from '@/design-system/tokens/colors';
 
 // Predefined color palette (same as tags)
 export const COLORS = [
-  { name: 'Red', value: '#EF4444' },
-  { name: 'Amber', value: '#F59E0B' },
-  { name: 'Green', value: '#10B981' },
-  { name: 'Blue', value: '#3B82F6' },
+  { name: 'Red', value: colors.error },
+  { name: 'Amber', value: colors.warning },
+  { name: 'Green', value: colors.success },
+  { name: 'Blue', value: colors.primary },
   { name: 'Purple', value: '#8B5CF6' },
   { name: 'Pink', value: '#EC4899' },
-  { name: 'Gray', value: '#6B7280' },
+  { name: 'Gray', value: colors.secondary },
   { name: 'Teal', value: '#14B8A6' },
   { name: 'Orange', value: '#F97316' },
   { name: 'Cyan', value: '#06B6D4' },
@@ -32,6 +34,8 @@ export function ColorPicker({
   onColorSelect,
   label = '색상',
 }: ColorPickerProps) {
+  const borderColor = useThemeColor(colors.light.text.primary, colors.dark.text.primary);
+
   return (
     <View>
       <Text className="text-gray-700 text-base font-medium mb-2">
@@ -46,12 +50,12 @@ export function ColorPicker({
             style={{
               backgroundColor: color.value,
               borderWidth: selectedColor === color.value ? 3 : 0,
-              borderColor: '#111827',
+              borderColor: borderColor,
             }}
             activeOpacity={0.7}
           >
             {selectedColor === color.value && (
-              <Ionicons name="checkmark" size={24} color="#FFFFFF" />
+              <Ionicons name="checkmark" size={24} color={colors.light.surface} />
             )}
           </TouchableOpacity>
         ))}

@@ -1,8 +1,8 @@
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Card, Header } from '@/components/common';
+import { Card } from '@/components/common';
+import { TabScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { isExpense } from '@/types/item';
 import { CLASSIFICATIONS, getClassificationConfig } from '@/constants/items';
@@ -70,9 +70,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
-      <Header title="대시보드" />
-
+    <TabScreenLayout title="대시보드" scrollable={false}>
       <ScrollView
         className="flex-1"
         refreshControl={
@@ -234,6 +232,6 @@ export default function HomeScreen() {
       >
         <Ionicons name="add" size={32} color="#ffffff" />
       </TouchableOpacity>
-    </SafeAreaView>
+    </TabScreenLayout>
   );
 }

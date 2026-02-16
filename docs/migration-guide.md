@@ -444,22 +444,19 @@ const combined = [...receipts, ...documents];
 const items = await searchItems(query);
 ```
 
-## 현재 상태
+## 마이그레이션 완료
 
-### 완료
+모든 마이그레이션이 완료되었습니다:
+
 - ✅ 데이터베이스 스키마 통합 (items 테이블)
 - ✅ itemService 구현
 - ✅ itemStore 구현
 - ✅ Item 기본 UI (ItemCard, ItemForm)
+- ✅ Report UI를 Item 기반으로 전환
+- ✅ 레거시 Store 제거 (receiptStore, documentStore)
+- ✅ UsagePurpose 동적 관리 서비스 구현
+- ✅ UsagePurpose 관리 UI 구현 (`/app/settings/usage-purposes.tsx`)
 - ✅ 마이그레이션 스크립트
-
-### 진행 중
-- ⚠️ Report UI를 Item 기반으로 전환
-- ⚠️ 레거시 Store 제거 (receiptStore, documentStore)
-
-### 미구현
-- ❌ UsagePurpose 동적 관리 서비스
-- ❌ UsagePurpose 관리 UI
 
 ## 호환성
 
@@ -486,12 +483,6 @@ await migrateToUnifiedModel(db);
 
 기존 데이터는 items 테이블로 복사되며, 레거시 테이블은 유지됩니다.
 
-## 다음 단계
-
-1. **Report UI 전환** - `/app/report/create.tsx`를 Item 기반으로 수정
-2. **레거시 Store 제거** - receiptStore, documentStore 삭제
-3. **UsagePurpose 서비스 구현** - 동적 용도 관리
-4. **레거시 테이블 제거 검토** - 마이그레이션 안정화 후
 
 ## Category System Migration
 
@@ -570,6 +561,6 @@ When creating new items, always use `usagePurpose` instead of categories.
 
 ## 참고 문서
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - 현재 아키텍처
-- [API.md](./API.md) - Item API 레퍼런스
+- [architecture.md](/docs/architecture.md) - 현재 아키텍처
+- [services.md](/docs/services.md) - Item 서비스 레퍼런스
 - `/services/database/migrations/` - 마이그레이션 스크립트

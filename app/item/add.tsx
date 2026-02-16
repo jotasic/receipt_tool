@@ -17,11 +17,10 @@
  * - imageUri (optional): Pre-captured image URI for OCR processing
  */
 
-import { View, Alert } from 'react-native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { Alert } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ItemForm } from '@/components/item';
-import { ScreenLayout } from '@/design-system/layouts';
 import { createItem } from '@/services/database/itemService';
 import { setTagsForItem } from '@/services/database/tagService';
 import { setItemCustomValues } from '@/services/database/customFieldService';
@@ -215,15 +214,10 @@ export default function ItemAddScreen() {
   };
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <ScreenLayout title="항목 추가" showHeader showBack scrollable={false}>
-        <ItemForm
-          imageUri={imageUri}
-          onSubmit={handleSubmit}
-          onCancel={() => router.back()}
-        />
-      </ScreenLayout>
-    </>
+    <ItemForm
+      imageUri={imageUri}
+      onSubmit={handleSubmit}
+      onCancel={() => router.back()}
+    />
   );
 }

@@ -238,10 +238,10 @@ export default function ReportDetailScreen() {
       {/* Floating Action Buttons (only for draft) */}
       {report.status === 'draft' && (
         <FloatingActionBar
+          compact
           actions={[
             {
               icon: 'trash-outline',
-              label: isDeleting ? '삭제 중...' : '삭제',
               onPress: handleDelete,
               disabled: isDeleting || isSubmitting,
               loading: isDeleting,
@@ -249,7 +249,6 @@ export default function ReportDetailScreen() {
             },
             {
               icon: 'paper-plane-outline',
-              label: '제출',
               onPress: handleSubmit,
               disabled: isDeleting,
               loading: isSubmitting,

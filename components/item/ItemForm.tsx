@@ -67,6 +67,7 @@ export function ItemForm({
   onSubmit,
   onCancel,
 }: ItemFormProps) {
+  const modalTitle = initialData ? '항목 수정' : '항목 추가';
   // Form state
   const [classification, setClassification] = useState<ItemClassification>(
     initialData?.classification || 'corporate_card'
@@ -476,17 +477,30 @@ export function ItemForm({
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1"
-      keyboardVerticalOffset={0}
+    <FullScreenModal
+      visible={true}
+      onClose={onCancel || (() => {})}
+      title={modalTitle}
+      bottomButtons={[
+        {
+          label: isSaving ? '저장 중...' : initialData ? '수정' : '저장',
+          onPress: handleSubmit,
+          variant: 'primary',
+          disabled: isSaving || isOcrLoading,
+          loading: isSaving,
+        },
+      ]}
     >
-      <ScrollView
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
-        contentContainerStyle={{ padding: 16 }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+        keyboardVerticalOffset={0}
       >
+        <ScrollView
+          className="flex-1 px-4"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
         {/* Classification Selector */}
         <View className="mb-6">
           <Text className="text-gray-700 dark:text-gray-200 text-base font-medium mb-3">
@@ -760,26 +774,8 @@ export function ItemForm({
             ))}
           </View>
         )}
-      </ScrollView>
-
-      {/* Action Buttons */}
-      <View className="p-4 border-t border-gray-200 dark:border-gray-700 gap-2">
-        <Button
-          title={isSaving ? '저장 중...' : '저장'}
-          onPress={handleSubmit}
-          variant="primary"
-          disabled={isSaving || isOcrLoading}
-          loading={isSaving}
-        />
-        {onCancel && (
-          <Button
-            title="취소"
-            onPress={onCancel}
-            variant="outline"
-            disabled={isSaving}
-          />
-        )}
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Image Picker BottomSheet */}
       <BottomSheet
@@ -870,6 +866,6 @@ export function ItemForm({
           )}
         </View>
       </FullScreenModal>
-    </KeyboardAvoidingView>
+    </FullScreenModal>
   );
 }

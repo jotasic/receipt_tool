@@ -21,11 +21,10 @@
 
 import { useState, useEffect } from 'react';
 import { View, Text, Alert, ActivityIndicator } from 'react-native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ItemForm } from '@/components/item';
-import { ScreenLayout } from '@/design-system/layouts';
 import { getItemById, updateItem } from '@/services/database/itemService';
 import { getTagsForItem, setTagsForItem } from '@/services/database/tagService';
 import { getItemCustomValues, setItemCustomValues } from '@/services/database/customFieldService';
@@ -308,30 +307,20 @@ export default function ItemEditScreen() {
   // Loading state
   if (isLoading) {
     return (
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <ScreenLayout title="항목 편집" showHeader showBack>
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#2563EB" />
-            <Text className="mt-4 text-gray-500">항목 불러오는 중...</Text>
-          </View>
-        </ScreenLayout>
-      </>
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
+        <ActivityIndicator size="large" color="#2563EB" />
+        <Text className="mt-4 text-gray-500 dark:text-gray-400">항목 불러오는 중...</Text>
+      </View>
     );
   }
 
   // Item not found state
   if (!item) {
     return (
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <ScreenLayout title="항목 편집" showHeader showBack>
-          <View className="flex-1 items-center justify-center">
-            <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
-            <Text className="mt-4 text-gray-500">항목을 찾을 수 없습니다</Text>
-          </View>
-        </ScreenLayout>
-      </>
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
+        <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
+        <Text className="mt-4 text-gray-500 dark:text-gray-400">항목을 찾을 수 없습니다</Text>
+      </View>
     );
   }
 
@@ -362,15 +351,10 @@ export default function ItemEditScreen() {
   };
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <ScreenLayout title="항목 편집" showHeader showBack scrollable={false}>
-        <ItemForm
-          initialData={initialData}
-          onSubmit={handleSubmit}
-          onCancel={() => router.back()}
-        />
-      </ScreenLayout>
-    </>
+    <ItemForm
+      initialData={initialData}
+      onSubmit={handleSubmit}
+      onCancel={() => router.back()}
+    />
   );
 }

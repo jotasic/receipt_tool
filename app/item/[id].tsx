@@ -332,16 +332,15 @@ export default function ItemDetailScreen() {
 
       {/* Floating Action Buttons */}
       <FloatingActionBar
+        compact
         actions={[
           {
             icon: 'create-outline',
-            label: '편집',
             onPress: handleEdit,
             disabled: isDeleting,
           },
           {
             icon: 'trash-outline',
-            label: isDeleting ? '삭제 중...' : '삭제',
             onPress: handleDelete,
             disabled: isDeleting,
             loading: isDeleting,

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Header } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
 import {
   getMonthlyItems,
@@ -147,9 +148,11 @@ export default function ReportsScreen() {
   };
 
   return (
-    <TabScreenContent>
-      <Stack.Screen options={{ headerShown: false }} />
-      <FlatList
+    <>
+      <Header title="정산" />
+      <TabScreenContent>
+        <Stack.Screen options={{ headerShown: false }} />
+        <FlatList
         className="flex-1 bg-white dark:bg-gray-900"
           data={monthsData}
           keyExtractor={(item) => `${item.year}-${item.month}`}
@@ -169,7 +172,8 @@ export default function ReportsScreen() {
               </Text>
             </View>
           }
-        />
-    </TabScreenContent>
+          />
+      </TabScreenContent>
+    </>
   );
 }

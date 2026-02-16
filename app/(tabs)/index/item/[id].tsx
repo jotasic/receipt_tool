@@ -8,10 +8,10 @@ import {
   ActivityIndicator,
   useColorScheme,
 } from 'react-native';
-import { router, useLocalSearchParams, Stack } from 'expo-router';
+import { router, useLocalSearchParams, Stack, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
-import { ClassificationBadge, UsagePurposeBadge, TagBadge, FloatingActionBar } from '@/components/common';
+import { ClassificationBadge, UsagePurposeBadge, TagBadge, FloatingActionBar, Header } from '@/components/common';
 import { ItemForm } from '@/components/item';
 import { useItemStore } from '@/store/itemStore';
 import { getItemById, updateItem, deleteItem } from '@/services/database/itemService';
@@ -32,6 +32,27 @@ export default function ItemDetailScreen() {
   const updateItemInStore = useItemStore((state) => state.updateItem);
   const deleteItemFromStore = useItemStore((state) => state.deleteItem);
   const colorScheme = useColorScheme();
+  const navigation = useNavigation();
+
+  // Hide tab bar when this screen is focused
+  useEffect(() => {
+    const parent = navigation.getParent();
+    if (parent) {
+      parent.setOptions({ tabBarStyle: { display: 'none' } });
+    }
+
+    return () => {
+      if (parent) {
+        parent.setOptions({
+          tabBarStyle: {
+            paddingBottom: 8,
+            paddingTop: 8,
+            height: 68,
+          },
+        });
+      }
+    };
+  }, [navigation]);
 
   useEffect(() => {
     loadItem();
@@ -247,6 +268,7 @@ export default function ItemDetailScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
+        <Header title="항목 상세" showBack />
         <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
           <ActivityIndicator size="large" color="#2563EB" />
           <Text className="mt-4 text-gray-500 dark:text-gray-400">항목 불러오는 중...</Text>
@@ -268,6 +290,7 @@ export default function ItemDetailScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
+      <Header title="항목 상세" showBack />
       <ScrollView className="flex-1 bg-white dark:bg-gray-900" contentContainerStyle={{ paddingBottom: 100 }}>
         <View className="p-4">
           {/* Item Image */}

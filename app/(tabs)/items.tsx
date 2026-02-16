@@ -12,7 +12,7 @@ import {
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ItemCard, ItemForm } from '@/components/item';
-import { MonthSelector, SelectableChip } from '@/components/common';
+import { MonthSelector, SelectableChip, Header } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { CLASSIFICATIONS } from '@/constants/items';
@@ -425,16 +425,18 @@ export default function ItemsScreen() {
   }
 
   return (
-    <TabScreenContent
-      floatingActions={[
-        {
-          icon: 'add',
-          onPress: handleAddItem,
-          variant: 'primary',
-        },
-      ]}
-    >
-      <FlatList
+    <>
+      <Header title="증빙" />
+      <TabScreenContent
+        floatingActions={[
+          {
+            icon: 'add',
+            onPress: handleAddItem,
+            variant: 'primary',
+          },
+        ]}
+      >
+        <FlatList
         className="flex-1 bg-white dark:bg-gray-900"
           data={filteredItems}
           renderItem={renderItem}
@@ -453,12 +455,13 @@ export default function ItemsScreen() {
           showsVerticalScrollIndicator={false}
         />
 
-      {showAddModal && (
-        <ItemForm
-          onSubmit={handleCreateItem}
-          onCancel={() => setShowAddModal(false)}
-        />
-      )}
-    </TabScreenContent>
+        {showAddModal && (
+          <ItemForm
+            onSubmit={handleCreateItem}
+            onCancel={() => setShowAddModal(false)}
+          />
+        )}
+      </TabScreenContent>
+    </>
   );
 }

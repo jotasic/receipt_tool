@@ -8,7 +8,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { Calendar, Card } from '@/components/common';
+import { Calendar, Card, Header } from '@/components/common';
 import { ItemCard } from '@/components/item/ItemCard';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
@@ -68,8 +68,10 @@ export default function CalendarScreen() {
   };
 
   return (
-    <TabScreenContent>
-      <ScrollView className="flex-1 bg-white dark:bg-gray-900">
+    <>
+      <Header title="달력" />
+      <TabScreenContent>
+        <ScrollView className="flex-1 bg-white dark:bg-gray-900">
         {/* Calendar */}
         <View className="p-4">
           <Calendar
@@ -151,7 +153,8 @@ export default function CalendarScreen() {
             </Card>
           </View>
         )}
-      </ScrollView>
-    </TabScreenContent>
+        </ScrollView>
+      </TabScreenContent>
+    </>
   );
 }

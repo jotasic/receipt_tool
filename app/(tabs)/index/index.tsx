@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator, Alert } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Card } from '@/components/common';
+import { Card, Header } from '@/components/common';
 import { ItemForm } from '@/components/item';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
@@ -107,8 +107,10 @@ export default function HomeScreen() {
   };
 
   return (
-    <TabScreenContent>
-      <ScrollView
+    <>
+      <Header title="대시보드" />
+      <TabScreenContent>
+        <ScrollView
         className="flex-1 bg-white dark:bg-gray-900"
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={loadItems} />
@@ -225,12 +227,13 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      {showAddModal && (
-        <ItemForm
-          onSubmit={handleCreateItem}
-          onCancel={() => setShowAddModal(false)}
-        />
-      )}
-    </TabScreenContent>
+        {showAddModal && (
+          <ItemForm
+            onSubmit={handleCreateItem}
+            onCancel={() => setShowAddModal(false)}
+          />
+        )}
+      </TabScreenContent>
+    </>
   );
 }

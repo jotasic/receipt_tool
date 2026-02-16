@@ -51,7 +51,7 @@ export function FloatingActionBar({ actions }: FloatingActionBarProps) {
     <View
       className="absolute right-4 flex-col-reverse gap-3"
       style={{
-        bottom: insets.bottom + 16,
+        bottom: insets.bottom,
       }}
     >
       {actions.map((action, index) => {

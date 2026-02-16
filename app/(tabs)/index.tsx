@@ -2,9 +2,10 @@ import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndic
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '@/components/common';
+import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { isExpense } from '@/types/item';
-import { CLASSIFICATIONS, getClassificationConfig } from '@/constants/items';
+import { CLASSIFICATIONS } from '@/constants/items';
 import { useCallback, useMemo } from 'react';
 
 export default function HomeScreen() {
@@ -69,12 +70,21 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-white dark:bg-gray-900"
-      refreshControl={
-        <RefreshControl refreshing={isLoading} onRefresh={loadItems} />
-      }
+    <TabScreenContent
+      floatingActions={[
+        {
+          icon: 'add',
+          onPress: handleAddItem,
+          variant: 'primary',
+        },
+      ]}
     >
+      <ScrollView
+        className="flex-1 bg-white dark:bg-gray-900"
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={loadItems} />
+        }
+      >
         {/* Monthly Expense Summary Card */}
         <View className="px-6 pt-4 pb-6">
           <Card className="bg-gradient-to-br">
@@ -185,5 +195,6 @@ export default function HomeScreen() {
           </View>
         )}
       </ScrollView>
+    </TabScreenContent>
   );
 }

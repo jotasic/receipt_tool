@@ -6,4 +6,5 @@
 
 export { ScreenLayout } from './ScreenLayout';
 export { TabScreenLayout } from './TabScreenLayout';
+export { TabScreenContent } from './TabScreenContent';
 export { ModalLayout } from './ModalLayout';

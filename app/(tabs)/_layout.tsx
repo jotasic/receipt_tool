@@ -41,8 +41,9 @@ export default function TabLayout() {
   };
 
   // Get FloatingActionBar actions based on current route
+  // NOTE: 홈 화면은 TabScreenContent에서 직접 관리 (탭바 겹침 방지)
   const getFloatingActions = () => {
-    if (pathname === '/' || pathname === '/(tabs)' || pathname === '/items' || pathname === '/(tabs)/items') {
+    if (pathname === '/items' || pathname === '/(tabs)/items') {
       return [
         {
           icon: 'add' as const,
@@ -51,7 +52,7 @@ export default function TabLayout() {
         },
       ];
     }
-    // No FloatingActionBar for reports, calendar, settings
+    // No FloatingActionBar for home, reports, calendar, settings (home은 TabScreenContent에서 관리)
     return undefined;
   };
 

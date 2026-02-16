@@ -19,17 +19,14 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Modal,
   TextInput,
   Switch,
-  useColorScheme,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { Input, Button } from '@/components/common';
+import { Input, Button, FullScreenModal } from '@/components/common';
 import { ScreenLayout } from '@/design-system/layouts';
 import { IconPicker } from '@/components/common/IconPicker';
 import { ColorPicker, COLORS } from '@/components/common/ColorPicker';
@@ -62,7 +59,6 @@ export default function UsagePurposeManagementScreen() {
   const [purposeColor, setPurposeColor] = useState(COLORS[0].value);
   const [purposeActive, setPurposeActive] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const colorScheme = useColorScheme();
 
   // Load usage purposes when screen is focused
   useFocusEffect(
@@ -346,30 +342,22 @@ export default function UsagePurposeManagementScreen() {
     onClose: () => void,
     onSave: () => void
   ) => (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top', 'bottom']}>
-        {/* Header */}
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <TouchableOpacity
-            onPress={onClose}
-            className="w-10 h-10 items-center justify-center"
-            disabled={isSaving}
-          >
-            <Ionicons name="close" size={24} color={colorScheme === 'dark' ? '#F9FAFB' : '#111827'} />
-          </TouchableOpacity>
-          <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {isEdit ? '사용처 수정' : '새 사용처'}
-          </Text>
-          <View className="w-10" />
-        </View>
-
-        {/* Form */}
-        <ScrollView className="flex-1 p-4">
+    <>
+      <FullScreenModal
+        visible={visible}
+        onClose={onClose}
+        title={isEdit ? '사용처 수정' : '새 사용처'}
+        bottomButtons={[
+          {
+            label: isSaving ? '저장 중...' : isEdit ? '수정' : '생성',
+            onPress: onSave,
+            variant: 'primary',
+            disabled: isSaving,
+            loading: isSaving,
+          },
+        ]}
+      >
+        <View className="p-4">
           <Input
             label="사용처 이름 (한글)"
             placeholder="예: 식대, 교통비, 의료비"
@@ -465,19 +453,8 @@ export default function UsagePurposeManagementScreen() {
               </View>
             </View>
           </View>
-        </ScrollView>
-
-        {/* Action buttons */}
-        <View className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <Button
-            title={isSaving ? '저장 중...' : isEdit ? '수정' : '생성'}
-            onPress={onSave}
-            variant="primary"
-            disabled={isSaving}
-            loading={isSaving}
-          />
         </View>
-      </SafeAreaView>
+      </FullScreenModal>
 
       {/* Icon picker modal */}
       <IconPicker
@@ -486,7 +463,7 @@ export default function UsagePurposeManagementScreen() {
         onIconSelect={setPurposeIcon}
         onClose={() => setShowIconPicker(false)}
       />
-    </Modal>
+    </>
   );
 
   return (

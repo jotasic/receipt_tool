@@ -26,12 +26,10 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Modal,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { Input, Button, BottomSheet } from '@/components/common';
+import { Input, Button, BottomSheet, FullScreenModal } from '@/components/common';
 import { ClassificationSelector } from './ClassificationSelector';
 import { UsagePurposeSelector } from './UsagePurposeSelector';
 import { TagSelector } from './TagSelector';
@@ -803,41 +801,27 @@ export function ItemForm({
       />
 
       {/* OCR Text Selection Overlay Modal */}
-      <Modal
+      <FullScreenModal
         visible={showOcrOverlay}
-        animationType="slide"
-        onRequestClose={() => setShowOcrOverlay(false)}
+        onClose={() => setShowOcrOverlay(false)}
+        title="텍스트 영역 선택"
+        rightButton={{
+          label: '완료',
+          onPress: () => setShowOcrOverlay(false),
+        }}
+        scrollable={false}
       >
-        <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
-          {/* Header */}
-          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <TouchableOpacity
-              onPress={() => setShowOcrOverlay(false)}
-              className="w-10 h-10 items-center justify-center"
-            >
-              <Ionicons name="close" size={24} color="{colors.light.text.primary}" />
-            </TouchableOpacity>
-            <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              텍스트 영역 선택
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowOcrOverlay(false)}
-              className="px-3 py-1"
-            >
-              <Text className="text-blue-600 font-medium">완료</Text>
-            </TouchableOpacity>
-          </View>
-
+        <View className="flex-1">
           {/* Instructions */}
-          <View className="px-4 py-2 bg-blue-50">
-            <Text className="text-sm text-blue-700 text-center">
+          <View className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30">
+            <Text className="text-sm text-blue-700 dark:text-blue-400 text-center">
               박스를 탭하여 상호명, 금액, 날짜를 선택하세요
             </Text>
           </View>
 
           {/* Selected items display */}
           {selectedItems.length > 0 && (
-            <View className="flex-row px-4 py-2 gap-2 bg-gray-50">
+            <View className="flex-row px-4 py-2 gap-2 bg-gray-50 dark:bg-gray-800">
               {selectedItems.map((item) => (
                 <View
                   key={item.lineIndex}
@@ -884,8 +868,8 @@ export function ItemForm({
               onDeselectItem={handleDeselectItem}
             />
           )}
-        </SafeAreaView>
-      </Modal>
+        </View>
+      </FullScreenModal>
     </KeyboardAvoidingView>
   );
 }

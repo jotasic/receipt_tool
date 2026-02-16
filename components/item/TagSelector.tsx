@@ -15,13 +15,11 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Modal,
   Alert,
   ActivityIndicator,
-  useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Input, Button } from '@/components/common';
+import { Input, Button, FullScreenModal } from '@/components/common';
 import { getTags, createTag } from '@/services/database/tagService';
 import type { Tag } from '@/types/tag';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
@@ -55,9 +53,7 @@ export function TagSelector({
   onTagsChange,
   label = '태그',
 }: TagSelectorProps) {
-  const colorScheme = useColorScheme();
   const addIconColor = useThemeColor(colors.light.text.secondary, colors.dark.text.muted);
-  const closeIconColor = useThemeColor(colors.light.text.primary, colors.dark.text.primary);
   const borderColorForCheckmark = useThemeColor(colors.light.text.primary, colors.dark.text.primary);
   const emptyStateIconColor = useThemeColor(colors.light.text.muted, colors.dark.text.secondary);
 
@@ -196,34 +192,17 @@ export function TagSelector({
       </View>
 
       {/* Tag selection modal */}
-      <Modal
+      <FullScreenModal
         visible={showModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowModal(false)}
+        onClose={() => setShowModal(false)}
+        title="태그 선택"
+        rightButton={{
+          label: '완료',
+          onPress: () => setShowModal(false),
+        }}
+        scrollable={false}
       >
-        <View className="flex-1 bg-white dark:bg-gray-900">
-          {/* Header */}
-          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <TouchableOpacity
-              onPress={() => setShowModal(false)}
-              className="w-10 h-10 items-center justify-center"
-            >
-              <Ionicons name="close" size={24} color={closeIconColor} />
-            </TouchableOpacity>
-            <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              태그 선택
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowModal(false)}
-              className="px-3 py-1"
-            >
-              <Text className="text-blue-600 font-medium">완료</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Content */}
-          <View className="flex-1">
+        <View className="flex-1">
             {/* Create new tag section */}
             {isCreatingTag ? (
               <View className="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -361,8 +340,7 @@ export function TagSelector({
               </ScrollView>
             )}
           </View>
-        </View>
-      </Modal>
+      </FullScreenModal>
     </View>
   );
 }

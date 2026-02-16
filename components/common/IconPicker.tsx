@@ -8,14 +8,13 @@ import { useState } from 'react';
 import {
   View,
   Text,
-  Modal,
   ScrollView,
   TouchableOpacity,
   TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/design-system/tokens/colors';
+import { FullScreenModal } from './FullScreenModal';
 
 // Common icons for usage purposes and tags
 const COMMON_ICONS = [
@@ -130,41 +129,28 @@ export function IconPicker({
   };
 
   return (
-    <Modal
+    <FullScreenModal
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onClose={onClose}
+      title="아이콘 선택"
+      scrollable={false}
     >
-      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-        {/* Header */}
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
-          <Text className="text-lg font-semibold text-gray-900">
-            아이콘 선택
-          </Text>
-          <TouchableOpacity
-            onPress={onClose}
-            className="w-10 h-10 items-center justify-center"
-          >
-            <Ionicons name="close" size={24} color={colors.light.text.primary} />
-          </TouchableOpacity>
-        </View>
-
+      <View className="flex-1">
         {/* Search bar */}
-        <View className="px-4 py-3 border-b border-gray-200">
-          <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
-            <Ionicons name="search" size={20} color={colors.light.text.secondary} />
+        <View className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <View className="flex-row items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
+            <Ionicons name="search" size={20} color={colors.secondary} />
             <TextInput
-              className="flex-1 ml-2 text-base text-gray-900"
+              className="flex-1 ml-2 text-base text-gray-900 dark:text-gray-100"
               placeholder="아이콘 검색"
-              placeholderTextColor={colors.light.text.muted}
+              placeholderTextColor="#9CA3AF"
               value={searchQuery}
               onChangeText={setSearchQuery}
               autoCapitalize="none"
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={20} color={colors.light.text.secondary} />
+                <Ionicons name="close-circle" size={20} color={colors.secondary} />
               </TouchableOpacity>
             )}
           </View>
@@ -197,8 +183,8 @@ export function IconPicker({
 
           {filteredIcons.length === 0 && (
             <View className="items-center justify-center py-12">
-              <Ionicons name="search" size={48} color={colors.light.text.muted} />
-              <Text className="mt-4 text-gray-500">
+              <Ionicons name="search" size={48} color="#D1D5DB" />
+              <Text className="mt-4 text-gray-500 dark:text-gray-400">
                 검색 결과가 없습니다
               </Text>
             </View>
@@ -207,17 +193,17 @@ export function IconPicker({
 
         {/* Selected icon preview */}
         {selectedIcon && (
-          <View className="px-4 py-3 border-t border-gray-200 bg-gray-50">
-            <Text className="text-sm text-gray-600 mb-2">선택된 아이콘</Text>
+          <View className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <Text className="text-sm text-gray-600 dark:text-gray-400 mb-2">선택된 아이콘</Text>
             <View className="flex-row items-center">
-              <View className="w-12 h-12 bg-blue-50 rounded-lg items-center justify-center mr-3">
+              <View className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-lg items-center justify-center mr-3">
                 <Ionicons name={selectedIcon as any} size={24} color={colors.primary} />
               </View>
-              <Text className="text-base text-gray-900">{selectedIcon}</Text>
+              <Text className="text-base text-gray-900 dark:text-gray-100">{selectedIcon}</Text>
             </View>
           </View>
         )}
-      </SafeAreaView>
-    </Modal>
+      </View>
+    </FullScreenModal>
   );
 }

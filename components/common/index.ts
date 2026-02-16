@@ -11,3 +11,4 @@ export { ClassificationBadge } from './ClassificationBadge';
 export { UsagePurposeBadge } from './UsagePurposeBadge';
 export { TagBadge } from './TagBadge';
 export { SelectableChip } from './SelectableChip';
+export { FullScreenModal } from './FullScreenModal';

@@ -18,16 +18,8 @@ import { useItemStore } from '@/store/itemStore';
 import { getItemById, deleteItem } from '@/services/database/itemService';
 import { getTagsForItem } from '@/services/database/tagService';
 import { getItemCustomValues } from '@/services/database/customFieldService';
+import { getClassificationConfig } from '@/constants/items';
 import type { Item, ItemClassification, UsagePurpose } from '@/types/item';
-
-const CLASSIFICATION_INFO: Record<
-  ItemClassification,
-  { name: string; icon: keyof typeof Ionicons.glyphMap; color: string }
-> = {
-  personal_card: { name: '개인카드', icon: 'card', color: '#EF4444' },
-  corporate_card: { name: '법인카드', icon: 'business', color: '#3B82F6' },
-  proof_document: { name: '증명서류', icon: 'document-text', color: '#8B5CF6' },
-};
 
 const USAGE_PURPOSE_INFO: Record<
   UsagePurpose,
@@ -186,10 +178,14 @@ export default function ItemDetailScreen() {
     return null;
   }
 
-  const classificationInfo = CLASSIFICATION_INFO[item.classification];
+  const classificationConfig = getClassificationConfig(item.classification);
   const usagePurposeInfo = USAGE_PURPOSE_INFO[item.usagePurpose];
   const createdDate = new Date(item.createdAt);
   const updatedDate = new Date(item.updatedAt);
+
+  if (!classificationConfig) {
+    return null;
+  }
 
   return (
     <>
@@ -228,14 +224,14 @@ export default function ItemDetailScreen() {
         <View className="mb-4 flex-row gap-2 flex-wrap">
           <View
             className="px-4 py-2 rounded-full flex-row items-center"
-            style={{ backgroundColor: `${classificationInfo.color}20` }}
+            style={{ backgroundColor: `${classificationConfig.color}20` }}
           >
-            <Ionicons name={classificationInfo.icon} size={20} color={classificationInfo.color} />
+            <Ionicons name={classificationConfig.icon as any} size={20} color={classificationConfig.color} />
             <Text
               className="text-base font-semibold ml-2"
-              style={{ color: classificationInfo.color }}
+              style={{ color: classificationConfig.color }}
             >
-              {classificationInfo.name}
+              {classificationConfig.name}
             </Text>
           </View>
 

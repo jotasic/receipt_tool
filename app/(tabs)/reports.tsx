@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
 import { Header } from '@/components/common';
 import { MonthSelector } from '@/components/common/MonthSelector';
+import { getClassificationConfig } from '@/constants/items';
 import type { Item } from '@/types/item';
 import {
   getMonthlyItems,
@@ -23,59 +24,69 @@ import {
 import type { MonthlySummary } from '@/services/export/types';
 
 function SummaryCard({ summary }: { summary: MonthlySummary }) {
+  const corporateCardConfig = getClassificationConfig('corporate_card');
+  const personalCardConfig = getClassificationConfig('personal_card');
+  const proofDocumentConfig = getClassificationConfig('proof_document');
+
   return (
     <View className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-4 border border-gray-100 dark:border-gray-700">
       <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
         월별 요약
       </Text>
 
-      {/* Personal Card */}
-      <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
-        <View className="flex-row items-center">
-          <View className="w-3 h-3 rounded-full bg-blue-500 mr-2" />
-          <Text className="text-sm text-gray-700 dark:text-gray-300">개인카드</Text>
-        </View>
-        <View className="items-end">
-          <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
-            {summary.personalCard.totalAmount.toLocaleString('ko-KR')}원
-          </Text>
-          <Text className="text-xs text-gray-500 dark:text-gray-400">
-            {summary.personalCard.count}건
-          </Text>
-        </View>
-      </View>
-
       {/* Corporate Card */}
-      <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
-        <View className="flex-row items-center">
-          <View className="w-3 h-3 rounded-full bg-green-500 mr-2" />
-          <Text className="text-sm text-gray-700 dark:text-gray-300">법인카드</Text>
+      {corporateCardConfig && (
+        <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+          <View className="flex-row items-center">
+            <View className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: corporateCardConfig.color }} />
+            <Text className="text-sm text-gray-700 dark:text-gray-300">{corporateCardConfig.name}</Text>
+          </View>
+          <View className="items-end">
+            <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
+              {summary.corporateCard.totalAmount.toLocaleString('ko-KR')}원
+            </Text>
+            <Text className="text-xs text-gray-500 dark:text-gray-400">
+              {summary.corporateCard.count}건
+            </Text>
+          </View>
         </View>
-        <View className="items-end">
-          <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
-            {summary.corporateCard.totalAmount.toLocaleString('ko-KR')}원
-          </Text>
-          <Text className="text-xs text-gray-500 dark:text-gray-400">
-            {summary.corporateCard.count}건
-          </Text>
+      )}
+
+      {/* Personal Card */}
+      {personalCardConfig && (
+        <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+          <View className="flex-row items-center">
+            <View className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: personalCardConfig.color }} />
+            <Text className="text-sm text-gray-700 dark:text-gray-300">{personalCardConfig.name}</Text>
+          </View>
+          <View className="items-end">
+            <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
+              {summary.personalCard.totalAmount.toLocaleString('ko-KR')}원
+            </Text>
+            <Text className="text-xs text-gray-500 dark:text-gray-400">
+              {summary.personalCard.count}건
+            </Text>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Proof Documents */}
-      <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
-        <View className="flex-row items-center">
-          <View className="w-3 h-3 rounded-full bg-purple-500 mr-2" />
-          <Text className="text-sm text-gray-700 dark:text-gray-300">증명서류</Text>
+      {proofDocumentConfig && (
+        <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+          <View className="flex-row items-center">
+            <View className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: proofDocumentConfig.color }} />
+            <Text className="text-sm text-gray-700 dark:text-gray-300">{proofDocumentConfig.name}</Text>
+          </View>
+          <View className="items-end">
+            <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
+              {summary.proofDocument.totalAmount.toLocaleString('ko-KR')}원
+            </Text>
+            <Text className="text-xs text-gray-500 dark:text-gray-400">
+              {summary.proofDocument.count}건
+            </Text>
+          </View>
         </View>
-        <View className="items-end">
-          <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
-            {summary.proofDocument.totalAmount.toLocaleString('ko-KR')}원
-          </Text>
-          <Text className="text-xs text-gray-500 dark:text-gray-400">
-            {summary.proofDocument.count}건
-          </Text>
-        </View>
-      </View>
+      )}
 
       {/* Total */}
       <View className="flex-row justify-between items-center pt-3 mt-1">
@@ -94,31 +105,7 @@ function SummaryCard({ summary }: { summary: MonthlySummary }) {
 }
 
 function ItemCard({ item }: { item: Item }) {
-  const getClassificationColor = () => {
-    switch (item.classification) {
-      case 'personal_card':
-        return 'bg-blue-100 dark:bg-blue-900';
-      case 'corporate_card':
-        return 'bg-green-100 dark:bg-green-900';
-      case 'proof_document':
-        return 'bg-purple-100 dark:bg-purple-900';
-      default:
-        return 'bg-gray-100 dark:bg-gray-700';
-    }
-  };
-
-  const getClassificationLabel = () => {
-    switch (item.classification) {
-      case 'personal_card':
-        return '개인카드';
-      case 'corporate_card':
-        return '법인카드';
-      case 'proof_document':
-        return '증명서류';
-      default:
-        return item.classification;
-    }
-  };
+  const config = getClassificationConfig(item.classification);
 
   return (
     <View className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-2 border border-gray-100 dark:border-gray-700">
@@ -142,11 +129,13 @@ function ItemCard({ item }: { item: Item }) {
 
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
-          <View className={`px-2 py-1 rounded ${getClassificationColor()}`}>
-            <Text className="text-xs font-medium text-gray-700 dark:text-gray-300">
-              {getClassificationLabel()}
-            </Text>
-          </View>
+          {config && (
+            <View className="px-2 py-1 rounded" style={{ backgroundColor: `${config.color}20` }}>
+              <Text className="text-xs font-medium" style={{ color: config.color }}>
+                {config.name}
+              </Text>
+            </View>
+          )}
           <Text className="text-xs text-gray-500 dark:text-gray-400">
             {item.usagePurpose}
           </Text>

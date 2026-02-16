@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Card, Header } from '@/components/common';
 import { useItemStore } from '@/store/itemStore';
 import { isExpense } from '@/types/item';
+import { CLASSIFICATIONS, getClassificationConfig } from '@/constants/items';
 import { useCallback, useMemo } from 'react';
 
 export default function HomeScreen() {
@@ -113,98 +114,58 @@ export default function HomeScreen() {
           </Text>
 
           <View className="gap-3">
-            {/* Personal Card */}
-            <TouchableOpacity
-              onPress={() => router.push('/(tabs)/items?classification=personal_card')}
-              activeOpacity={0.7}
-            >
-              <Card>
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center flex-1">
-                    <View className="bg-blue-100 dark:bg-blue-900/30 rounded-full p-3 mr-3">
-                      <Ionicons name="card-outline" size={24} color="#2563eb" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                        개인카드
-                      </Text>
-                      <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {stats.personalCard.count}건 · {formatCurrency(stats.personalCard.total)}
-                      </Text>
-                    </View>
-                  </View>
-                  {stats.personalCard.count > 0 && (
-                    <View className="bg-blue-600 rounded-full px-3 py-1">
-                      <Text className="text-white text-xs font-semibold">
-                        {stats.personalCard.count}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </Card>
-            </TouchableOpacity>
+            {/* Render classification cards in order from CLASSIFICATIONS */}
+            {CLASSIFICATIONS.map((classification) => {
+              // Map snake_case to camelCase for stats object
+              const statsKeyMap: Record<string, 'personalCard' | 'corporateCard' | 'proofDocument'> = {
+                'personal_card': 'personalCard',
+                'corporate_card': 'corporateCard',
+                'proof_document': 'proofDocument',
+              };
+              const statsKey = statsKeyMap[classification.id];
+              const stat = stats[statsKey];
+              const count = stat.count;
+              const total = 'total' in stat ? stat.total : undefined;
 
-            {/* Corporate Card */}
-            <TouchableOpacity
-              onPress={() => router.push('/(tabs)/items?classification=corporate_card')}
-              activeOpacity={0.7}
-            >
-              <Card>
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center flex-1">
-                    <View className="bg-purple-100 dark:bg-purple-900/30 rounded-full p-3 mr-3">
-                      <Ionicons name="business-outline" size={24} color="#7c3aed" />
+              return (
+                <TouchableOpacity
+                  key={classification.id}
+                  onPress={() => router.push(`/(tabs)/items?classification=${classification.id}`)}
+                  activeOpacity={0.7}
+                >
+                  <Card>
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-row items-center flex-1">
+                        <View
+                          className="rounded-full p-3 mr-3"
+                          style={{ backgroundColor: `${classification.color}20` }}
+                        >
+                          <Ionicons name={classification.icon as any} size={24} color={classification.color} />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                            {classification.name}
+                          </Text>
+                          <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {count}건{total !== undefined ? ` · ${formatCurrency(total)}` : ''}
+                          </Text>
+                        </View>
+                      </View>
+                      {count > 0 && (
+                        <View
+                          className="rounded-full px-3 py-1"
+                          style={{ backgroundColor: classification.color }}
+                        >
+                          <Text className="text-white text-xs font-semibold">
+                            {count}
+                          </Text>
+                        </View>
+                      )}
                     </View>
-                    <View className="flex-1">
-                      <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                        법인카드
-                      </Text>
-                      <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {stats.corporateCard.count}건 · {formatCurrency(stats.corporateCard.total)}
-                      </Text>
-                    </View>
-                  </View>
-                  {stats.corporateCard.count > 0 && (
-                    <View className="bg-purple-600 rounded-full px-3 py-1">
-                      <Text className="text-white text-xs font-semibold">
-                        {stats.corporateCard.count}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </Card>
-            </TouchableOpacity>
-
-            {/* Proof Document */}
-            <TouchableOpacity
-              onPress={() => router.push('/(tabs)/items?classification=proof_document')}
-              activeOpacity={0.7}
-            >
-              <Card>
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center flex-1">
-                    <View className="bg-green-100 dark:bg-green-900/30 rounded-full p-3 mr-3">
-                      <Ionicons name="document-text-outline" size={24} color="#059669" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                        증명서류
-                      </Text>
-                      <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {stats.proofDocument.count}건
-                      </Text>
-                    </View>
-                  </View>
-                  {stats.proofDocument.count > 0 && (
-                    <View className="bg-green-600 rounded-full px-3 py-1">
-                      <Text className="text-white text-xs font-semibold">
-                        {stats.proofDocument.count}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </Card>
-            </TouchableOpacity>
+                  </Card>
+                </TouchableOpacity>
+              );
+            })}
 
             {/* Reports */}
             <TouchableOpacity

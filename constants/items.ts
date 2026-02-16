@@ -27,20 +27,20 @@ export const USAGE_PURPOSES: UsagePurposeConfig[] = [
  */
 export const CLASSIFICATIONS: ClassificationConfig[] = [
   {
-    id: 'personal_card',
-    name: '개인카드',
-    description: '개인카드 사용 - 영수증 제출 필요',
-    icon: 'card',
-    color: '#3B82F6',
-    requiresSubmission: true,
-  },
-  {
     id: 'corporate_card',
     name: '법인카드',
     description: '법인카드 사용 - 기록용',
     icon: 'business',
     color: '#10B981',
     requiresSubmission: false,
+  },
+  {
+    id: 'personal_card',
+    name: '개인카드',
+    description: '개인카드 사용 - 영수증 제출 필요',
+    icon: 'card',
+    color: '#3B82F6',
+    requiresSubmission: true,
   },
   {
     id: 'proof_document',

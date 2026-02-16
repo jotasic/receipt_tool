@@ -13,23 +13,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { Calendar, Card, Header } from '@/components/common';
 import { useItemStore } from '@/store/itemStore';
 import { isExpense } from '@/types/item';
+import { getClassificationConfig } from '@/constants/items';
 import type { Item, ItemClassification } from '@/types/item';
 
 function formatCurrency(amount: number): string {
   return `₩${amount.toLocaleString()}`;
 }
-
-const CLASSIFICATION_ICONS: Record<ItemClassification, keyof typeof Ionicons.glyphMap> = {
-  personal_card: 'card',
-  corporate_card: 'business',
-  proof_document: 'document-text',
-};
-
-const CLASSIFICATION_NAMES: Record<ItemClassification, string> = {
-  personal_card: '개인',
-  corporate_card: '법인',
-  proof_document: '증명',
-};
 
 export default function CalendarScreen() {
   const { items, loadItems } = useItemStore();
@@ -133,55 +122,53 @@ export default function CalendarScreen() {
         {selectedDate && selectedDateItems.length > 0 && (
           <View className="px-4 pb-4">
             <Text className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">항목 목록</Text>
-            {selectedDateItems.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                onPress={() => router.push(`/item/${item.id}`)}
-                className="flex-row items-center bg-white dark:bg-gray-800 p-4 rounded-lg mb-2 border border-gray-100 dark:border-gray-700"
-                activeOpacity={0.7}
-              >
-                <View className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg items-center justify-center mr-3">
-                  <Ionicons
-                    name={CLASSIFICATION_ICONS[item.classification]}
-                    size={20}
-                    color="#6B7280"
-                  />
-                </View>
-                <View className="flex-1">
-                  <Text className="font-medium text-gray-900 dark:text-gray-100" numberOfLines={1}>
-                    {item.storeName || item.title}
-                  </Text>
-                  <View className="flex-row items-center mt-1">
-                    <View
-                      className={`px-2 py-0.5 rounded ${
-                        item.classification === 'corporate_card'
-                          ? 'bg-blue-100 dark:bg-blue-900/30'
-                          : item.classification === 'personal_card'
-                          ? 'bg-red-100 dark:bg-red-900/30'
-                          : 'bg-purple-100 dark:bg-purple-900/30'
-                      }`}
-                    >
-                      <Text
-                        className={`text-xs ${
-                          item.classification === 'corporate_card'
-                            ? 'text-blue-700 dark:text-blue-400'
-                            : item.classification === 'personal_card'
-                            ? 'text-red-700 dark:text-red-400'
-                            : 'text-purple-700 dark:text-purple-400'
-                        }`}
+            {selectedDateItems.map((item) => {
+              const config = getClassificationConfig(item.classification);
+              if (!config) return null;
+
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => router.push(`/item/${item.id}`)}
+                  className="flex-row items-center bg-white dark:bg-gray-800 p-4 rounded-lg mb-2 border border-gray-100 dark:border-gray-700"
+                  activeOpacity={0.7}
+                >
+                  <View
+                    className="w-10 h-10 rounded-lg items-center justify-center mr-3"
+                    style={{ backgroundColor: `${config.color}20` }}
+                  >
+                    <Ionicons
+                      name={config.icon as any}
+                      size={20}
+                      color={config.color}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-medium text-gray-900 dark:text-gray-100" numberOfLines={1}>
+                      {item.storeName || item.title}
+                    </Text>
+                    <View className="flex-row items-center mt-1">
+                      <View
+                        className="px-2 py-0.5 rounded"
+                        style={{ backgroundColor: `${config.color}20` }}
                       >
-                        {CLASSIFICATION_NAMES[item.classification]}
-                      </Text>
+                        <Text
+                          className="text-xs font-medium"
+                          style={{ color: config.color }}
+                        >
+                          {config.name}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
-                {item.amount !== undefined && item.amount !== null && (
-                  <Text className="font-bold text-gray-900 dark:text-gray-100">
-                    {formatCurrency(item.amount)}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            ))}
+                  {item.amount !== undefined && item.amount !== null && (
+                    <Text className="font-bold text-gray-900 dark:text-gray-100">
+                      {formatCurrency(item.amount)}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
 

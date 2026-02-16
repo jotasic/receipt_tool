@@ -210,7 +210,9 @@ const fontWeight = tokens.fontWeight.semibold; // '600'
 **선택 기준**
 1. 탭 바가 보이는 1depth 화면? → `TabScreenLayout`
 2. 새 화면으로 이동? (router.push) → `ScreenLayout`
-3. 현재 화면 위에서 액션? (추가/수정/삭제) → `Modal + ModalLayout`
+3. 현재 화면 위에서 액션? → 폼 복잡도 확인:
+   - 간단 폼 (2-3개 필드) + 목록 연관 → `Modal + ModalLayout`
+   - 복잡 폼 (5개 이상 필드) + 독립 작업 → `ScreenLayout`
 
 ```typescript
 import { ScreenLayout, TabScreenLayout, ModalLayout } from '@/design-system/layouts';

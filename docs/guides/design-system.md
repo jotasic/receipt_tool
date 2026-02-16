@@ -213,15 +213,26 @@ export function ItemCard() {
 - **실제 depth 이동** (새 화면) → `ScreenLayout`
 - **탭 바가 있는 1depth 화면** → `TabScreenLayout`
 
+#### 폼 복잡도 기준
+
+| 기준 | Modal + ModalLayout | ScreenLayout |
+|------|---------------------|--------------|
+| **폼 복잡도** | 간단 (2-3개 필드) | 복잡 (5개 이상 필드) |
+| **컨텍스트** | 현재 목록과 직접 연관 | 독립적 작업 흐름 |
+| **화면 크기** | 일부 (모달) | 전체 (몰입 필요) |
+| **예시** | 태그 추가, 사용처 추가 | 항목 추가, 리포트 생성 |
+
 #### 선택 기준 예시
 
 | 화면 유형 | 레이아웃 | 이유 |
 |----------|---------|------|
 | 홈 탭, 증빙 탭 | TabScreenLayout | 탭 바 표시, 1depth |
 | 항목 상세 보기 | ScreenLayout | 새 화면으로 이동 |
-| 항목 추가 폼 | Modal + ModalLayout | 목록 위 폼, depth 이동 아님 |
-| 항목 수정 폼 | Modal + ModalLayout | 목록 위 폼, depth 이동 아님 |
+| 항목 추가 폼 | ScreenLayout | 5개 이상 필드, 독립적 작업 |
+| 항목 수정 폼 | ScreenLayout | 5개 이상 필드, 독립적 작업 |
 | 항목 삭제 확인 | Modal + ModalLayout | 현재 화면의 액션 |
+| 태그 추가 | Modal + ModalLayout | 2-3개 필드, 목록 연관 |
+| 사용처 추가 | Modal + ModalLayout | 2-3개 필드, 목록 연관 |
 
 ### ScreenLayout - 기본 화면 레이아웃
 

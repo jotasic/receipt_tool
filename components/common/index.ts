@@ -5,3 +5,4 @@ export { Calendar } from './Calendar';
 export { IconPicker } from './IconPicker';
 export { ColorPicker, COLORS } from './ColorPicker';
 export { Header } from './Header';
+export { BottomSheet } from './BottomSheet';

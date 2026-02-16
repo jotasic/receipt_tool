@@ -31,7 +31,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { Input, Button } from '@/components/common';
+import { Input, Button, BottomSheet } from '@/components/common';
 import { ClassificationSelector } from './ClassificationSelector';
 import { UsagePurposeSelector } from './UsagePurposeSelector';
 import { TagSelector } from './TagSelector';
@@ -110,6 +110,9 @@ export function ItemForm({
   const [ocrBlocks, setOcrBlocks] = useState<OcrBlock[]>([]);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
+
+  // BottomSheet state
+  const [showImagePicker, setShowImagePicker] = useState(false);
 
   // Dynamic field visibility based on classification
   const showAmount = classification !== 'proof_document';
@@ -565,43 +568,23 @@ export function ItemForm({
               )}
             </View>
           ) : (
-            <View className="flex-row gap-3">
-              <TouchableOpacity
-                onPress={takePhoto}
-                disabled={isLoadingImage}
-                className="flex-1 py-4 bg-blue-50 border-2 border-blue-200 border-dashed rounded-lg items-center justify-center"
-                activeOpacity={0.7}
-              >
-                {isLoadingImage ? (
-                  <ActivityIndicator size="small" color="#2563EB" />
-                ) : (
-                  <>
-                    <Ionicons name="camera" size={32} color="#2563EB" />
-                    <Text className="text-blue-600 font-medium mt-2">
-                      카메라
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={pickImage}
-                disabled={isLoadingImage}
-                className="flex-1 py-4 bg-blue-50 border-2 border-blue-200 border-dashed rounded-lg items-center justify-center"
-                activeOpacity={0.7}
-              >
-                {isLoadingImage ? (
-                  <ActivityIndicator size="small" color="#2563EB" />
-                ) : (
-                  <>
-                    <Ionicons name="images" size={32} color="#2563EB" />
-                    <Text className="text-blue-600 font-medium mt-2">
-                      갤러리
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              onPress={() => setShowImagePicker(true)}
+              disabled={isLoadingImage}
+              className="py-4 bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-700 border-dashed rounded-lg items-center justify-center"
+              activeOpacity={0.7}
+            >
+              {isLoadingImage ? (
+                <ActivityIndicator size="small" color="#2563EB" />
+              ) : (
+                <>
+                  <Ionicons name="camera-outline" size={32} color="#2563EB" />
+                  <Text className="text-blue-600 dark:text-blue-400 font-medium mt-2">
+                    사진 등록
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
           )}
         </View>
 
@@ -798,6 +781,25 @@ export function ItemForm({
           />
         )}
       </View>
+
+      {/* Image Picker BottomSheet */}
+      <BottomSheet
+        visible={showImagePicker}
+        onClose={() => setShowImagePicker(false)}
+        title="사진 등록"
+        options={[
+          {
+            label: '사진 찍기',
+            icon: 'camera',
+            onPress: takePhoto,
+          },
+          {
+            label: '갤러리에서 선택',
+            icon: 'images',
+            onPress: pickImage,
+          },
+        ]}
+      />
 
       {/* OCR Text Selection Overlay Modal */}
       <Modal

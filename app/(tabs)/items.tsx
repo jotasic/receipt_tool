@@ -13,6 +13,7 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ItemCard, ItemForm } from '@/components/item';
 import { MonthSelector, SelectableChip } from '@/components/common';
+import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { CLASSIFICATIONS } from '@/constants/items';
 import type { Item, ItemClassification, UsagePurpose, Tag, CreateItemInput } from '@/types';
@@ -424,7 +425,15 @@ export default function ItemsScreen() {
   }
 
   return (
-    <>
+    <TabScreenContent
+      floatingActions={[
+        {
+          icon: 'add',
+          onPress: handleAddItem,
+          variant: 'primary',
+        },
+      ]}
+    >
       <FlatList
         className="flex-1 bg-white dark:bg-gray-900"
           data={filteredItems}
@@ -450,6 +459,6 @@ export default function ItemsScreen() {
           onCancel={() => setShowAddModal(false)}
         />
       )}
-    </>
+    </TabScreenContent>
   );
 }

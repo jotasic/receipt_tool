@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { Appearance } from 'react-native';
+import { TabScreenContent } from '@/design-system/layouts';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useItemStore } from '@/store/itemStore';
 import { getDatabase } from '@/services/database';
@@ -274,7 +275,8 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-gray-900">
+    <TabScreenContent>
+      <ScrollView className="flex-1 bg-white dark:bg-gray-900">
         {/* Loading overlay */}
         {isClearing && (
           <View className="absolute inset-0 bg-black/30 items-center justify-center z-50">
@@ -401,5 +403,6 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
+    </TabScreenContent>
   );
 }

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { TabScreenContent } from '@/design-system/layouts';
 import {
   getMonthlyItems,
   calculateMonthlySummary,
@@ -146,7 +147,7 @@ export default function ReportsScreen() {
   };
 
   return (
-    <>
+    <TabScreenContent>
       <Stack.Screen options={{ headerShown: false }} />
       <FlatList
         className="flex-1 bg-white dark:bg-gray-900"
@@ -169,6 +170,6 @@ export default function ReportsScreen() {
             </View>
           }
         />
-    </>
+    </TabScreenContent>
   );
 }

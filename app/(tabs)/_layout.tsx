@@ -1,11 +1,11 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs, usePathname, router } from 'expo-router';
+import { Tabs, usePathname } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
-import { Header, FloatingActionBar } from '@/components/common';
+import { Header } from '@/components/common';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -38,22 +38,6 @@ export default function TabLayout() {
       case '/(tabs)/settings': return '설정';
       default: return '홈';
     }
-  };
-
-  // Get FloatingActionBar actions based on current route
-  // NOTE: 홈 화면은 TabScreenContent에서 직접 관리 (탭바 겹침 방지)
-  const getFloatingActions = () => {
-    if (pathname === '/items' || pathname === '/(tabs)/items') {
-      return [
-        {
-          icon: 'add' as const,
-          onPress: () => router.push('/item/add'),
-          variant: 'primary' as const,
-        },
-      ];
-    }
-    // No FloatingActionBar for home, reports, calendar, settings (home은 TabScreenContent에서 관리)
-    return undefined;
   };
 
   // Calculate bottom padding for devices with or without safe area
@@ -125,11 +109,6 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-
-      {/* Floating Action Bar (route-based) */}
-      {getFloatingActions() && (
-        <FloatingActionBar actions={getFloatingActions()!} />
-      )}
     </SafeAreaView>
   );
 }

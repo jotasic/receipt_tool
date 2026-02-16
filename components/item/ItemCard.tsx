@@ -2,18 +2,19 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Item } from '@/types/item';
-import { CLASSIFICATIONS, USAGE_PURPOSES, getClassificationConfig, getUsagePurposeConfig } from '@/constants/items';
+import { getClassificationConfig } from '@/constants/items';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { colors } from '@/design-system/tokens/colors';
+import { ClassificationBadge, UsagePurposeBadge } from '@/components/common';
 
 interface ItemCardProps {
   item: Item;
   onPress?: (item: Item) => void;
+  showDate?: boolean;
 }
 
-export function ItemCard({ item, onPress }: ItemCardProps) {
+export function ItemCard({ item, onPress, showDate = true }: ItemCardProps) {
   const classificationConfig = getClassificationConfig(item.classification);
-  const usagePurposeConfig = getUsagePurposeConfig(item.usagePurpose);
   const chevronColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
   const defaultColor = useThemeColor(colors.light.text.secondary, colors.dark.text.secondary);
 
@@ -89,48 +90,19 @@ export function ItemCard({ item, onPress }: ItemCardProps) {
 
       {/* Middle Row: Classification Badge, Usage Purpose Badge */}
       <View className="flex-row items-center mt-2 ml-13">
-        {/* Classification Badge */}
-        <View
-          className="px-2 py-1 rounded-full"
-          style={{ backgroundColor: `${classificationConfig?.color || defaultColor}15` }}
-        >
-          <Text
-            className="text-xs font-medium"
-            style={{ color: classificationConfig?.color || defaultColor }}
-          >
-            {classificationConfig?.name || item.classification}
-          </Text>
-        </View>
-
-        {/* Separator */}
+        <ClassificationBadge classification={item.classification} showIcon={false} />
         <Text className="text-gray-400 mx-2 text-xs">•</Text>
-
-        {/* Usage Purpose Badge */}
-        <View
-          className="px-2 py-1 rounded-full flex-row items-center"
-          style={{ backgroundColor: `${usagePurposeConfig?.color || colors.usagePurpose.other}15` }}
-        >
-          <Ionicons
-            name={usagePurposeConfig?.icon as keyof typeof Ionicons.glyphMap || 'ellipsis-horizontal'}
-            size={12}
-            color={usagePurposeConfig?.color || colors.usagePurpose.other}
-            style={{ marginRight: 4 }}
-          />
-          <Text
-            className="text-xs font-medium"
-            style={{ color: usagePurposeConfig?.color || colors.usagePurpose.other }}
-          >
-            {usagePurposeConfig?.name || item.usagePurpose}
-          </Text>
-        </View>
+        <UsagePurposeBadge usagePurpose={item.usagePurpose} />
       </View>
 
       {/* Bottom Row: Date, Chevron */}
       <View className="flex-row items-center justify-between mt-2 ml-13">
         {/* Date */}
-        <Text className="text-sm text-gray-500 dark:text-gray-400">
-          {formatDate(item.date)}
-        </Text>
+        {showDate && (
+          <Text className="text-sm text-gray-500 dark:text-gray-400">
+            {formatDate(item.date)}
+          </Text>
+        )}
 
         {/* Chevron */}
         <Ionicons name="chevron-forward" size={18} color={chevronColor} />

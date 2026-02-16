@@ -12,22 +12,14 @@ import {
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
-import { Button } from '@/components/common';
+import { Button, ClassificationBadge, UsagePurposeBadge, TagBadge } from '@/components/common';
 import { ScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { getItemById, deleteItem } from '@/services/database/itemService';
 import { getTagsForItem } from '@/services/database/tagService';
 import { getItemCustomValues } from '@/services/database/customFieldService';
 import { getClassificationConfig } from '@/constants/items';
-import type { Item, ItemClassification, UsagePurpose } from '@/types/item';
-
-const USAGE_PURPOSE_INFO: Record<
-  UsagePurpose,
-  { name: string; icon: keyof typeof Ionicons.glyphMap; color: string }
-> = {
-  meal: { name: '식대', icon: 'restaurant', color: '#F59E0B' },
-  other: { name: '기타', icon: 'ellipsis-horizontal', color: '#6B7280' },
-};
+import type { Item } from '@/types/item';
 
 export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -179,7 +171,6 @@ export default function ItemDetailScreen() {
   }
 
   const classificationConfig = getClassificationConfig(item.classification);
-  const usagePurposeInfo = USAGE_PURPOSE_INFO[item.usagePurpose];
   const createdDate = new Date(item.createdAt);
   const updatedDate = new Date(item.updatedAt);
 
@@ -220,31 +211,8 @@ export default function ItemDetailScreen() {
 
         {/* Classification and Usage Purpose Badges */}
         <View className="mb-4 flex-row gap-2 flex-wrap">
-          <View
-            className="px-4 py-2 rounded-full flex-row items-center"
-            style={{ backgroundColor: `${classificationConfig.color}20` }}
-          >
-            <Ionicons name={classificationConfig.icon as any} size={20} color={classificationConfig.color} />
-            <Text
-              className="text-base font-semibold ml-2"
-              style={{ color: classificationConfig.color }}
-            >
-              {classificationConfig.name}
-            </Text>
-          </View>
-
-          <View
-            className="px-4 py-2 rounded-full flex-row items-center"
-            style={{ backgroundColor: `${usagePurposeInfo.color}20` }}
-          >
-            <Ionicons name={usagePurposeInfo.icon} size={20} color={usagePurposeInfo.color} />
-            <Text
-              className="text-base font-semibold ml-2"
-              style={{ color: usagePurposeInfo.color }}
-            >
-              {usagePurposeInfo.name}
-            </Text>
-          </View>
+          <ClassificationBadge classification={item.classification} variant="large" />
+          <UsagePurposeBadge usagePurpose={item.usagePurpose} variant="large" />
         </View>
 
         {/* Title */}
@@ -260,15 +228,7 @@ export default function ItemDetailScreen() {
             <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">태그</Text>
             <View className="flex-row flex-wrap gap-2">
               {item.tags.map((tag) => (
-                <View
-                  key={tag.id}
-                  className="px-3 py-1.5 rounded-full"
-                  style={{ backgroundColor: tag.color + '20' }}
-                >
-                  <Text style={{ color: tag.color }} className="text-sm font-medium">
-                    {tag.name}
-                  </Text>
-                </View>
+                <TagBadge key={tag.id} tag={tag} />
               ))}
             </View>
           </View>

@@ -181,6 +181,48 @@ npx tsc --noEmit
 - 파일명: kebab-case 또는 camelCase
 - 스타일: NativeWind (Tailwind CSS)
 
+### 컴포넌트 재사용 원칙 (필수)
+
+**규칙: 2개 이상 페이지에서 사용되는 UI는 반드시 공통 컴포넌트로 추출**
+
+#### 강제 사항
+
+- ✅ **DO**: 동일한 UI 패턴이 2곳 이상에서 발견되면 즉시 공통 컴포넌트로 추출
+- ❌ **DON'T**: 복사-붙여넣기로 중복 구현 금지
+- ❌ **DON'T**: "나중에 통일하자"는 접근 금지 (기술 부채 누적)
+
+#### 공통 컴포넌트 위치
+
+```
+/components/common/     ← 범용 컴포넌트 (Button, Card, Badge 등)
+/components/item/       ← Item 도메인 전용 컴포넌트
+/components/*/          ← 도메인별 전용 컴포넌트
+```
+
+#### 예시: Badge 컴포넌트
+
+```typescript
+// ✅ 좋은 예: 공통 컴포넌트 사용
+import { ClassificationBadge, UsagePurposeBadge, TagBadge } from '@/components/common';
+
+<ClassificationBadge classification="corporate_card" variant="large" />
+<UsagePurposeBadge usagePurpose="meal" showIcon />
+<TagBadge tag={tag} showRemove onRemove={handleRemove} />
+
+// ❌ 나쁜 예: 하드코딩
+<View style={{ backgroundColor: config.color + '20' }}>
+  <Text style={{ color: config.color }}>{config.name}</Text>
+</View>
+```
+
+#### 체크리스트
+
+새 UI를 구현할 때:
+1. 이미 존재하는 컴포넌트가 있는지 확인 (`/components/common/`)
+2. 비슷한 UI가 다른 화면에 있는지 검색 (Grep 활용)
+3. 2곳 이상에서 사용될 가능성이 있으면 바로 컴포넌트로 추출
+4. `components/common/index.ts`에 export 추가
+
 ---
 
 ## 디자인 시스템

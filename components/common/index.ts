@@ -7,3 +7,6 @@ export { IconPicker } from './IconPicker';
 export { ColorPicker, COLORS } from './ColorPicker';
 export { Header } from './Header';
 export { BottomSheet } from './BottomSheet';
+export { ClassificationBadge } from './ClassificationBadge';
+export { UsagePurposeBadge } from './UsagePurposeBadge';
+export { TagBadge } from './TagBadge';

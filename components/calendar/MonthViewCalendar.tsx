@@ -6,7 +6,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { ScrollView, useColorScheme } from 'react-native';
+import { View, useColorScheme } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import type { Item } from '@/types/item';
 import { getCalendarTheme, koreanLocaleConfig } from '@/constants/calendarTheme';
@@ -52,7 +52,7 @@ export function MonthViewCalendar({
   const today = new Date().toISOString().split('T')[0];
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-gray-900">
+    <View className="flex-1 bg-white dark:bg-gray-900 p-4">
       <Calendar
         current={currentMonth}
         theme={theme}
@@ -85,8 +85,10 @@ export function MonthViewCalendar({
           console.log('Month changed:', month.dateString);
         }}
         // 기타 설정
-        enableSwipeMonths={true}
-        hideExtraDays={false}
+        firstDay={0} // 일요일 시작
+        enableSwipeMonths={true} // 좌우 스와이프로 월 이동
+        hideExtraDays={false} // 이전/다음 달 날짜도 표시
+        monthFormat="M월" // 월 형식
         // 스타일
         style={{
           borderWidth: 1,
@@ -94,6 +96,6 @@ export function MonthViewCalendar({
           borderRadius: 8,
         }}
       />
-    </ScrollView>
+    </View>
   );
 }

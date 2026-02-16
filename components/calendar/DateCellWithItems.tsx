@@ -47,12 +47,13 @@ export function DateCellWithItems({
     <TouchableOpacity
       onPress={onPress}
       disabled={isDisabled}
-      className="flex-1 border-r border-b border-gray-200 dark:border-gray-700 p-1 min-h-[80px]"
+      activeOpacity={0.7}
+      className="flex-1 border-r border-b border-gray-200 dark:border-gray-700 p-2 min-h-[100px]"
     >
       {/* 날짜 숫자 */}
-      <View className="flex-row justify-between items-start mb-1">
+      <View className="flex-row justify-between items-start mb-1.5">
         <Text
-          className={`text-sm font-medium ${
+          className={`text-base font-semibold ${
             isToday
               ? 'text-blue-500 dark:text-blue-400'
               : isDisabled
@@ -65,20 +66,20 @@ export function DateCellWithItems({
 
         {/* 오늘 표시 */}
         {isToday && (
-          <View className="bg-blue-500 dark:bg-blue-600 rounded-full w-1.5 h-1.5" />
+          <View className="bg-blue-500 dark:bg-blue-600 rounded-full w-2 h-2" />
         )}
       </View>
 
       {/* 증빙 미리보기 */}
       {hasItems && !isDisabled && (
-        <View className="flex-1 gap-0.5">
+        <View className="flex-1 gap-1">
           {visibleItems.map((item) => (
             <View
               key={item.id}
-              className="bg-blue-50 dark:bg-blue-900/30 rounded px-1 py-0.5"
+              className="bg-blue-50 dark:bg-blue-900/40 rounded-md px-1.5 py-1"
             >
               <Text
-                className="text-xs text-gray-700 dark:text-gray-300"
+                className="text-xs text-gray-800 dark:text-gray-200"
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
@@ -98,8 +99,8 @@ export function DateCellWithItems({
 
       {/* 증빙 개수 배지 (증빙이 많을 때) */}
       {hasItems && items.length > 2 && !isDisabled && (
-        <View className="absolute bottom-1 right-1 bg-blue-500 dark:bg-blue-600 rounded-full w-5 h-5 items-center justify-center">
-          <Text className="text-xs text-white font-medium">
+        <View className="absolute bottom-1.5 right-1.5 bg-blue-500 dark:bg-blue-600 rounded-full w-6 h-6 items-center justify-center">
+          <Text className="text-xs text-white font-semibold">
             {items.length}
           </Text>
         </View>

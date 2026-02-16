@@ -34,6 +34,10 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     await db.execAsync('PRAGMA foreign_keys = ON;');
     console.log('Foreign key constraints enabled');
 
+    // Enable WAL mode for better performance (official Expo SQLite best practice)
+    await db.execAsync('PRAGMA journal_mode = WAL;');
+    console.log('WAL mode enabled for better performance');
+
     // Create tables in dependency order
     // Core tables
     await db.execAsync(SCHEMA.categories);

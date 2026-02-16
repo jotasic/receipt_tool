@@ -7,7 +7,6 @@
 
 import { View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
 export interface FloatingAction {
@@ -23,7 +22,6 @@ interface FloatingActionBarProps {
 }
 
 export function FloatingActionBar({ actions }: FloatingActionBarProps) {
-  const insets = useSafeAreaInsets();
   const defaultIconColor = useThemeColor('#374151', '#D1D5DB');
   const dangerIconColor = useThemeColor('#DC2626', '#F87171');
 
@@ -51,7 +49,7 @@ export function FloatingActionBar({ actions }: FloatingActionBarProps) {
     <View
       className="absolute right-4 flex-col-reverse gap-3"
       style={{
-        bottom: insets.bottom,
+        bottom: 16,
       }}
     >
       {actions.map((action, index) => {

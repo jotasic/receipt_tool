@@ -6,15 +6,13 @@
  */
 
 import { useState, useMemo, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, ScrollView } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { Calendar, Card } from '@/components/common';
+import { ItemCard } from '@/components/item/ItemCard';
 import { TabScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { isExpense } from '@/types/item';
-import { getClassificationConfig } from '@/constants/items';
-import type { Item, ItemClassification } from '@/types/item';
 
 function formatCurrency(amount: number): string {
   return `₩${amount.toLocaleString()}`;
@@ -120,53 +118,9 @@ export default function CalendarScreen() {
         {selectedDate && selectedDateItems.length > 0 && (
           <View className="px-4 pb-4">
             <Text className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">항목 목록</Text>
-            {selectedDateItems.map((item) => {
-              const config = getClassificationConfig(item.classification);
-              if (!config) return null;
-
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  onPress={() => router.push(`/item/${item.id}`)}
-                  className="flex-row items-center bg-white dark:bg-gray-800 p-4 rounded-lg mb-2 border border-gray-100 dark:border-gray-700"
-                  activeOpacity={0.7}
-                >
-                  <View
-                    className="w-10 h-10 rounded-lg items-center justify-center mr-3"
-                    style={{ backgroundColor: `${config.color}20` }}
-                  >
-                    <Ionicons
-                      name={config.icon as any}
-                      size={20}
-                      color={config.color}
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="font-medium text-gray-900 dark:text-gray-100" numberOfLines={1}>
-                      {item.storeName || item.title}
-                    </Text>
-                    <View className="flex-row items-center mt-1">
-                      <View
-                        className="px-2 py-0.5 rounded"
-                        style={{ backgroundColor: `${config.color}20` }}
-                      >
-                        <Text
-                          className="text-xs font-medium"
-                          style={{ color: config.color }}
-                        >
-                          {config.name}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                  {item.amount !== undefined && item.amount !== null && (
-                    <Text className="font-bold text-gray-900 dark:text-gray-100">
-                      {formatCurrency(item.amount)}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
+            {selectedDateItems.map((item) => (
+              <ItemCard key={item.id} item={item} showDate={false} />
+            ))}
           </View>
         )}
 

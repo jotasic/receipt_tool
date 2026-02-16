@@ -298,12 +298,39 @@ Claude: [에이전트 호출하여 구현 시작]
 
 ### 컴포넌트 재사용 원칙 (필수)
 
-**핵심 규칙: 2곳 이상 사용 → 즉시 공통 컴포넌트 추출**
+**핵심 규칙: 동일한 화면/기능은 동일한 컴포넌트 사용**
 
-- ✅ **DO**: 동일 UI 패턴 발견 시 즉시 추출
+#### 1. UI 컴포넌트 재사용
+- ✅ **DO**: 2곳 이상 사용되는 UI는 즉시 공통 컴포넌트 추출
 - ❌ **DON'T**: 복사-붙여넣기, "나중에 통일" 금지
+- **위치**: `/components/common/` (범용), `/components/{domain}/` (도메인 전용)
 
-**위치**: `/components/common/` (범용), `/components/{domain}/` (도메인 전용)
+#### 2. 기능 컴포넌트 통일 (신규)
+- ✅ **DO**: 동일한 기능(추가/수정)은 항상 같은 컴포넌트로 구현
+- ❌ **DON'T**: 화면마다 다른 방식으로 같은 기능 구현
+
+**예시: 항목 추가/수정**
+```typescript
+// ✅ 좋은 예: ItemForm 모달을 모든 곳에서 사용
+// 홈 탭
+{showAddModal && <ItemForm onSubmit={handleCreate} onCancel={...} />}
+
+// 증빙 탭
+{showAddModal && <ItemForm onSubmit={handleCreate} onCancel={...} />}
+
+// 항목 상세
+{showEditModal && <ItemForm initialData={item} onSubmit={handleUpdate} onCancel={...} />}
+
+// ❌ 나쁜 예: 화면마다 다른 방식
+router.push('/item/add')  // 탭 A
+{showModal && <ItemForm />}  // 탭 B
+<ScreenLayout><ItemForm /></ScreenLayout>  // 화면 C
+```
+
+**체크리스트:**
+- [ ] 동일한 기능을 하는 모든 화면에서 같은 컴포넌트 사용
+- [ ] 라우팅 방식이 아닌 상태 기반 모달 방식 사용
+- [ ] 중간 래퍼 화면 생성 금지 (컴포넌트 직접 사용)
 
 상세 가이드는 [Design System Guide](/docs/guides/design-system.md) 참조
 

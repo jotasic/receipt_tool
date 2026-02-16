@@ -12,20 +12,26 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ClassificationBadge, UsagePurposeBadge, TagBadge } from '@/components/common';
+import { ItemForm } from '@/components/item';
 import { ScreenLayout } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
-import { getItemById, deleteItem } from '@/services/database/itemService';
-import { getTagsForItem } from '@/services/database/tagService';
-import { getItemCustomValues } from '@/services/database/customFieldService';
+import { getItemById, deleteItem, updateItem } from '@/services/database/itemService';
+import { getTagsForItem, setTagsForItem } from '@/services/database/tagService';
+import { getItemCustomValues, setItemCustomValues } from '@/services/database/customFieldService';
 import { getClassificationConfig } from '@/constants/items';
-import type { Item } from '@/types/item';
+import type { Item, CreateItemInput } from '@/types/item';
+
+const ITEMS_IMAGES_DIR = FileSystem.documentDirectory + 'items/';
 
 export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [item, setItem] = useState<Item | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const deleteItemFromStore = useItemStore((state) => state.deleteItem);
+  const updateItemInStore = useItemStore((state) => state.updateItem);
   const colorScheme = useColorScheme();
 
   useEffect(() => {
@@ -120,8 +126,99 @@ export default function ItemDetailScreen() {
   };
 
   const handleEdit = () => {
-    if (!id) return;
-    router.push(`/item/edit?id=${id}`);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateItem = async (data: CreateItemInput) => {
+    if (!id || !item) {
+      Alert.alert('오류', '항목 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const oldImagePath = item.filePath;
+    const imageChanged = data.filePath !== oldImagePath;
+    let newImagePath: string | null = null;
+
+    try {
+      // Handle image update if changed
+      if (imageChanged && data.filePath) {
+        // Save new image
+        const dirInfo = await FileSystem.getInfoAsync(ITEMS_IMAGES_DIR);
+        if (!dirInfo.exists) {
+          await FileSystem.makeDirectoryAsync(ITEMS_IMAGES_DIR, { intermediates: true });
+        }
+        const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`;
+        newImagePath = ITEMS_IMAGES_DIR + fileName;
+        await FileSystem.copyAsync({ from: data.filePath, to: newImagePath });
+
+        // Delete old image if exists
+        if (oldImagePath) {
+          try {
+            const fileInfo = await FileSystem.getInfoAsync(oldImagePath);
+            if (fileInfo.exists) {
+              await FileSystem.deleteAsync(oldImagePath);
+            }
+          } catch (error) {
+            console.error('Failed to delete old image:', error);
+          }
+        }
+      }
+
+      // Prepare update data
+      const updateData = {
+        title: data.title,
+        classification: data.classification,
+        usagePurpose: data.usagePurpose,
+        amount: data.amount,
+        date: data.date,
+        storeName: data.storeName,
+        memo: data.memo,
+        ocrText: data.ocrText,
+        filePath: imageChanged ? newImagePath || undefined : oldImagePath,
+        fileType: imageChanged ? data.fileType : item.fileType,
+      };
+
+      // Update in database
+      await updateItem(id, updateData);
+
+      // Save tags if provided
+      if (data.tags !== undefined) {
+        await setTagsForItem(id, data.tags);
+      }
+
+      // Save custom field values if provided
+      if (data.customValues !== undefined) {
+        await setItemCustomValues(id, data.customValues);
+      }
+
+      // Update Zustand store
+      updateItemInStore(id, {
+        ...updateData,
+        updatedAt: new Date().toISOString(),
+      });
+
+      // Reload item to show updated data
+      await loadItem();
+
+      setShowEditModal(false);
+      Alert.alert('성공', '항목이 수정되었습니다.');
+    } catch (error) {
+      console.error('Item update error:', error);
+
+      // Cleanup new image on error
+      if (newImagePath) {
+        try {
+          await FileSystem.deleteAsync(newImagePath, { idempotent: true });
+        } catch (cleanupError) {
+          console.error('Failed to cleanup new image:', cleanupError);
+        }
+      }
+
+      Alert.alert('오류', '항목 수정에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -344,6 +441,30 @@ export default function ItemDetailScreen() {
           )}
         </View>
       </View>
+
+      {showEditModal && item && (
+        <ItemForm
+          initialData={{
+            title: item.title,
+            classification: item.classification,
+            usagePurpose: item.usagePurpose,
+            amount: item.amount,
+            date: item.date,
+            storeName: item.storeName,
+            filePath: item.filePath,
+            fileType: item.fileType,
+            ocrText: item.ocrText,
+            memo: item.memo,
+            tagObjects: item.tags,
+            customValues: item.customValues?.reduce((acc, cv) => {
+              acc[cv.fieldId] = cv.value;
+              return acc;
+            }, {} as Record<string, string | null>),
+          } as any}
+          onSubmit={handleUpdateItem}
+          onCancel={() => setShowEditModal(false)}
+        />
+      )}
     </ScreenLayout>
   );
 }

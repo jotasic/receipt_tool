@@ -70,7 +70,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
-      <Header title="증빙 관리" />
+      <Header title="대시보드" />
 
       <ScrollView
         className="flex-1"

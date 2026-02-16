@@ -400,7 +400,7 @@ export default function ItemsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top', 'left', 'right', 'bottom']}>
-      <Header title="항목 관리" />
+      <Header title="증빙" />
 
       {/* Item List */}
       <FlatList

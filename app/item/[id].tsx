@@ -12,8 +12,7 @@ import {
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
-import { ClassificationBadge, UsagePurposeBadge, TagBadge, FloatingActionBar } from '@/components/common';
-import { ScreenLayout } from '@/design-system/layouts';
+import { ClassificationBadge, UsagePurposeBadge, TagBadge } from '@/components/common';
 import { useItemStore } from '@/store/itemStore';
 import { getItemById, deleteItem } from '@/services/database/itemService';
 import { getTagsForItem } from '@/services/database/tagService';
@@ -156,12 +155,10 @@ export default function ItemDetailScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <ScreenLayout title="항목 상세" showHeader showBack>
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#2563EB" />
-            <Text className="mt-4 text-gray-500">항목 불러오는 중...</Text>
-          </View>
-        </ScreenLayout>
+        <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
+          <ActivityIndicator size="large" color="#2563EB" />
+          <Text className="mt-4 text-gray-500 dark:text-gray-400">항목 불러오는 중...</Text>
+        </View>
       </>
     );
   }
@@ -181,12 +178,11 @@ export default function ItemDetailScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScreenLayout title="항목 상세" showHeader showBack scrollable={false}>
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ padding: 16 }}
-          showsVerticalScrollIndicator={false}
-        >
+      <ScrollView
+        className="flex-1 bg-white dark:bg-gray-900"
+        contentContainerStyle={{ padding: 16 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Item Image */}
         {item.filePath && (
           <View className="mb-6">
@@ -329,25 +325,6 @@ export default function ItemDetailScreen() {
           )}
         </View>
       </ScrollView>
-
-      {/* Floating Action Buttons */}
-      <FloatingActionBar
-        actions={[
-          {
-            icon: 'create-outline',
-            onPress: handleEdit,
-            disabled: isDeleting,
-          },
-          {
-            icon: 'trash-outline',
-            onPress: handleDelete,
-            disabled: isDeleting,
-            loading: isDeleting,
-            variant: 'danger',
-          },
-        ]}
-      />
-      </ScreenLayout>
     </>
   );
 }

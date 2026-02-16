@@ -313,7 +313,9 @@ Claude: [에이전트 호출하여 구현 시작]
 
 ### 핵심 원칙
 
-1. **레이아웃**: 모든 화면은 `ScreenLayout` 사용 (탭 바/뒤로가기 자동 처리)
+1. **레이아웃**: `_layout.tsx`에서만 정의 (Expo Router 공식 패턴)
+   - 화면 파일은 콘텐츠만 반환
+   - Header, SafeAreaView, FloatingActionBar, Stack/Tabs/Slot은 _layout.tsx에서만 사용
 2. **추가/수정**: 무조건 `FullScreenModal` 사용 (하단 버튼 없음, 헤더 아이콘만)
 3. **플로팅 버튼**: `FloatingActionBar` (원형 FAB 스타일, 아이콘만)
 4. **다크모드**: 필수 지원 (`dark:` 클래스 또는 `useThemeColor` 훅)
@@ -322,7 +324,8 @@ Claude: [에이전트 호출하여 구현 시작]
 
 상세한 사용법은 다음 문서를 참고하세요:
 
-- [Layout Policy](/docs/guides/layout-policy.md) - 레이아웃 및 모달 정책 (필독)
+- [Expo Router 레이아웃 가이드](/docs/guides/expo-router-layout.md) - Expo Router 공식 패턴 (필독)
+- [Layout Policy](/docs/guides/layout-policy.md) - 레이아웃 및 모달 정책
 - [Design System Guide](/docs/guides/design-system.md) - 토큰, 훅, 컴포넌트 사용법
 - [Design System Architecture](/docs/architecture/design-system.md) - 구조 및 확장 방법
 

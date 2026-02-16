@@ -12,8 +12,7 @@ import {
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ItemCard, ItemForm } from '@/components/item';
-import { MonthSelector, SelectableChip, FloatingActionBar, FullScreenModal } from '@/components/common';
-import { TabScreenLayout } from '@/design-system/layouts';
+import { MonthSelector, SelectableChip } from '@/components/common';
 import { useItemStore } from '@/store/itemStore';
 import { CLASSIFICATIONS } from '@/constants/items';
 import type { Item, ItemClassification, UsagePurpose, Tag, CreateItemInput } from '@/types';
@@ -417,19 +416,17 @@ export default function ItemsScreen() {
 
   if (isLoading && !isRefreshing) {
     return (
-      <TabScreenLayout title="증빙">
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text className="mt-4 text-gray-500 dark:text-gray-400">항목 불러오는 중...</Text>
-        </View>
-      </TabScreenLayout>
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
+        <ActivityIndicator size="large" color="#2563EB" />
+        <Text className="mt-4 text-gray-500 dark:text-gray-400">항목 불러오는 중...</Text>
+      </View>
     );
   }
 
   return (
     <>
-      <TabScreenLayout title="증빙" scrollable={false}>
-        <FlatList
+      <FlatList
+        className="flex-1 bg-white dark:bg-gray-900"
           data={filteredItems}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
@@ -446,17 +443,6 @@ export default function ItemsScreen() {
           }
           showsVerticalScrollIndicator={false}
         />
-      </TabScreenLayout>
-
-      <FloatingActionBar
-        actions={[
-          {
-            icon: 'add',
-            onPress: handleAddItem,
-            variant: 'primary',
-          },
-        ]}
-      />
 
       {showAddModal && (
         <ItemForm

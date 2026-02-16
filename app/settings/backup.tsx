@@ -9,7 +9,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
-import { ScreenLayout } from '@/design-system/layouts';
 import {
   createBackup,
   shareBackup,
@@ -166,7 +165,7 @@ export default function BackupScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScreenLayout title="백업 및 복원" showHeader showBack>
+      <ScrollView className="flex-1 bg-white dark:bg-gray-900">
         {/* Loading overlay */}
         {isLoading && (
           <View className="absolute inset-0 bg-black/30 items-center justify-center z-50">
@@ -177,7 +176,7 @@ export default function BackupScreen() {
           </View>
         )}
 
-        <ScrollView className="flex-1 p-4">
+        <View className="flex-1 p-4">
           {/* Info Banner */}
           <Card className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
             <View className="flex-row items-start">
@@ -308,8 +307,8 @@ export default function BackupScreen() {
               • 중요한 데이터는 주기적으로 백업하는 것을 권장합니다.
             </Text>
           </Card>
-        </ScrollView>
-      </ScreenLayout>
+        </View>
+      </ScrollView>
     </>
   );
 }

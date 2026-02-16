@@ -9,16 +9,12 @@ import {
 } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as Sharing from 'expo-sharing';
-import { ScreenLayout } from '@/design-system/layouts';
-import { FloatingActionBar } from '@/components/common';
 import { ItemCard } from '@/components/item/ItemCard';
 import { getClassificationConfig } from '@/constants/items';
 import type { Item } from '@/types/item';
 import {
   getMonthlyItems,
   calculateMonthlySummary,
-  exportMonthlySettlement,
 } from '@/services/export';
 import type { MonthlySummary } from '@/services/export/types';
 
@@ -122,7 +118,6 @@ export default function MonthlyReportScreen() {
   const [items, setItems] = useState<Item[]>([]);
   const [summary, setSummary] = useState<MonthlySummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
 
   const loadMonthlyData = useCallback(async () => {
     if (!year || !month) return;
@@ -146,49 +141,11 @@ export default function MonthlyReportScreen() {
     loadMonthlyData();
   }, [loadMonthlyData]);
 
-  const handleExport = async () => {
-    if (!year || !month) return;
-
-    if (items.length === 0) {
-      Alert.alert('알림', '내보낼 항목이 없습니다.');
-      return;
-    }
-
-    setIsExporting(true);
-    try {
-      const result = await exportMonthlySettlement(parseInt(year), parseInt(month));
-
-      if (result.success && result.filePath) {
-        const canShare = await Sharing.isAvailableAsync();
-        if (canShare) {
-          await Sharing.shareAsync(result.filePath, {
-            mimeType: 'application/zip',
-            dialogTitle: '정산 파일 공유',
-          });
-        } else {
-          Alert.alert('성공', '정산 파일이 생성되었습니다.');
-        }
-      } else {
-        Alert.alert('오류', result.error || '파일 생성에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('Export failed:', error);
-      Alert.alert('오류', '파일 생성 중 오류가 발생했습니다.');
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScreenLayout
-        title={`${year}년 ${month}월 정산`}
-        showHeader
-        showBack
-        scrollable={false}
-      >
-        <FlatList
+      <FlatList
+        className="flex-1 bg-white dark:bg-gray-900"
           data={items}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <ItemCard item={item} />}
@@ -214,21 +171,6 @@ export default function MonthlyReportScreen() {
             />
           }
         />
-      </ScreenLayout>
-
-      {items.length > 0 && (
-        <FloatingActionBar
-          actions={[
-            {
-              icon: 'download-outline',
-              onPress: handleExport,
-              loading: isExporting,
-              disabled: isExporting,
-              variant: 'primary',
-            },
-          ]}
-        />
-      )}
     </>
   );
 }

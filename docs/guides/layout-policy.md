@@ -2,32 +2,34 @@
 
 Receipt Tool 앱의 레이아웃, 모달, 플로팅 버튼 사용 정책을 정의한 문서입니다.
 
+이 정책은 **Expo Router의 공식 레이아웃 패턴**을 기반으로 합니다. 자세한 기술 내용은 [Expo Router 레이아웃 가이드](/docs/guides/expo-router-layout.md)를 참조하세요.
+
 ---
 
 ## 핵심 정책 요약
 
-### 1. 추가/수정 화면은 무조건 모달
+### 1. 레이아웃은 _layout.tsx에서만 정의
+
+- **화면 파일은 콘텐츠만 반환** (화면 파일은 레이아웃 컴포넌트를 사용하면 안 됨)
+- **레이아웃은 _layout.tsx에서 정의** (Header, SafeAreaView, FloatingActionBar, 네비게이터 등)
+- 각 디렉토리의 `_layout.tsx`에서 Stack/Tabs/Slot 패턴 사용
+- 공통 UI 요소는 레이아웃에서만 관리하여 일관성 보장
+
+### 2. 추가/수정 화면은 무조건 모달
 
 - 항목 추가/수정, 태그 추가/수정, 사용처 추가/수정 등 모든 CRUD 폼은 **FullScreenModal**을 사용합니다
-- `router.push()` 방식 대신 `Modal` 상태로 관리하여 컨텍스트를 유지합니다
+- `router.push()` 방식 대신 상태로 관리하여 컨텍스트를 유지합니다
 
-### 2. 모달은 헤더 액션 버튼만 사용
+### 3. 모달은 헤더 액션 버튼만 사용
 
 - **하단 버튼 (bottomButtons) 제거**
 - 모달 헤더 구조: **왼쪽 X | 가운데 제목 | 오른쪽 액션 버튼**
 - 액션 버튼: "생성", "저장", "완료" 등
 
-### 3. 모든 화면은 ScreenLayout 사용 (탭 표시 자동)
-
-- **1depth/2depth/3depth 모두 동일한 `ScreenLayout` 구조** 사용
-- 탭 바는 라우팅 경로에 따라 자동으로 표시/숨김
-  - 탭 내부 (/(tabs)/*): 탭 바 자동 표시
-  - 탭 외부: 탭 바 자동 숨김
-- 뒤로가기는 라우팅 히스토리에 따라 자동으로 표시/숨김
-
-### 4. 모든 화면에서 동일한 FAB 스타일 사용
+### 4. 플로팅 버튼은 _layout.tsx에서 관리
 
 - 모든 플로팅 버튼은 **원형 FAB (Floating Action Button)** 스타일로 통일
+- FloatingActionBar는 _layout.tsx에서 조건부로 렌더링
 - 아이콘만 표시 (텍스트 레이블 제거)
 - 여러 액션 = 세로로 배치 (하단부터 역순)
 
@@ -35,32 +37,32 @@ Receipt Tool 앱의 레이아웃, 모달, 플로팅 버튼 사용 정책을 정�
 
 ## 레이아웃 다이어그램
 
-### ScreenLayout 기본 구조
+### 화면 구조 (모든 화면에서 동일)
 
-**모든 화면이 동일한 ScreenLayout을 사용합니다. 탭 바와 뒤로가기는 라우팅에 따라 자동으로 표시됩니다.**
+**모든 화면은 동일한 구조를 가집니다. 탭 바와 뒤로가기는 라우팅 경로에 따라 자동으로 표시/숨김됩니다.**
 
-#### 1depth 화면 (탭 내부)
+#### 1depth 화면 (탭 내부) - `/(tabs)/*`
 
 ```
 ┌─────────────────────────────────────────┐
 │  ┌───────────────────────────────────┐  │ ← SafeAreaView (top)
-│  │  제목                   [액션]     │  │ ← Header (56px)
-│  │  (뒤로가기 없음)                   │  │    1depth는 뒤로가기 X
+│  │  제목                   [액션]     │  │ ← Header (Slot 콘텐츠 위)
+│  │  (뒤로가기 없음)                   │  │
 │  └───────────────────────────────────┘  │
 │  ─────────────────────────────────────  │
 │                                          │
 │  ┌───────────────────────────────────┐  │
 │  │                                   │  │
-│  │                                   │  │
-│  │        Content Area               │  │
-│  │        (Scrollable)               │  │
-│  │                                   │  │
+│  │  ┌─────────────────────────────┐ │  │
+│  │  │  Slot (페이지 콘텐츠)        │ │  │ ← _layout.tsx에서
+│  │  │  index.tsx 또는 items.tsx   │ │  │    Slot으로 콘텐츠 로드
+│  │  └─────────────────────────────┘ │  │
 │  │                                   │  │
 │  └───────────────────────────────────┘  │
 │                                          │
 │                              ┌────────┐  │ ← FloatingActionBar
 │                              │   +    │  │    (원형 FAB)
-│                              └────────┘  │    오른쪽 하단 고정
+│                              └────────┘  │
 │  ─────────────────────────────────────  │
 │  │   홈   │   증빙   │   캘린더   │    │  │ ← Tab Bar (자동 표시)
 │  └──────┴──────────┴───────────┴────┘  │
@@ -70,42 +72,35 @@ Receipt Tool 앱의 레이아웃, 모달, 플로팅 버튼 사용 정책을 정�
 
 **특징:**
 - 경로: `/(tabs)/*` 내부
-- 탭 바가 화면 하단에 자동으로 표시됩니다
+- _layout.tsx에서 Tabs 네비게이터와 공통 UI 정의
+- 화면 파일(index.tsx, items.tsx 등)은 콘텐츠만 반환
+- 탭 바가 자동으로 표시됩니다
 - 뒤로가기 버튼 없음 (탭 바로 네비게이션)
-- 플로팅 버튼은 탭 바 위에 배치됩니다
-- SafeAreaView는 top, bottom 모두 적용됩니다
-
-**사용 예:**
-- 홈 탭 (`/(tabs)/index.tsx`)
-- 증빙 탭 (`/(tabs)/items.tsx`)
-- 캘린더 탭 (`/(tabs)/calendar.tsx`)
-- 리포트 탭 (`/(tabs)/reports.tsx`)
-- 설정 탭 (`/(tabs)/settings.tsx`)
+- FloatingActionBar는 _layout.tsx에서 조건부로 렌더링
 
 ---
 
-#### 2depth 이상 화면 (탭 외부)
+#### 2depth 이상 화면 (탭 외부) - `/item/*`, `/report/*` 등
 
 ```
 ┌─────────────────────────────────────────┐
 │  ┌───────────────────────────────────┐  │ ← SafeAreaView (top)
-│  │  [◀]  제목                [액션]   │  │ ← Header (56px)
-│  │                                   │  │    2depth+는 뒤로가기 표시
+│  │  [◀]  제목                [액션]   │  │ ← Header (Stack에 포함)
+│  │                                   │  │
 │  └───────────────────────────────────┘  │
 │  ─────────────────────────────────────  │
 │                                          │
 │  ┌───────────────────────────────────┐  │
 │  │                                   │  │
-│  │                                   │  │
-│  │        Content Area               │  │
-│  │        (Scrollable)               │  │
-│  │                                   │  │
-│  │                                   │  │
+│  │  ┌─────────────────────────────┐ │  │
+│  │  │  Slot (페이지 콘텐츠)        │ │  │ ← _layout.tsx에서
+│  │  │  [id].tsx 등                 │ │  │    Stack + Slot으로 로드
+│  │  └─────────────────────────────┘ │  │
 │  │                                   │  │
 │  └───────────────────────────────────┘  │
 │                                   ┌───┐  │ ← FloatingActionBar
 │                                   │ ✏ │  │    (원형 FAB)
-│                                   ├───┤  │    오른쪽 하단 고정
+│                                   ├───┤  │
 │                                   │ 🗑 │  │
 │                                   └───┘  │
 │                                          │
@@ -115,18 +110,12 @@ Receipt Tool 앱의 레이아웃, 모달, 플로팅 버튼 사용 정책을 정�
 ```
 
 **특징:**
-- 경로: `/(tabs)/*` 외부 (stack navigator)
+- 경로: `/(tabs)/*` 외부 (Stack 네비게이터 사용)
+- _layout.tsx에서 Stack 네비게이터와 공통 UI 정의
+- 화면 파일([id].tsx, add.tsx 등)은 콘텐츠만 반환
 - 탭 바가 자동으로 숨겨집니다
 - 뒤로가기 버튼이 헤더 왼쪽에 자동으로 표시됩니다
-- 라우팅 히스토리가 있으면 뒤로가기 활성화
-- 플로팅 버튼은 항상 원형 FAB 스타일을 사용합니다
-- SafeAreaView는 top, bottom 모두 적용됩니다
-
-**사용 예:**
-- 항목 상세 (`/item/[id].tsx`) - 2depth
-- 리포트 상세 (`/report/[id].tsx`) - 2depth
-- 설정 하위 화면 (`/settings/tags.tsx`) - 2depth
-- 더 깊은 수준도 동일한 구조 사용 (3depth, 4depth 등)
+- FloatingActionBar는 _layout.tsx에서 조건부로 렌더링
 
 ---
 
@@ -238,23 +227,97 @@ Receipt Tool 앱의 레이아웃, 모달, 플로팅 버튼 사용 정책을 정�
 
 ## 화면별 적용 방법
 
-### 1depth 탭 화면 (목록)
+### 1depth 탭 화면 (목록) - app/(tabs)/
 
-**레이아웃:** `ScreenLayout` (탭 내부 경로)
+**구조:**
+```
+app/(tabs)/
+├── _layout.tsx          (Tabs + Header + FloatingActionBar)
+├── index.tsx            (콘텐츠만)
+└── items.tsx            (콘텐츠만)
+```
 
-**경로:** `/(tabs)/items.tsx`
+**_layout.tsx 예시: 탭 레이아웃 정의**
 
-**특징:**
-- 탭 바가 자동으로 표시
-- 뒤로가기 버튼 없음
-- FAB 스타일 플로팅 버튼 사용
+```typescript
+import { Tabs } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Header } from '@/components/common';
+import { FloatingActionBar } from '@/components/common';
+import { useState } from 'react';
 
-**예시: 증빙 목록 화면**
+export default function TabsLayout() {
+  const [currentRoute, setCurrentRoute] = useState('index');
+
+  const getHeaderTitle = () => {
+    switch (currentRoute) {
+      case 'index':
+        return '대시보드';
+      case 'items':
+        return '증빙';
+      default:
+        return '';
+    }
+  };
+
+  const getFloatingActions = () => {
+    if (currentRoute === 'items') {
+      return [{ icon: 'add', onPress: handleAddItem, variant: 'primary' }];
+    }
+    return undefined;
+  };
+
+  return (
+    <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1">
+      <Header title={getHeaderTitle()} showBack={false} />
+
+      <Tabs screenOptions={{ headerShown: false }}>
+        <Tabs.Screen
+          name="index"
+          options={{ title: '대시보드' }}
+          listeners={{
+            tabPress: () => setCurrentRoute('index'),
+          }}
+        />
+        <Tabs.Screen
+          name="items"
+          options={{ title: '증빙' }}
+          listeners={{
+            tabPress: () => setCurrentRoute('items'),
+          }}
+        />
+      </Tabs>
+
+      {/* 공통 FloatingActionBar (경로별로 조건부 렌더링) */}
+      {getFloatingActions() && (
+        <FloatingActionBar actions={getFloatingActions()!} />
+      )}
+    </SafeAreaView>
+  );
+}
+```
+
+**화면 파일 예시: app/(tabs)/items.tsx (콘텐츠만)**
+
+```typescript
+import { ScrollView, View } from 'react-native';
+import { ItemList } from '@/components/item/ItemList';
+
+export default function ItemsTab() {
+  return (
+    <ScrollView className="flex-1">
+      <ItemList />
+    </ScrollView>
+  );
+}
+```
+
+**모달 예시: 증빙 목록 화면에서 추가 폼**
 
 ```typescript
 import { useState } from 'react';
-import { ScreenLayout } from '@/design-system/layouts';
-import { FloatingActionBar } from '@/components/common';
+import { ScrollView } from 'react-native';
+import { ItemList } from '@/components/item/ItemList';
 import { FullScreenModal } from '@/components/common';
 import { ItemForm } from '@/components/item/ItemForm';
 
@@ -263,22 +326,10 @@ export default function ItemsTab() {
 
   return (
     <>
-      <ScreenLayout title="증빙">
+      <ScrollView className="flex-1">
         <ItemList />
-      </ScreenLayout>
+      </ScrollView>
 
-      {/* 플로팅 추가 버튼 */}
-      <FloatingActionBar
-        actions={[
-          {
-            icon: 'add',
-            onPress: () => setShowAddModal(true),
-            variant: 'primary',
-          },
-        ]}
-      />
-
-      {/* 추가 모달 */}
       <FullScreenModal
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
@@ -298,71 +349,85 @@ export default function ItemsTab() {
 
 ---
 
-### 2depth 상세 화면
+### 2depth 이상 화면 - app/item/, app/report/ 등
 
-**레이아웃:** `ScreenLayout` (탭 외부 경로)
+**구조:**
+```
+app/item/
+├── _layout.tsx          (Stack + Header + FloatingActionBar)
+├── [id].tsx             (콘텐츠만)
+└── add.tsx              (콘텐츠만)
+```
 
-**경로:** `/item/[id].tsx`
-
-**특징:**
-- 탭 바가 자동으로 숨겨짐
-- 뒤로가기 버튼이 자동으로 표시
-- FAB 스타일 플로팅 버튼 사용
-
-**예시: 항목 상세 화면**
+**_layout.tsx 예시: Stack 레이아웃 정의**
 
 ```typescript
-import { useState } from 'react';
-import { ScreenLayout } from '@/design-system/layouts';
+import { Stack } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Header } from '@/components/common';
 import { FloatingActionBar } from '@/components/common';
-import { FullScreenModal } from '@/components/common';
-import { ItemForm } from '@/components/item/ItemForm';
+import { usePathname } from 'expo-router';
 
-export default function ItemDetailScreen() {
-  const [showEditModal, setShowEditModal] = useState(false);
+export default function ItemLayout() {
+  const pathname = usePathname();
+
+  const getHeaderTitle = () => {
+    if (pathname.includes('[id]')) {
+      return '항목 상세';
+    }
+    if (pathname.includes('add')) {
+      return '새 항목';
+    }
+    return '';
+  };
+
+  const getFloatingActions = () => {
+    // 상세 화면에서만 수정/삭제 버튼 표시
+    if (pathname.includes('[id]')) {
+      return [
+        { icon: 'create-outline', onPress: handleEdit, variant: 'default' },
+        { icon: 'trash-outline', onPress: handleDelete, variant: 'danger' },
+      ];
+    }
+    return undefined;
+  };
 
   return (
-    <>
-      <ScreenLayout title="항목 상세">
-        <ItemDetail item={item} />
-      </ScreenLayout>
+    <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1">
+      <Header title={getHeaderTitle()} showBack={true} />
 
-      {/* 플로팅 액션 버튼 */}
-      <FloatingActionBar
-        actions={[
-          {
-            icon: 'create-outline',
-            onPress: () => setShowEditModal(true),
-            variant: 'default',
-          },
-          {
-            icon: 'trash-outline',
-            onPress: handleDelete,
-            variant: 'danger',
-          },
-        ]}
-      />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="[id]" />
+        <Stack.Screen name="add" />
+      </Stack>
 
-      {/* 수정 모달 */}
-      <FullScreenModal
-        visible={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        title="항목 수정"
-        rightButton={{
-          label: '저장',
-          onPress: handleSave,
-          disabled: !isValid,
-          loading: isSaving,
-        }}
-      >
-        <ItemForm item={item} />
-      </FullScreenModal>
-    </>
+      {/* 공통 FloatingActionBar */}
+      {getFloatingActions() && (
+        <FloatingActionBar actions={getFloatingActions()!} />
+      )}
+    </SafeAreaView>
   );
 }
 ```
 
-**참고:** `showHeader`, `showBack` 속성을 제거합니다. 뒤로가기는 라우팅 히스토리에 따라 자동으로 표시됩니다.
+**화면 파일 예시: app/item/[id].tsx (콘텐츠만)**
+
+```typescript
+import { ScrollView, View } from 'react-native';
+import { useRoute } from '@react-navigation/native';
+import { ItemDetail } from '@/components/item/ItemDetail';
+
+export default function ItemDetailScreen() {
+  const route = useRoute();
+  const { id } = route.params as { id: string };
+
+  return (
+    <ScrollView className="flex-1 px-4 py-4">
+      <ItemDetail itemId={id} />
+    </ScrollView>
+  );
+}
+```
 
 ---
 
@@ -425,58 +490,63 @@ export function TagFormModal({ visible, onClose, onSubmit }: TagFormModalProps) 
 
 ---
 
-## 구현 변경 사항
+## 구현 원칙
 
-### 현재 상태 분석
+### _layout.tsx 활용
 
-현재 프로젝트에는 다음과 같은 컴포넌트가 존재합니다.
+1. **레이아웃 정의 위치:**
+   - Header, SafeAreaView, FloatingActionBar: _layout.tsx에서만
+   - Stack/Tabs/Slot 네비게이터: _layout.tsx에서만
+   - 공통 UI 요소: _layout.tsx에서만
 
-1. **FullScreenModal** (`components/common/FullScreenModal.tsx`)
-   - ✅ 헤더 구조: 왼쪽 X | 가운데 제목 | 오른쪽 액션 버튼
-   - ⚠️ `bottomButtons` 속성이 여전히 존재함 (제거 필요)
+2. **화면 파일의 책임:**
+   - 콘텐츠만 반환 (View, ScrollView, Text 등)
+   - 레이아웃 컴포넌트 사용 금지
+   - FullScreenModal은 사용 가능 (레이아웃이 아니라 modal 상태)
 
-2. **ModalLayout** (`design-system/layouts/ModalLayout.tsx`)
-   - ⚠️ 구형 레이아웃 (Header 컴포넌트 사용)
-   - ⚠️ `bottomButtons` 사용 중
-   - ❌ 사용 중단 예정
+3. **FloatingActionBar 관리:**
+   - _layout.tsx에서 라우트/경로에 따라 조건부 렌더링
+   - 각 화면 파일에서 개별로 관리하지 않음
+   - 위치 일관성 보장
 
-3. **FloatingActionBar** (`components/common/FloatingActionBar.tsx`)
-   - ✅ 항상 원형 FAB 스타일 (compact prop 제거)
-   - ✅ variant 스타일 지원
-   - ✅ 정책에 부합
+### 컴포넌트 사용 정책
 
-4. **플로팅 추가 버튼** 미구현
-   - ❌ FloatingActionButton 컴포넌트 없음
-   - ❌ 1depth 화면에서 플로팅 추가 버튼 미사용
+| 컴포넌트 | 용도 | 위치 |
+|---------|-----|------|
+| **FullScreenModal** | 추가/수정/삭제 폼 | 화면 파일에서 상태로 관리 |
+| **FloatingActionBar** | 주요 액션 버튼 | _layout.tsx에서 렌더링 |
+| **Header** | 화면 제목, 액션 | _layout.tsx에서 렌더링 |
+| **SafeAreaView** | 안전 영역 처리 | _layout.tsx에서 감싸기 |
+| **Tabs/Stack/Slot** | 네비게이션 | _layout.tsx에서 사용 |
 
 ---
 
-### 레이아웃 정책 이해하기
+## 마이그레이션 체크리스트
 
-#### ScreenLayout이 자동으로 처리하는 것
+기존 패턴에서 새 패턴으로 전환할 때:
 
-`ScreenLayout`을 사용하면 다음 항목이 **자동으로 처리**됩니다:
+### 1. _layout.tsx 생성
 
-1. **탭 바 표시/숨김:**
-   - `/(tabs)/*` 경로 내부: 탭 바 자동 표시
-   - 그 외 경로: 탭 바 자동 숨김
+- [ ] 각 디렉토리에 _layout.tsx 파일 생성
+- [ ] SafeAreaView로 전체 감싸기
+- [ ] Stack/Tabs/Slot 네비게이터 설정
+- [ ] Header 컴포넌트 추가
+- [ ] FloatingActionBar 조건부 렌더링
 
-2. **뒤로가기 버튼:**
-   - 라우팅 히스토리가 있으면: 뒤로가기 버튼 자동 표시
-   - 라우팅 히스토리가 없으면: 뒤로가기 버튼 자동 숨김
+### 2. 화면 파일 수정
 
-3. **SafeAreaView:**
-   - 플랫폼 (Android/iOS) 차이 자동 처리
-   - notch, 소프트키, 제스처 영역 자동 회피
+- [ ] 레이아웃 컴포넌트 제거 (ScreenLayout, TabScreenLayout, ModalLayout 등)
+- [ ] 콘텐츠만 반환하도록 수정
+- [ ] SafeAreaView 제거 (레이아웃에서 처리)
+- [ ] FloatingActionBar 제거 (레이아웃에서 처리)
+- [ ] FullScreenModal은 상태 기반으로 유지
 
-#### 더 이상 필요 없는 것
+### 3. 검증
 
-다음 속성/컴포넌트들은 더 이상 사용하지 않습니다:
-- `showHeader` prop: 제거 (title 설정 시 자동으로 헤더 표시)
-- `showBack` prop: 제거 (경로에 따라 자동으로 뒤로가기 표시)
-- `TabScreenLayout`: 제거 (모든 화면에서 ScreenLayout 사용)
-- `ModalLayout`: 제거 (FullScreenModal 사용)
-- `bottomButtons`: 제거 (FullScreenModal의 rightButton만 사용)
+- [ ] TypeScript 컴파일 확인
+- [ ] 모든 화면 네비게이션 테스트
+- [ ] FloatingActionBar 위치 일관성 확인
+- [ ] 다크모드 동작 확인
 
 ---
 

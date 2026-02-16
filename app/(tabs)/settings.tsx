@@ -1,6 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { TabScreenLayout } from '@/design-system/layouts';
 import { useState } from 'react';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
@@ -275,8 +274,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <TabScreenLayout title="설정">
-      <ScrollView className="flex-1">
+    <ScrollView className="flex-1 bg-white dark:bg-gray-900">
         {/* Loading overlay */}
         {isClearing && (
           <View className="absolute inset-0 bg-black/30 items-center justify-center z-50">
@@ -403,6 +401,5 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
-    </TabScreenLayout>
   );
 }

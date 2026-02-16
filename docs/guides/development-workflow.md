@@ -967,16 +967,60 @@ export function AttachmentList({ itemId }: AttachmentListProps) {
 
 **3. Item 상세 화면 통합**
 
-파일: `/src/app/item/[id].tsx` (기존 파일 수정)
+파일: `/src/app/item/_layout.tsx` (레이아웃 정의)
 
 ```typescript
-import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { Stack } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Header } from '@/components/common';
+import { FloatingActionBar } from '@/components/common';
+import { usePathname } from 'expo-router';
+
+export default function ItemLayout() {
+  const pathname = usePathname();
+
+  const getHeaderTitle = () => {
+    if (pathname.includes('[id]')) {
+      return '증빙 상세';
+    }
+    return '';
+  };
+
+  const getFloatingActions = () => {
+    if (pathname.includes('[id]')) {
+      return [
+        { icon: 'create-outline', onPress: handleEdit, variant: 'default' },
+        { icon: 'trash-outline', onPress: handleDelete, variant: 'danger' },
+      ];
+    }
+    return undefined;
+  };
+
+  return (
+    <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1">
+      <Header title={getHeaderTitle()} showBack={true} />
+
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="[id]" />
+      </Stack>
+
+      {getFloatingActions() && (
+        <FloatingActionBar actions={getFloatingActions()!} />
+      )}
+    </SafeAreaView>
+  );
+}
+```
+
+파일: `/src/app/item/[id].tsx` (콘텐츠만)
+
+```typescript
+import { ScrollView, View } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { ScreenLayout } from '@/design-system/layouts';
 import { FilePickerButton } from '@/components/item/FilePickerButton';
 import { AttachmentList } from '@/components/item/AttachmentList';
-// ... 기존 임포트
+import { ItemDetail } from '@/components/item/ItemDetail';
+import { useState } from 'react';
 
 export default function ItemDetailScreen() {
   const route = useRoute();
@@ -984,29 +1028,25 @@ export default function ItemDetailScreen() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleAttachmentAdded = () => {
-    // AttachmentList 컴포넌트 갱신
     setRefreshKey((prev) => prev + 1);
   };
 
   return (
-    <ScreenLayout showHeader title="증빙 상세" showBack>
-      <ScrollView className="flex-1 px-4 py-4">
-        {/* 기존 Item 정보 표시 */}
-        {/* ... */}
+    <ScrollView className="flex-1 px-4 py-4">
+      <ItemDetail itemId={itemId} />
 
-        {/* 첨부파일 섹션 (새로 추가) */}
-        <View className="mt-6 mb-4">
-          <FilePickerButton
-            itemId={itemId}
-            onAttachmentAdded={handleAttachmentAdded}
-          />
-        </View>
+      {/* 첨부파일 섹션 */}
+      <View className="mt-6 mb-4">
+        <FilePickerButton
+          itemId={itemId}
+          onAttachmentAdded={handleAttachmentAdded}
+        />
+      </View>
 
-        <View className="mb-6">
-          <AttachmentList key={refreshKey} itemId={itemId} />
-        </View>
-      </ScrollView>
-    </ScreenLayout>
+      <View className="mb-6">
+        <AttachmentList key={refreshKey} itemId={itemId} />
+      </View>
+    </ScrollView>
   );
 }
 ```

@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, useColorScheme } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Button, Card, FloatingActionBar } from '@/components/common';
-import { ScreenLayout } from '@/design-system/layouts';
+import { Button, Card } from '@/components/common';
 import { loadReport, submitReport, deleteReport } from '@/services/report';
 import { getItemById } from '@/services/database/itemService';
 import { useReportStore } from '@/store/reportStore';
@@ -139,12 +138,10 @@ export default function ReportDetailScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <ScreenLayout title="리포트 상세" showHeader showBack>
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#2563EB" />
-            <Text className="mt-4 text-gray-500">로딩 중...</Text>
-          </View>
-        </ScreenLayout>
+        <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
+          <ActivityIndicator size="large" color="#2563EB" />
+          <Text className="mt-4 text-gray-500 dark:text-gray-400">로딩 중...</Text>
+        </View>
       </>
     );
   }
@@ -153,15 +150,13 @@ export default function ReportDetailScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <ScreenLayout title="리포트 상세" showHeader showBack>
-          <View className="flex-1 items-center justify-center">
-            <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
-            <Text className="text-gray-500 mt-4">리포트를 찾을 수 없습니다.</Text>
-            <View className="mt-4">
-              <Button title="돌아가기" onPress={() => router.back()} variant="outline" />
-            </View>
+        <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
+          <Ionicons name="alert-circle-outline" size={64} color="#9CA3AF" />
+          <Text className="text-gray-500 dark:text-gray-400 mt-4">리포트를 찾을 수 없습니다.</Text>
+          <View className="mt-4">
+            <Button title="돌아가기" onPress={() => router.back()} variant="outline" />
           </View>
-        </ScreenLayout>
+        </View>
       </>
     );
   }
@@ -169,8 +164,7 @@ export default function ReportDetailScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScreenLayout title="리포트 상세" showHeader showBack scrollable={false}>
-        <ScrollView className="flex-1">
+      <ScrollView className="flex-1 bg-white dark:bg-gray-900">
         {/* Report Info */}
         <View className="p-4">
           <Card>
@@ -234,29 +228,6 @@ export default function ReportDetailScreen() {
           ))}
         </View>
       </ScrollView>
-
-      {/* Floating Action Buttons (only for draft) */}
-      {report.status === 'draft' && (
-        <FloatingActionBar
-          actions={[
-            {
-              icon: 'trash-outline',
-              onPress: handleDelete,
-              disabled: isDeleting || isSubmitting,
-              loading: isDeleting,
-              variant: 'danger',
-            },
-            {
-              icon: 'paper-plane-outline',
-              onPress: handleSubmit,
-              disabled: isDeleting,
-              loading: isSubmitting,
-              variant: 'primary',
-            },
-          ]}
-        />
-      )}
-      </ScreenLayout>
     </>
   );
 }

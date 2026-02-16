@@ -1,8 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Card, FloatingActionBar } from '@/components/common';
-import { TabScreenLayout } from '@/design-system/layouts';
+import { Card } from '@/components/common';
 import { useItemStore } from '@/store/itemStore';
 import { isExpense } from '@/types/item';
 import { CLASSIFICATIONS, getClassificationConfig } from '@/constants/items';
@@ -70,13 +69,12 @@ export default function HomeScreen() {
   };
 
   return (
-    <TabScreenLayout title="대시보드" scrollable={false}>
-      <ScrollView
-        className="flex-1"
-        refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={loadItems} />
-        }
-      >
+    <ScrollView
+      className="flex-1 bg-white dark:bg-gray-900"
+      refreshControl={
+        <RefreshControl refreshing={isLoading} onRefresh={loadItems} />
+      }
+    >
         {/* Monthly Expense Summary Card */}
         <View className="px-6 pt-4 pb-6">
           <Card className="bg-gradient-to-br">
@@ -187,16 +185,5 @@ export default function HomeScreen() {
           </View>
         )}
       </ScrollView>
-
-      <FloatingActionBar
-        actions={[
-          {
-            icon: 'add',
-            onPress: handleAddItem,
-            variant: 'primary',
-          },
-        ]}
-      />
-    </TabScreenLayout>
   );
 }

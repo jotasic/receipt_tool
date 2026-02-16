@@ -28,7 +28,6 @@ import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Input, Button, FullScreenModal, FloatingActionBar } from '@/components/common';
-import { ScreenLayout } from '@/design-system/layouts';
 import {
   getCustomFields,
   createCustomField,
@@ -694,12 +693,7 @@ export default function CustomFieldsScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScreenLayout
-        title="커스텀 필드 관리"
-        showHeader
-        showBack
-        scrollable={false}
-      >
+      <View className="flex-1 bg-white dark:bg-gray-900">
         {/* Search bar */}
         <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <View className="flex-row items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
@@ -808,7 +802,7 @@ export default function CustomFieldsScreen() {
         () => setShowEditModal(false),
         handleUpdateField
       )}
-      </ScreenLayout>
+      </View>
 
       <FloatingActionBar
         actions={[

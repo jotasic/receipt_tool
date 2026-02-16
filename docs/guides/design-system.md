@@ -265,114 +265,150 @@ export function ItemCard() {
 
 ## 레이아웃 컴포넌트
 
-### 핵심 정책 (최신)
+### 핵심 원칙
 
-**모든 화면은 `ScreenLayout`을 사용합니다.**
+**Expo Router의 공식 패턴을 따릅니다.**
 
-| 화면 유형 | 사용 컴포넌트 | 특징 |
-|----------|-------------|------|
-| 모든 일반 화면 | `ScreenLayout` | 헤더/뒤로가기는 자동 처리, 라우팅에 따라 결정 |
-| 모든 추가/수정 폼 | `FullScreenModal` | 헤더 액션 버튼만 사용 (bottomButtons 제거) |
+레이아웃은 `_layout.tsx` 파일에서만 정의하고, 화면 파일은 콘텐츠만 반환합니다.
 
-**자동 처리 로직:**
-- **1depth (탭 내부)**: 뒤로가기 없음, 탭 바 표시
-- **2depth+ (탭 외부)**: 뒤로가기 표시, 탭 바 숨김
+| 파일 유형 | 역할 |
+|----------|------|
+| **_layout.tsx** | Header, SafeAreaView, Stack/Tabs/Slot, FloatingActionBar 정의 |
+| **화면 파일** | 콘텐츠만 반환 (View, ScrollView, Text 등) |
 
----
-
-#### 선택 기준 (간단함)
-
-| 상황 | 사용 컴포넌트 |
-|-----|-------------|
-| 새로운 화면 이동 (router.push 또는 탭 경로) | `ScreenLayout` |
-| 현재 화면 위에 폼 열기 (추가/수정) | `FullScreenModal` |
+**관련 문서:** [Expo Router 레이아웃 가이드](/docs/guides/expo-router-layout.md)에서 자세한 기술 내용 확인
 
 ---
 
-#### 화면별 예시
+### 구조 예시
 
-| 화면 유형 | 레이아웃 | 예시 |
-|----------|---------|------|
-| 홈 탭 | ScreenLayout | `/(tabs)/index.tsx` |
-| 증빙 탭 | ScreenLayout | `/(tabs)/items.tsx` |
-| 항목 상세 | ScreenLayout | `/item/[id].tsx` |
-| 항목 추가 폼 | FullScreenModal | 증빙 탭에서 모달로 열기 |
-| 항목 수정 폼 | FullScreenModal | 상세 화면에서 모달로 열기 |
-| 태그 추가 | FullScreenModal | 설정 화면에서 모달로 열기 |
+#### 탭 화면 레이아웃 (app/(tabs)/_layout.tsx)
 
-### ScreenLayout - 모든 화면의 기본 레이아웃
+```typescript
+import { Tabs } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Header } from '@/components/common';
+import { FloatingActionBar } from '@/components/common';
+import { usePathname } from 'expo-router';
 
-모든 일반 화면(탭 내부, 탭 외부, 상세 화면)에서 사용합니다.
+export default function TabsLayout() {
+  const pathname = usePathname();
+
+  const getHeaderTitle = () => {
+    if (pathname === '/') return '대시보드';
+    if (pathname === '/items') return '증빙';
+    return '';
+  };
+
+  const getFloatingActions = () => {
+    if (pathname === '/items') {
+      return [{ icon: 'add', onPress: handleAddItem, variant: 'primary' }];
+    }
+    return undefined;
+  };
+
+  return (
+    <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1">
+      <Header title={getHeaderTitle()} showBack={false} />
+
+      <Tabs screenOptions={{ headerShown: false }}>
+        <Tabs.Screen name="index" options={{ title: '대시보드' }} />
+        <Tabs.Screen name="items" options={{ title: '증빙' }} />
+      </Tabs>
+
+      {getFloatingActions() && (
+        <FloatingActionBar actions={getFloatingActions()!} />
+      )}
+    </SafeAreaView>
+  );
+}
+```
+
+#### 화면 파일 (app/(tabs)/items.tsx)
+
+```typescript
+import { ScrollView } from 'react-native';
+import { ItemList } from '@/components/item/ItemList';
+
+export default function ItemsTab() {
+  return (
+    <ScrollView className="flex-1">
+      <ItemList />
+    </ScrollView>
+  );
+}
+```
+
+---
+
+### FullScreenModal - 추가/수정 폼 전용
+
+모든 추가/수정 폼에서 사용합니다. 화면 파일에서 상태로 관리합니다.
 
 #### Props
 
 ```typescript
-interface ScreenLayoutProps {
-  title?: string;              // 헤더 타이틀
-  children: ReactNode;         // 화면 컨텐츠
-  rightElement?: ReactNode;    // 헤더 오른쪽 요소 (선택)
-  scrollable?: boolean;        // 스크롤 가능 여부 (기본: true)
+interface FullScreenModalProps {
+  visible: boolean;            // 모달 표시 여부
+  onClose: () => void;         // 닫기 핸들러 (X 버튼)
+  title: string;               // 헤더 타이틀
+  rightButton?: {              // 오른쪽 액션 버튼
+    label: string;
+    onPress: () => void | Promise<void>;
+    disabled?: boolean;
+    loading?: boolean;
+  };
+  children: ReactNode;         // 폼 컨텐츠
 }
 ```
 
-**주의**: `showHeader`, `showBack` 속성은 제거되었습니다. 헤더와 뒤로가기는 경로에 따라 자동으로 처리됩니다.
-
-#### 자동 처리 로직
-
-- `title` 설정 시: 헤더 자동 표시
-- 1depth 경로 (`/(tabs)/*`): 뒤로가기 버튼 없음, 탭 바 표시
-- 2depth+ 경로: 뒤로가기 버튼 자동 표시, 탭 바 자동 숨김
-
-#### 예시 1: 탭 화면 (1depth)
+#### 예시: 항목 추가 폼
 
 ```typescript
-import { ScreenLayout } from '@/design-system/layouts';
-import { View, Text } from 'react-native';
+import { useState } from 'react';
+import { View, TextInput, Alert } from 'react-native';
+import { FullScreenModal } from '@/components/common';
+import { createItem } from '@/services/database';
 
-export function ItemsTab() {
-  return (
-    <ScreenLayout title="증빙">
-      <ItemList />
-    </ScreenLayout>
-  );
-  // 자동으로: 헤더 표시, 뒤로가기 없음, 탭 바 표시
-}
-```
+export function ItemFormModal({ visible, onClose }: Props) {
+  const [title, setTitle] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-#### 예시 2: 상세 화면 (2depth)
+  const isValid = title.trim().length > 0;
 
-```typescript
-export function ItemDetailScreen() {
-  return (
-    <ScreenLayout title="증빙 상세">
-      <ItemDetail />
-    </ScreenLayout>
-  );
-  // 자동으로: 헤더 표시, 뒤로가기 표시, 탭 바 숨김
-}
-```
-
-#### 예시 3: 오른쪽 버튼이 있는 화면
-
-```typescript
-import { TouchableOpacity, Text } from 'react-native';
-
-export function ReportListScreen() {
-  const handleAdd = () => {
-    router.push('/report/create');
+  const handleCreate = async () => {
+    try {
+      setIsLoading(true);
+      await createItem({ title });
+      onClose();
+    } catch (error) {
+      Alert.alert('오류', '항목 생성에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <ScreenLayout
-      title="리포트"
-      rightElement={
-        <TouchableOpacity onPress={handleAdd}>
-          <Text className="text-blue-500 font-semibold">추가</Text>
-        </TouchableOpacity>
-      }
+    <FullScreenModal
+      visible={visible}
+      onClose={onClose}
+      title="새 항목"
+      rightButton={{
+        label: '생성',
+        onPress: handleCreate,
+        disabled: !isValid,
+        loading: isLoading,
+      }}
     >
-      <ReportList />
-    </ScreenLayout>
+      <View className="p-4 gap-4">
+        <TextInput
+          value={title}
+          onChangeText={setTitle}
+          placeholder="항목 제목"
+          className="border border-gray-300 dark:border-gray-600 rounded-lg p-3"
+        />
+      </View>
+    </FullScreenModal>
   );
 }
 ```

@@ -17,8 +17,7 @@ export function ItemCard({ item, onPress }: ItemCardProps) {
     if (onPress) {
       onPress(item);
     } else {
-      // TODO: Create /item/[id] screen, temporarily using document screen
-      router.push({ pathname: '/document/[id]' as any, params: { id: item.id } });
+      router.push({ pathname: '/item/[id]' as any, params: { id: item.id } });
     }
   };
 

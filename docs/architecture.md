@@ -41,6 +41,7 @@
 | [tech-stack.md](./architecture/tech-stack.md) | 기술 스택, 코드 컨벤션 |
 | [data-flow.md](./architecture/data-flow.md) | 데이터 흐름, 상태 관리 |
 | [design-system.md](./architecture/design-system.md) | 디자인 시스템 구조, 토큰, 레이아웃 컴포넌트 |
+| [routing-structure.md](./architecture/routing-structure.md) | 라우팅 구조 및 네비게이션 패턴 |
 
 ---
 

@@ -80,7 +80,7 @@ Receipt Tool 앱의 레이아웃, 모달, 플로팅 버튼 사용 정책을 정�
 
 ---
 
-#### 2depth 이상 화면 (탭 외부) - `/item/*`, `/report/*` 등
+#### 2depth 이상 화면 (탭 내부 Stack) - `/(tabs)/index/item/*`, `/(tabs)/items/report/*` 등
 
 ```
 ┌─────────────────────────────────────────┐
@@ -104,18 +104,18 @@ Receipt Tool 앱의 레이아웃, 모달, 플로팅 버튼 사용 정책을 정�
 │                                   │ 🗑 │  │
 │                                   └───┘  │
 │                                          │
-│                                          │ ← 탭 바 없음 (자동 숨김)
+│                                          │ ← 탭 바 자동 숨김 (2depth)
 │                                          │ ← SafeAreaView (bottom)
 └─────────────────────────────────────────┘
 ```
 
 **특징:**
-- 경로: `/(tabs)/*` 외부 (Stack 네비게이터 사용)
-- _layout.tsx에서 Stack 네비게이터와 공통 UI 정의
-- 화면 파일([id].tsx, add.tsx 등)은 콘텐츠만 반환
-- 탭 바가 자동으로 숨겨집니다
+- 경로: `/(tabs)/{tabName}/{screenName}/*` (각 탭 내부의 Stack)
+- 각 탭이 자신의 Stack을 관리하여 일관된 헤더/타이틀 유지
+- 2depth 이상 화면에서는 탭 바가 자동으로 숨겨집니다
 - 뒤로가기 버튼이 헤더 왼쪽에 자동으로 표시됩니다
-- FloatingActionBar는 _layout.tsx에서 조건부로 렌더링
+- FloatingActionBar는 각 탭의 _layout.tsx에서 조건부로 렌더링
+- 탭 전환 시 헤더가 깜빡이지 않음 (각 탭이 독립적인 네비게이션 스택 관리)
 
 ---
 
@@ -217,11 +217,11 @@ Receipt Tool 앱의 레이아웃, 모달, 플로팅 버튼 사용 정책을 정�
 ```
 
 **적용 화면:**
-- 증빙 목록 (`/(tabs)/items.tsx`)
-- 항목 상세 (`/item/[id].tsx`)
-- 리포트 목록 (`/(tabs)/reports.tsx`)
-- 리포트 상세 (`/report/[id].tsx`)
-- 모든 화면
+- 대시보드 (`/(tabs)/index/index.tsx`) - FloatingActionBar 없음
+- 증빙 목록 (`/(tabs)/items/index.tsx`) - 추가 버튼
+- 항목 상세 (`/(tabs)/index/item/[id].tsx`) - 수정/삭제 버튼
+- 리포트 목록 (`/(tabs)/reports/index.tsx`) - 추가 버튼
+- 리포트 상세 (`/(tabs)/reports/[id].tsx`) - 수정/삭제 버튼
 
 ---
 
@@ -232,75 +232,126 @@ Receipt Tool 앱의 레이아웃, 모달, 플로팅 버튼 사용 정책을 정�
 **구조:**
 ```
 app/(tabs)/
-├── _layout.tsx          (Tabs + Header + FloatingActionBar)
-├── index.tsx            (콘텐츠만)
-└── items.tsx            (콘텐츠만)
+├── _layout.tsx              (Tabs 상단 레이아웃)
+├── index/
+│   ├── _layout.tsx          (홈 탭의 Stack + Header)
+│   ├── index.tsx            (대시보드 콘텐츠만)
+│   └── item/
+│       ├── _layout.tsx      (항목 Stack)
+│       └── [id].tsx         (항목 상세 콘텐츠만)
+├── items/
+│   ├── _layout.tsx          (증빙 탭의 Stack + Header + FloatingActionBar)
+│   ├── index.tsx            (증빙 목록 콘텐츠만)
+│   └── report/
+│       ├── _layout.tsx      (리포트 Stack)
+│       └── [id].tsx         (리포트 상세 콘텐츠만)
+└── reports/
+    ├── _layout.tsx          (리포트 탭의 Stack + Header + FloatingActionBar)
+    └── index.tsx            (리포트 목록 콘텐츠만)
 ```
 
-**_layout.tsx 예시: 탭 레이아웃 정의**
+**_layout.tsx 예시: 상단 Tabs 레이아웃 (app/(tabs)/_layout.tsx)**
 
 ```typescript
 import { Tabs } from 'expo-router';
+
+export default function TabsLayout() {
+  return (
+    <Tabs
+      screenOptions={{
+        headerShown: false,  // 각 탭의 _layout.tsx에서 Header 렌더링
+        tabBarActiveTintColor: '#3B82F6',
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: '홈',
+          tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="items"
+        options={{
+          title: '증빙',
+          tabBarIcon: ({ color }) => <Ionicons name="receipt" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="reports"
+        options={{
+          title: '리포트',
+          tabBarIcon: ({ color }) => <Ionicons name="document-text" size={24} color={color} />,
+        }}
+      />
+    </Tabs>
+  );
+}
+```
+
+**_layout.tsx 예시: 탭 내부 Stack (app/(tabs)/items/_layout.tsx)**
+
+```typescript
+import { Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Header } from '@/components/common';
 import { FloatingActionBar } from '@/components/common';
+import { usePathname } from 'expo-router';
 import { useState } from 'react';
 
-export default function TabsLayout() {
-  const [currentRoute, setCurrentRoute] = useState('index');
+export default function ItemsTabLayout() {
+  const pathname = usePathname();
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const isDetailScreen = pathname.includes('report/');
 
   const getHeaderTitle = () => {
-    switch (currentRoute) {
-      case 'index':
-        return '대시보드';
-      case 'items':
-        return '증빙';
-      default:
-        return '';
+    if (isDetailScreen) {
+      return '리포트 상세';
     }
+    return '증빙';
   };
 
   const getFloatingActions = () => {
-    if (currentRoute === 'items') {
-      return [{ icon: 'add', onPress: handleAddItem, variant: 'primary' }];
+    if (isDetailScreen) {
+      return [
+        { icon: 'create-outline', onPress: handleEdit, variant: 'default' },
+        { icon: 'trash-outline', onPress: handleDelete, variant: 'danger' },
+      ];
     }
-    return undefined;
+    // 목록 화면에서 추가 버튼
+    return [{ icon: 'add', onPress: () => setShowAddModal(true), variant: 'primary' }];
   };
 
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1">
-      <Header title={getHeaderTitle()} showBack={false} />
+      <Header title={getHeaderTitle()} showBack={isDetailScreen} />
 
-      <Tabs screenOptions={{ headerShown: false }}>
-        <Tabs.Screen
-          name="index"
-          options={{ title: '대시보드' }}
-          listeners={{
-            tabPress: () => setCurrentRoute('index'),
-          }}
-        />
-        <Tabs.Screen
-          name="items"
-          options={{ title: '증빙' }}
-          listeners={{
-            tabPress: () => setCurrentRoute('items'),
-          }}
-        />
-      </Tabs>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Group>
+          <Stack.Screen name="report/[id]" />
+        </Stack.Group>
+      </Stack>
 
-      {/* 공통 FloatingActionBar (경로별로 조건부 렌더링) */}
       {getFloatingActions() && (
         <FloatingActionBar actions={getFloatingActions()!} />
       )}
+
+      <ItemFormModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleCreate}
+      />
     </SafeAreaView>
   );
 }
 ```
 
-**화면 파일 예시: app/(tabs)/items.tsx (콘텐츠만)**
+**화면 파일 예시: app/(tabs)/items/index.tsx (콘텐츠만)**
 
 ```typescript
-import { ScrollView, View } from 'react-native';
+import { ScrollView } from 'react-native';
 import { ItemList } from '@/components/item/ItemList';
 
 export default function ItemsTab() {
@@ -312,54 +363,44 @@ export default function ItemsTab() {
 }
 ```
 
-**모달 예시: 증빙 목록 화면에서 추가 폼**
+**화면 파일 예시: app/(tabs)/index/index.tsx (콘텐츠만, FloatingActionBar 없음)**
 
 ```typescript
-import { useState } from 'react';
 import { ScrollView } from 'react-native';
-import { ItemList } from '@/components/item/ItemList';
-import { FullScreenModal } from '@/components/common';
-import { ItemForm } from '@/components/item/ItemForm';
+import { Dashboard } from '@/components/dashboard/Dashboard';
 
-export default function ItemsTab() {
-  const [showAddModal, setShowAddModal] = useState(false);
-
+export default function HomeTab() {
   return (
-    <>
-      <ScrollView className="flex-1">
-        <ItemList />
-      </ScrollView>
-
-      <FullScreenModal
-        visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        title="새 항목"
-        rightButton={{
-          label: '생성',
-          onPress: handleCreate,
-          disabled: !isValid,
-        }}
-      >
-        <ItemForm />
-      </FullScreenModal>
-    </>
+    <ScrollView className="flex-1">
+      <Dashboard />
+    </ScrollView>
   );
 }
 ```
 
 ---
 
-### 2depth 이상 화면 - app/item/, app/report/ 등
+### 2depth 이상 화면 - app/(tabs)/index/item/, app/(tabs)/items/report/ 등
 
 **구조:**
 ```
-app/item/
-├── _layout.tsx          (Stack + Header + FloatingActionBar)
-├── [id].tsx             (콘텐츠만)
-└── add.tsx              (콘텐츠만)
+app/(tabs)/
+├── _layout.tsx          (Tabs 상단 레이아웃)
+├── index/
+│   ├── _layout.tsx      (홈 탭의 Stack + Header + FloatingActionBar)
+│   ├── index.tsx        (대시보드 콘텐츠)
+│   └── item/
+│       ├── _layout.tsx  (항목 Stack)
+│       └── [id].tsx     (항목 상세 콘텐츠)
+└── items/
+    ├── _layout.tsx      (증빙 탭의 Stack + Header + FloatingActionBar)
+    ├── index.tsx        (증빙 목록 콘텐츠)
+    └── report/
+        ├── _layout.tsx  (리포트 Stack)
+        └── [id].tsx     (리포트 상세 콘텐츠)
 ```
 
-**_layout.tsx 예시: Stack 레이아웃 정의**
+**_layout.tsx 예시: 탭 내부 Stack (app/(tabs)/index/_layout.tsx)**
 
 ```typescript
 import { Stack } from 'expo-router';
@@ -367,67 +408,84 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Header } from '@/components/common';
 import { FloatingActionBar } from '@/components/common';
 import { usePathname } from 'expo-router';
+import { useState } from 'react';
 
-export default function ItemLayout() {
+export default function HomeTabLayout() {
   const pathname = usePathname();
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const isDetailScreen = pathname.includes('item/');
 
   const getHeaderTitle = () => {
-    if (pathname.includes('[id]')) {
-      return '항목 상세';
+    if (isDetailScreen) {
+      return '항목 상세';  // Stack 화면
     }
-    if (pathname.includes('add')) {
-      return '새 항목';
-    }
-    return '';
+    return '대시보드';     // 홈 탭 기본 화면
   };
 
   const getFloatingActions = () => {
     // 상세 화면에서만 수정/삭제 버튼 표시
-    if (pathname.includes('[id]')) {
+    if (isDetailScreen) {
       return [
         { icon: 'create-outline', onPress: handleEdit, variant: 'default' },
         { icon: 'trash-outline', onPress: handleDelete, variant: 'danger' },
       ];
     }
+    // 홈 탭 기본 화면에서는 버튼 없음
     return undefined;
   };
 
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1">
-      <Header title={getHeaderTitle()} showBack={true} />
+      <Header title={getHeaderTitle()} showBack={isDetailScreen} />
 
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="[id]" />
-        <Stack.Screen name="add" />
+        <Stack.Screen name="index" />
+        <Stack.Group screenOptions={{ presentation: 'default' }}>
+          <Stack.Screen name="item/[id]" />
+        </Stack.Group>
       </Stack>
 
       {/* 공통 FloatingActionBar */}
       {getFloatingActions() && (
         <FloatingActionBar actions={getFloatingActions()!} />
       )}
+
+      {/* 항목 추가 모달 (홈 탭 레이아웃에서 관리) */}
+      <ItemFormModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleCreate}
+      />
     </SafeAreaView>
   );
 }
 ```
 
-**화면 파일 예시: app/item/[id].tsx (콘텐츠만)**
+**화면 파일 예시: app/(tabs)/index/item/[id].tsx (콘텐츠만)**
 
 ```typescript
 import { ScrollView, View } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useLocalSearchParams } from 'expo-router';
 import { ItemDetail } from '@/components/item/ItemDetail';
 
 export default function ItemDetailScreen() {
-  const route = useRoute();
-  const { id } = route.params as { id: string };
+  const { id } = useLocalSearchParams<{ id: string }>();
 
   return (
     <ScrollView className="flex-1 px-4 py-4">
-      <ItemDetail itemId={id} />
+      <ItemDetail itemId={id!} />
     </ScrollView>
   );
 }
 ```
+
+**중요: 탭별 독립적인 Stack**
+
+각 탭 (`index`, `items`, `reports`)이 자신의 2depth 화면을 독립적으로 관리합니다. 이렇게 하면:
+- 탭 전환 시 헤더가 깜빡이지 않음
+- 각 탭의 히스토리가 분리됨
+- 뒤로가기 시 같은 탭 내에서만 이동
 
 ---
 
@@ -525,28 +583,42 @@ export function TagFormModal({ visible, onClose, onSubmit }: TagFormModalProps) 
 
 기존 패턴에서 새 패턴으로 전환할 때:
 
-### 1. _layout.tsx 생성
+### 1. 탭별 Stack 구조 생성
 
-- [ ] 각 디렉토리에 _layout.tsx 파일 생성
+- [ ] 각 탭 디렉토리에 `_layout.tsx` 생성 (`app/(tabs)/index/_layout.tsx`, `app/(tabs)/items/_layout.tsx` 등)
+- [ ] 각 탭의 2depth 화면을 해당 탭의 Stack에서 관리 (`app/(tabs)/index/item/[id].tsx` 등)
+- [ ] Root의 `app/item/`, `app/report/` 폴더 제거
+
+### 2. _layout.tsx 구성
+
+- [ ] 상단 Tabs 레이아웃: `app/(tabs)/_layout.tsx` (Tabs만 정의)
+- [ ] 각 탭 Stack 레이아웃: `app/(tabs)/{tabName}/_layout.tsx` (Header + Stack + FloatingActionBar)
 - [ ] SafeAreaView로 전체 감싸기
-- [ ] Stack/Tabs/Slot 네비게이터 설정
 - [ ] Header 컴포넌트 추가
 - [ ] FloatingActionBar 조건부 렌더링
 
-### 2. 화면 파일 수정
+### 3. 화면 파일 수정
 
-- [ ] 레이아웃 컴포넌트 제거 (ScreenLayout, TabScreenLayout, ModalLayout 등)
+- [ ] 레이아웃 컴포넌트 제거 (ScreenLayout, TabScreenLayout 등)
 - [ ] 콘텐츠만 반환하도록 수정
 - [ ] SafeAreaView 제거 (레이아웃에서 처리)
 - [ ] FloatingActionBar 제거 (레이아웃에서 처리)
-- [ ] FullScreenModal은 상태 기반으로 유지
+- [ ] FullScreenModal은 각 탭의 _layout.tsx에서 상태 관리
 
-### 3. 검증
+### 4. 라우팅 수정
+
+- [ ] 라우트 경로 업데이트 (예: `/item/[id]` → `/(tabs)/index/item/[id]`)
+- [ ] `useLocalSearchParams` 사용 (useRoute 대신)
+- [ ] 각 탭 내에서 `router.push` 경로 확인
+
+### 5. 검증
 
 - [ ] TypeScript 컴파일 확인
 - [ ] 모든 화면 네비게이션 테스트
+- [ ] 탭 전환 시 헤더 깜빡임 제거 확인
 - [ ] FloatingActionBar 위치 일관성 확인
 - [ ] 다크모드 동작 확인
+- [ ] 뒤로가기 제스처 정상 동작 확인
 
 ---
 
@@ -704,11 +776,25 @@ import { ScreenLayout } from '@/design-system/layouts';
 
 | 항목 | 이전 | 현재 | 설명 |
 |-----|-----|-----|-----|
-| 레이아웃 | TabScreenLayout + ScreenLayout | ScreenLayout 통일 | 탭 표시는 자동 처리 |
-| 깊이별 처리 | 수동 구분 필요 | 자동 처리 | 경로에 따라 자동 결정 |
-| 뒤로가기 | showBack prop | 자동 표시/숨김 | 히스토리 기반 자동 처리 |
-| 모달 버튼 | bottomButtons | rightButton | 헤더 액션 버튼 사용 |
-| 플로팅 버튼 | compact prop 사용 | 항상 원형 FAB | 모든 화면 동일 스타일 |
-| 3depth+ | ScreenLayout | ScreenLayout | 동일한 구조 지원 |
+| 2depth 화면 위치 | Root에 `/item/`, `/report/` | 각 탭 내부 (`/(tabs)/{tab}/item/`) | 탭별 독립적 Stack 관리 |
+| 헤더 깜빡임 | 있음 (Root Stack 전환) | 없음 (탭 내부 Stack) | 각 탭이 자신의 히스토리 유지 |
+| 라우팅 | `router.push('/item/[id]')` | `router.push('item/[id]')` 또는 상대 경로 | 탭 내부에서만 네비게이션 |
+| 뒤로가기 | Root Stack에서 처리 | 각 탭 Stack에서 처리 | 탭 전환 후에도 같은 화면 유지 |
+| FloatingActionBar | 각 화면마다 개별 관리 | 각 탭의 _layout.tsx에서 관리 | 위치 일관성 보장 |
+| 모달 관리 | 화면 파일에서 | 탭의 _layout.tsx에서 | 모달이 탭과 동일한 레이아웃 공유 |
 
-**최종 업데이트:** 2026-02-16
+**최종 업데이트:** 2026-02-17
+
+## 구조 변경의 이점
+
+### 1. 헤더 깜빡임 제거
+- 이전: Root Stack에서 `/item/[id]` 전환 시 Root Header와 Item Header가 겹침
+- 현재: 각 탭이 자신의 Header를 관리하여 일관된 레이아웃 유지
+
+### 2. 탭별 히스토리 독립성
+- 이전: 모든 탭이 Root 히스토리를 공유하여 뒤로가기 시 다른 탭으로 이동 가능
+- 현재: 각 탭이 자신의 히스토리를 관리하여 탭별로 독립적 네비게이션
+
+### 3. 라우팅 단순화
+- 이전: 절대 경로로 타 탭 화면 접근 가능
+- 현재: 각 탭 내에서만 네비게이션하도록 강제 (의도하지 않은 이동 방지)

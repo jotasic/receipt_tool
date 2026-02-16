@@ -99,7 +99,7 @@ export default function HomeScreen() {
 
 ## 우리 프로젝트 구조
 
-### 현재 잘못된 구조
+### 이전 구조 (문제가 있던 구조)
 
 ```
 app/
@@ -108,44 +108,47 @@ app/
 │   ├── index.tsx            (❌ TabScreenLayout 렌더링)
 │   ├── items.tsx            (❌ TabScreenLayout 렌더링)
 │   └── reports.tsx          (❌ TabScreenLayout 렌더링)
-├── item/
-│   ├── [id].tsx             (❌ ScreenLayout 렌더링)
-│   └── add.tsx              (❌ ScreenLayout 렌더링)
+├── item/                     (❌ Root에 위치)
+│   ├── _layout.tsx
+│   ├── [id].tsx
+│   └── add.tsx
 ```
 
 **문제점:**
-- 각 화면 파일이 독립적으로 레이아웃 컴포넌트를 렌더링
-- FloatingActionBar가 각 화면에 개별 구현되어 위치 불일치
-- 공통 UI 요소를 prop으로 제어할 수 없음
-- Expo Router의 공식 패턴을 따르지 않음
+- Root 레벨에 `/item/`, `/report/` 같은 2depth 화면이 있어서 Root Stack이 필요
+- 2depth 화면으로 이동 시 Root Header와 Item Header가 겹쳐서 깜빡임
+- 각 탭의 히스토리가 공유되어 의도하지 않은 네비게이션 발생
+- FloatingActionBar가 각 화면에 개별 구현
 
-### 올바른 구조
+### 올바른 구조 (현재)
 
 ```
 app/
 ├── _layout.tsx              (루트: 프로바이더 + Slot)
-├── (tabs)/
-│   ├── _layout.tsx          (Tabs + 공통 Header + FloatingActionBar)
-│   ├── index.tsx            (대시보드 콘텐츠만)
-│   ├── items.tsx            (증빙 목록 콘텐츠만)
-│   └── reports.tsx          (리포트 목록 콘텐츠만)
-├── item/
-│   ├── _layout.tsx          (Stack + 공통 Header + FloatingActionBar)
-│   ├── [id].tsx             (상세 화면 콘텐츠만)
-│   └── add.tsx              (추가 폼 콘텐츠만)
-├── report/
-│   ├── _layout.tsx          (Stack + 공통 Header)
-│   ├── [id].tsx             (리포트 상세 콘텐츠만)
-│   └── monthly/
-│       ├── _layout.tsx      (Stack + 공통 Header)
-│       └── [year]/[month].tsx  (월별 리포트 콘텐츠만)
+└── (tabs)/
+    ├── _layout.tsx          (Tabs 정의)
+    ├── index/
+    │   ├── _layout.tsx      (홈 탭의 Stack + Header)
+    │   ├── index.tsx        (대시보드 콘텐츠)
+    │   └── item/
+    │       ├── _layout.tsx  (항목 Stack)
+    │       └── [id].tsx     (항목 상세 콘텐츠)
+    ├── items/
+    │   ├── _layout.tsx      (증빙 탭의 Stack + Header + FloatingActionBar)
+    │   ├── index.tsx        (증빙 목록 콘텐츠)
+    │   └── report/
+    │       ├── _layout.tsx  (리포트 Stack)
+    │       └── [id].tsx     (리포트 상세 콘텐츠)
+    └── reports/
+        ├── _layout.tsx      (리포트 탭의 Stack + Header + FloatingActionBar)
+        └── index.tsx        (리포트 목록 콘텐츠)
 ```
 
 **장점:**
-- 공식 Expo Router 패턴 준수
-- 레이아웃 일관성 보장 (FloatingActionBar 위치 통일)
-- 레이아웃 요소를 prop으로 제어 가능
-- 코드 중복 제거
+- 각 탭이 자신의 2depth 화면을 관리하여 헤더 깜빡임 제거
+- 각 탭의 히스토리가 독립적으로 관리됨
+- 탭 전환 후에도 같은 화면 상태 유지
+- 공식 Expo Router 패턴 준수 (Stack 중첩 사용)
 
 ## 구현 패턴
 
@@ -168,61 +171,86 @@ export default function RootLayout() {
 
 ### 2. Tabs 레이아웃 (app/(tabs)/_layout.tsx)
 
-탭 네비게이터 + 공통 UI:
+**상단 Tabs만 정의 (각 탭의 내부 레이아웃은 탭별 _layout.tsx에서 관리):**
 
 ```typescript
 import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+
+export default function TabsLayout() {
+  return (
+    <Tabs
+      screenOptions={{
+        headerShown: false,  // 각 탭의 _layout.tsx에서 Header 렌더링
+        tabBarActiveTintColor: '#3B82F6',
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: '홈',
+          tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="items"
+        options={{
+          title: '증빙',
+          tabBarIcon: ({ color }) => <Ionicons name="receipt" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="reports"
+        options={{
+          title: '리포트',
+          tabBarIcon: ({ color }) => <Ionicons name="document-text" size={24} color={color} />,
+        }}
+      />
+    </Tabs>
+  );
+}
+```
+
+### 2-1. 각 탭의 내부 레이아웃 (app/(tabs)/items/_layout.tsx)
+
+**각 탭이 자신의 Stack을 관리:**
+
+```typescript
+import { Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Header } from '@/components/common';
 import { FloatingActionBar } from '@/components/common';
-import { useState } from 'react';
+import { usePathname } from 'expo-router';
 
-export default function TabsLayout() {
-  const [currentRoute, setCurrentRoute] = useState('index');
+export default function ItemsTabLayout() {
+  const pathname = usePathname();
 
-  // 라우트별 FloatingActionBar 설정
+  // 2depth 화면인지 확인
+  const isDetailScreen = pathname.includes('report/');
+
+  const getHeaderTitle = () => {
+    return isDetailScreen ? '리포트 상세' : '증빙';
+  };
+
   const getFloatingActions = () => {
-    switch (currentRoute) {
-      case 'index':
-        return [{ icon: 'add', onPress: () => {}, variant: 'primary' }];
-      case 'items':
-        return [{ icon: 'add', onPress: () => {}, variant: 'primary' }];
-      default:
-        return undefined;
+    if (isDetailScreen) {
+      return [
+        { icon: 'create-outline', onPress: handleEdit, variant: 'default' },
+        { icon: 'trash-outline', onPress: handleDelete, variant: 'danger' },
+      ];
     }
+    return [{ icon: 'add', onPress: handleAddItem, variant: 'primary' }];
   };
 
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1">
-      <Tabs
-        screenOptions={{
-          headerShown: false,  // 우리가 직접 Header 컴포넌트 사용
-        }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: '대시보드',
-            tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="items"
-          options={{
-            title: '증빙',
-            tabBarIcon: ({ color }) => <Ionicons name="receipt" size={24} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="reports"
-          options={{
-            title: '리포트',
-            tabBarIcon: ({ color }) => <Ionicons name="document-text" size={24} color={color} />,
-          }}
-        />
-      </Tabs>
+      <Header title={getHeaderTitle()} showBack={isDetailScreen} />
 
-      {/* 공통 FloatingActionBar */}
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="report/[id]" />
+      </Stack>
+
       {getFloatingActions() && (
         <FloatingActionBar actions={getFloatingActions()!} />
       )}
@@ -231,46 +259,54 @@ export default function TabsLayout() {
 }
 ```
 
-### 3. Stack 레이아웃 (app/item/_layout.tsx)
+### 3. 2depth Stack 레이아웃 (app/(tabs)/index/item/_layout.tsx)
 
-Stack 네비게이터 + 공통 헤더:
+**각 탭 내부의 2depth 화면을 관리:**
 
 ```typescript
 import { Stack } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function ItemLayout() {
+export default function ItemStackLayout() {
   return (
-    <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1">
-      <Stack
-        screenOptions={{
-          headerShown: false,  // 우리가 직접 제어
-          animation: 'slide_from_right',
-        }}
-      >
-        <Stack.Screen name="[id]" />
-        <Stack.Screen name="add" />
-      </Stack>
-    </SafeAreaView>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="[id]" />
+    </Stack>
   );
 }
 ```
+
+**주의:** SafeAreaView와 Header는 부모 탭의 _layout.tsx에서 이미 처리되었으므로 여기서는 Stack만 정의
 
 ### 4. 화면 파일 (콘텐츠만)
 
 화면 파일은 레이아웃 요소 없이 콘텐츠만 반환:
 
 ```typescript
-// app/(tabs)/index.tsx
-import { ScrollView, View, Text } from 'react-native';
+// app/(tabs)/items/index.tsx
+import { ScrollView } from 'react-native';
+import { ItemList } from '@/components/item/ItemList';
 
-export default function HomeScreen() {
+export default function ItemsTab() {
   return (
     <ScrollView className="flex-1">
-      <View className="p-4">
-        <Text className="text-xl font-bold">대시보드</Text>
-        {/* 콘텐츠 */}
-      </View>
+      <ItemList />
+    </ScrollView>
+  );
+}
+```
+
+```typescript
+// app/(tabs)/items/report/[id].tsx (2depth 화면)
+import { ScrollView } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { ReportDetail } from '@/components/report/ReportDetail';
+
+export default function ReportDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  return (
+    <ScrollView className="flex-1 px-4">
+      <ReportDetail reportId={id!} />
     </ScrollView>
   );
 }

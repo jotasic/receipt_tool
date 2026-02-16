@@ -340,9 +340,10 @@ router.push('/item/add')  // 탭 A
 
 ### 핵심 원칙
 
-1. **레이아웃**: `_layout.tsx`에서만 정의 (Expo Router 공식 패턴)
-   - 화면 파일은 콘텐츠만 반환
-   - Header, SafeAreaView, FloatingActionBar, Stack/Tabs/Slot은 _layout.tsx에서만 사용
+1. **레이아웃 구조**: Expo Router Stack 중첩 패턴 (공식 패턴)
+   - `app/(tabs)/_layout.tsx`: 상단 Tabs 정의
+   - `app/(tabs)/{tabName}/_layout.tsx`: 각 탭의 Stack + Header + FloatingActionBar
+   - 각 탭이 자신의 2depth 화면을 관리하여 헤더 깜빡임 제거
 2. **추가/수정**: 무조건 `FullScreenModal` 사용 (하단 버튼 없음, 헤더 아이콘만)
 3. **플로팅 버튼**: `FloatingActionBar` (원형 FAB 스타일, 아이콘만)
 4. **다크모드**: 필수 지원 (`dark:` 클래스 또는 `useThemeColor` 훅)
@@ -351,8 +352,9 @@ router.push('/item/add')  // 탭 A
 
 상세한 사용법은 다음 문서를 참고하세요:
 
-- [Expo Router 레이아웃 가이드](/docs/guides/expo-router-layout.md) - Expo Router 공식 패턴 (필독)
-- [Layout Policy](/docs/guides/layout-policy.md) - 레이아웃 및 모달 정책
+- [Layout Policy](/docs/guides/layout-policy.md) - 레이아웃 정책 및 구현 패턴 (필독)
+- [Expo Router 레이아웃 가이드](/docs/guides/expo-router-layout.md) - Expo Router 공식 패턴
+- [Routing Structure](/docs/architecture/routing-structure.md) - 라우팅 구조
 - [Design System Guide](/docs/guides/design-system.md) - 토큰, 훅, 컴포넌트 사용법
 - [Design System Architecture](/docs/architecture/design-system.md) - 구조 및 확장 방법
 

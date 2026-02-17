@@ -1,13 +1,14 @@
 /**
  * MonthViewCalendar Component
  *
- * 월 모드: 한 달 전체의 증빙 현황을 한눈에 보여주는 달력 컴포넌트.
- * 각 날짜 셀에 증빙 미리보기를 표시합니다.
+ * 월 모드: Outlook 스타일의 수직 연속 스크롤 달력.
+ * CalendarList를 사용하여 위아래 드래그로 월 이동이 가능하고,
+ * 이번달과 다음달 일부가 동시에 화면에 보입니다.
  */
 
 import React, { useMemo } from 'react';
-import { View, useColorScheme } from 'react-native';
-import { Calendar, LocaleConfig } from 'react-native-calendars';
+import { View, Text, useColorScheme } from 'react-native';
+import { CalendarList, LocaleConfig } from 'react-native-calendars';
 import type { Item } from '@/types/item';
 import { getCalendarTheme, koreanLocaleConfig } from '@/constants/calendarTheme';
 import { DateCellWithItems } from './DateCellWithItems';
@@ -25,8 +26,9 @@ interface MonthViewCalendarProps {
 /**
  * MonthViewCalendar
  *
- * react-native-calendars의 Calendar 컴포넌트를 사용하여
- * 날짜 셀을 커스터마이징합니다.
+ * react-native-calendars의 CalendarList 컴포넌트를 사용하여
+ * 수직 연속 스크롤 방식으로 월 이동을 지원합니다.
+ * 상단에 요일 헤더가 sticky로 고정됩니다.
  */
 export function MonthViewCalendar({
   items,
@@ -35,6 +37,7 @@ export function MonthViewCalendar({
 }: MonthViewCalendarProps) {
   const colorScheme = useColorScheme();
   const theme = getCalendarTheme(colorScheme ?? 'light');
+  const isDark = colorScheme === 'dark';
 
   // 날짜별로 항목 그룹화
   const itemsByDate = useMemo(() => {
@@ -53,42 +56,87 @@ export function MonthViewCalendar({
 
   return (
     <View className="flex-1 bg-white dark:bg-gray-900">
-      <Calendar
-        current={currentMonth}
-        theme={theme}
+      {/* Sticky 요일 헤더 */}
+      <View className="flex-row border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        {['일', '월', '화', '수', '목', '금', '토'].map((day, i) => (
+          <View key={day} className="flex-1 items-center py-2">
+            <Text
+              className={`text-xs font-medium ${
+                i === 0
+                  ? 'text-red-500'
+                  : i === 6
+                  ? 'text-blue-500'
+                  : 'text-gray-500 dark:text-gray-400'
+              }`}
+            >
+              {day}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      <CalendarList
+        // 현재 날짜 기준 전후 12개월
+        pastScrollRange={12}
+        futureScrollRange={12}
+        // 수직 스크롤
+        horizontal={false}
+        // 스크롤 스냅 비활성화 (자연스러운 연속 스크롤)
+        pagingEnabled={false}
+        // 월 헤더 커스터마이징 (월 이름만 표시)
+        renderHeader={(date) => {
+          const month = date
+            ? new Date(date.toString()).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+              })
+            : '';
+          return (
+            <View className="py-3 px-4">
+              <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
+                {month}
+              </Text>
+            </View>
+          );
+        }}
+        // 요일 헤더 숨김 (위에서 sticky로 직접 렌더링)
+        hideDayNames={true}
+        // 테마 (stylesheet 오버라이드는 타입 캐스트 필요)
+        theme={
+          {
+            ...theme,
+            calendarBackground: isDark ? '#111827' : '#FFFFFF',
+            'stylesheet.calendar.header': {
+              week: { display: 'none' },
+            },
+          } as object
+        }
         // 날짜 셀 커스터마이징
-        dayComponent={({ date, state, marking }) => {
+        dayComponent={({ date, state }) => {
           if (!date) return null;
-
           const dateItems = itemsByDate[date.dateString] || [];
-
           return (
             <DateCellWithItems
               date={date}
               items={dateItems}
               onPress={() => onDatePress(date.dateString)}
-              marking={marking}
               state={state}
             />
           );
         }}
-        // 마킹 설정 (오늘 날짜 표시용)
+        // 오늘 날짜 마킹
         markedDates={{
-          [today]: {
-            marked: false,
-            selected: false,
-          },
+          [today]: { marked: false, selected: false },
         }}
-        // 월 변경 콜백
-        onMonthChange={(month) => {
-          // 필요 시 월 변경 이벤트 처리
-          console.log('Month changed:', month.dateString);
-        }}
-        // 기타 설정
-        firstDay={0} // 일요일 시작
-        enableSwipeMonths={true} // 좌우 스와이프로 월 이동
-        hideExtraDays={false} // 이전/다음 달 날짜도 표시
-        monthFormat="M월" // 월 형식
+        // 시작 요일: 일요일
+        firstDay={0}
+        // 이전/다음 달 날짜 표시
+        hideExtraDays={false}
+        // 월 형식
+        monthFormat="M월"
+        // 현재 월로 스크롤
+        current={currentMonth || today}
+        showScrollIndicator={false}
       />
     </View>
   );

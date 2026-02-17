@@ -50,6 +50,12 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
 
   // Convert items to section format
   const sections = useMemo(() => {
+    if (items.length === 0) {
+      // No items at all - return empty array
+      // AgendaList will show nothing, we'll handle this with conditional rendering
+      return [];
+    }
+
     // Group items by date
     const itemsByDate = items.reduce((acc, item) => {
       if (!acc[item.date]) {
@@ -76,10 +82,25 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
   // Render empty section (for dates with no items)
   const renderEmptyDate = () => {
     return (
-      <View className="items-center justify-center py-12">
+      <View className="items-center justify-center py-12 px-4">
         <Ionicons name="receipt-outline" size={64} color={iconColor} />
         <Text className="text-gray-500 dark:text-gray-400 mt-4 text-base">
           이 날짜에 등록된 증빙이 없습니다
+        </Text>
+      </View>
+    );
+  };
+
+  // Render empty entire list (when no data at all)
+  const renderEmptyData = () => {
+    return (
+      <View className="flex-1 items-center justify-center py-20 px-4">
+        <Ionicons name="calendar-outline" size={80} color={iconColor} />
+        <Text className="text-gray-500 dark:text-gray-400 mt-6 text-lg font-medium">
+          등록된 증빙이 없습니다
+        </Text>
+        <Text className="text-gray-400 dark:text-gray-500 mt-2 text-sm text-center">
+          홈 탭에서 증빙을 등록해보세요
         </Text>
       </View>
     );
@@ -103,28 +124,32 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
           borderBottomColor: colorScheme === 'dark' ? '#374151' : '#E5E7EB',
         }}
       />
-      <AgendaList
-        sections={sections}
-        renderItem={renderItem}
-        dayFormat="M월 d일 EEEE"
-        sectionStyle={{
-          paddingHorizontal: 16,
-          paddingVertical: 12,
-          backgroundColor: colorScheme === 'dark' ? '#1F2937' : '#F9FAFB',
-        }}
-        theme={{
-          ...theme,
-          agendaDayTextColor: colorScheme === 'dark' ? '#F3F4F6' : '#111827',
-          agendaDayNumColor: colorScheme === 'dark' ? '#F3F4F6' : '#111827',
-          agendaTodayColor: theme.todayTextColor,
-        }}
-        markToday={true}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 8,
-          backgroundColor: colorScheme === 'dark' ? '#111827' : '#F9FAFB',
-        }}
-      />
+      {sections.length === 0 ? (
+        renderEmptyData()
+      ) : (
+        <AgendaList
+          sections={sections}
+          renderItem={renderItem}
+          dayFormat="M월 d일 EEEE"
+          sectionStyle={{
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            backgroundColor: colorScheme === 'dark' ? '#1F2937' : '#F9FAFB',
+          }}
+          theme={{
+            ...theme,
+            agendaDayTextColor: colorScheme === 'dark' ? '#F3F4F6' : '#111827',
+            agendaDayNumColor: colorScheme === 'dark' ? '#F3F4F6' : '#111827',
+            agendaTodayColor: theme.todayTextColor,
+          }}
+          markToday={true}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: 8,
+            backgroundColor: colorScheme === 'dark' ? '#111827' : '#F9FAFB',
+          }}
+        />
+      )}
     </CalendarProvider>
   );
 }

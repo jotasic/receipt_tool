@@ -55,16 +55,7 @@ export function MonthViewCalendar({
     <View className="flex-1 bg-white dark:bg-gray-900">
       <Calendar
         current={currentMonth}
-        theme={{
-          ...theme,
-          // Calendar height 증가
-          'stylesheet.calendar.main': {
-            container: {
-              paddingLeft: 0,
-              paddingRight: 0,
-            },
-          },
-        }}
+        theme={theme}
         // 날짜 셀 커스터마이징
         dayComponent={({ date, state, marking }) => {
           if (!date) return null;

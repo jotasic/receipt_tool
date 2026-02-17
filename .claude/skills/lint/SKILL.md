@@ -82,6 +82,6 @@ To auto-fix: /lint --fix
 
 ## Related Skills
 
-- `/build`: Build
 - `/code-quality`: Full quality pipeline
 - `/commit`: Commit (after lint)
+- `/type-check-improve`: Type check

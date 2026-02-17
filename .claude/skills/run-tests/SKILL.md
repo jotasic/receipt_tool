@@ -88,6 +88,5 @@ Coverage: 85%
 
 ## Related Skills
 
-- `/build`: 빌드 확인
 - `/code-quality`: 전체 품질 검사
-- `/fix-issue`: 테스트 실패 수정
+- `/type-check-improve`: 타입 에러 수정

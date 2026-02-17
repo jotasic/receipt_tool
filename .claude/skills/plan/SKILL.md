@@ -34,5 +34,4 @@ To execute the plan:
 ## Related Skills
 
 - `/orchestrate`: Auto-execute the plan
-- `/workflow-guide`: Step-by-step execution
-- `/full-dev`: Full development flow
+- `/new-feature`: Execute single feature manually

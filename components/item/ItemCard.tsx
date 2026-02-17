@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { router } from 'expo-router';
+import React, { useCallback } from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { router, useSegments } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Item } from '@/types/item';
 import { getClassificationConfig } from '@/constants/items';
@@ -18,14 +18,26 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate =
   const classificationConfig = getClassificationConfig(item.classification);
   const chevronColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
   const defaultColor = useThemeColor(colors.light.text.secondary, colors.dark.text.secondary);
+  const segments = useSegments();
 
-  const handlePress = () => {
+  const handlePress = useCallback(() => {
     if (onPress) {
       onPress(item);
-    } else {
-      router.push({ pathname: '/item/[id]' as any, params: { id: item.id } });
+      return;
     }
-  };
+
+    // Determine the current tab to navigate within the correct stack
+    // segments[0] = '(tabs)', segments[1] = tab name (e.g. 'index', 'items', 'calendar')
+    const currentTab = segments[1] ?? 'index';
+
+    if (currentTab === 'items') {
+      router.push(`/(tabs)/items/item/${item.id}`);
+    } else if (currentTab === 'calendar') {
+      router.push(`/(tabs)/calendar/item/${item.id}`);
+    } else {
+      router.push(`/(tabs)/index/item/${item.id}`);
+    }
+  }, [onPress, item, segments]);
 
   // Format date for display (YYYY.MM.DD)
   const formatDate = (dateString: string) => {
@@ -45,20 +57,22 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate =
   const shouldShowAmount = item.amount !== undefined && item.amount !== null;
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handlePress}
       className="bg-white dark:bg-gray-800 p-4 rounded-lg mb-3 border border-gray-100 dark:border-gray-700"
-      activeOpacity={0.7}
-      style={{
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 1,
+      style={({ pressed }) => [
+        {
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 1,
+          },
+          shadowOpacity: 0.1,
+          shadowRadius: 2,
+          elevation: 2,
+          opacity: pressed ? 0.7 : 1,
         },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
-      }}
+      ]}
     >
       {/* Top Row: Icon, Title, Amount */}
       <View className="flex-row items-center">
@@ -108,6 +122,6 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate =
         {/* Chevron */}
         <Ionicons name="chevron-forward" size={18} color={chevronColor} />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 });

@@ -45,6 +45,9 @@ yarn-error.*
 # IDE
 .idea/
 
+# Claude Code local settings
+.claude/settings.local.json
+
 # Database files
 *.db
 *.sqlite

@@ -6,13 +6,15 @@
  * - Month mode: Monthly grid view with item previews
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Header, SegmentedControl } from '@/components/common';
 import { AgendaCalendar } from '@/components/calendar/AgendaCalendar';
 import { MonthViewCalendar } from '@/components/calendar/MonthViewCalendar';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
 type ViewMode = 'agenda' | 'month';
 
@@ -21,11 +23,20 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
+  const [isReady, setIsReady] = useState(false);
+  const focusKeyRef = useRef(0);
+  const [focusKey, setFocusKey] = useState(0);
   const { items, loadItems } = useItemStore();
+  const spinnerColor = useThemeColor('#3B82F6', '#60A5FA');
 
   useFocusEffect(
     useCallback(() => {
-      loadItems();
+      focusKeyRef.current += 1;
+      const currentKey = focusKeyRef.current;
+      loadItems().then(() => {
+        setFocusKey(currentKey);
+        setIsReady(true);
+      });
     }, [loadItems])
   );
 
@@ -65,10 +76,15 @@ export default function CalendarScreen() {
         }
       />
       <TabScreenContent>
-        {viewMode === 'month' ? (
+        {!isReady ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color={spinnerColor} />
+          </View>
+        ) : viewMode === 'month' ? (
           <MonthViewCalendar items={items} onDatePress={handleDatePress} />
         ) : (
           <AgendaCalendar
+            key={focusKey}
             selectedDate={selectedDate}
             onDateSelect={setSelectedDate}
             markedDates={markedDates}

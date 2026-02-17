@@ -112,6 +112,7 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
       onDateChanged={onDateSelect}
     >
       <ExpandableCalendar
+        initialPosition={ExpandableCalendar.positions.CLOSED}
         theme={theme}
         firstDay={0} // 일요일 시작
         markedDates={finalMarkedDates}

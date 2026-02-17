@@ -6,22 +6,23 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  ScrollView,
   Alert,
 } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { ItemCard, ItemForm } from '@/components/item';
-import { MonthSelector, SelectableChip, Header } from '@/components/common';
+import { ItemCard, ItemForm, ItemsFilterSheet } from '@/components/item';
+import type { DateFilter, FilterState } from '@/components/item';
+import { SelectableChip, Header } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { CLASSIFICATIONS } from '@/constants/items';
-import type { Item, ItemClassification, UsagePurpose, Tag, CreateItemInput } from '@/types';
+import type { Item, ItemClassification, Tag, CreateItemInput } from '@/types';
 import { isExpense } from '@/types/item';
 import { getTags } from '@/services/database/tagService';
 import { createItem } from '@/services/database/itemService';
 import { setTagsForItem } from '@/services/database/tagService';
 import { setItemCustomValues } from '@/services/database/customFieldService';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
 type FilterType = 'all' | ItemClassification;
 
@@ -50,9 +51,12 @@ export default function ItemsScreen() {
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedMonth, setSelectedMonth] = useState<Date | null>(new Date());
+  const [dateFilter, setDateFilter] = useState<DateFilter>({ type: 'this_month' });
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const iconColor = useThemeColor('#374151', '#D1D5DB');
 
   // Get URL parameters
   const params = useLocalSearchParams<{ classification?: string }>();
@@ -87,21 +91,40 @@ export default function ItemsScreen() {
     }
   };
 
-  // Filter items based on selected filter, tags, and month
+  // Filter items based on selected filter, tags, and dateFilter
   const filteredItems = useMemo(() => {
     let result = items;
 
-    // Filter by month
-    if (selectedMonth !== null) {
-      const selectedYear = selectedMonth.getFullYear();
-      const selectedMonthIndex = selectedMonth.getMonth();
+    // Filter by dateFilter
+    if (dateFilter.type !== 'all') {
+      const now = new Date();
+      let from: Date;
+      let to: Date;
+
+      if (dateFilter.type === 'this_month') {
+        from = new Date(now.getFullYear(), now.getMonth(), 1);
+        to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      } else if (dateFilter.type === 'last_month') {
+        from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        to = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+      } else if (dateFilter.type === 'last_3_months') {
+        from = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+        to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      } else if (
+        dateFilter.type === 'custom' &&
+        dateFilter.from != null &&
+        dateFilter.to != null
+      ) {
+        from = dateFilter.from;
+        to = dateFilter.to;
+      } else {
+        from = new Date(0);
+        to = new Date();
+      }
 
       result = result.filter((item) => {
-        const itemDate = new Date(item.date);
-        return (
-          itemDate.getFullYear() === selectedYear &&
-          itemDate.getMonth() === selectedMonthIndex
-        );
+        const d = new Date(item.date);
+        return d >= from && d <= to;
       });
     }
 
@@ -113,9 +136,7 @@ export default function ItemsScreen() {
     // Filter by tags (if any tags selected)
     if (selectedTags.length > 0) {
       result = result.filter((item) => {
-        // Item must have at least one of the selected tags
         if (!item.tags || item.tags.length === 0) return false;
-
         const itemTagIds = item.tags.map((tag) => tag.id);
         return selectedTags.some((tagId) => itemTagIds.includes(tagId));
       });
@@ -125,13 +146,12 @@ export default function ItemsScreen() {
     return result.sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
-  }, [items, selectedFilter, selectedTags, selectedMonth]);
+  }, [items, selectedFilter, selectedTags, dateFilter]);
 
   // Calculate stats
   const stats = useMemo(() => {
     const totalItems = filteredItems.length;
 
-    // Calculate total amount (excluding proof documents without amount)
     const totalAmount = filteredItems.reduce((sum, item) => {
       if (isExpense(item) && item.amount !== undefined && item.amount !== null) {
         return sum + item.amount;
@@ -139,18 +159,29 @@ export default function ItemsScreen() {
       return sum;
     }, 0);
 
-    // Count by classification
-    const countByClassification = filteredItems.reduce((acc, item) => {
-      acc[item.classification] = (acc[item.classification] || 0) + 1;
-      return acc;
-    }, {} as Record<ItemClassification, number>);
-
-    return {
-      totalItems,
-      totalAmount,
-      countByClassification,
-    };
+    return { totalItems, totalAmount };
   }, [filteredItems]);
+
+  // Determine if advanced filters (date/tag) are active
+  const hasAdvancedFilters = dateFilter.type !== 'all' || selectedTags.length > 0;
+
+  const getDateFilterLabel = (): string => {
+    switch (dateFilter.type) {
+      case 'this_month':
+        return '이번 달';
+      case 'last_month':
+        return '지난 달';
+      case 'last_3_months':
+        return '최근 3개월';
+      case 'custom':
+        if (dateFilter.from != null && dateFilter.to != null) {
+          return `${dateFilter.from.toISOString().slice(0, 7)} ~ ${dateFilter.to.toISOString().slice(0, 7)}`;
+        }
+        return '사용자 지정';
+      default:
+        return '';
+    }
+  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -165,23 +196,19 @@ export default function ItemsScreen() {
   const handleCreateItem = async (data: CreateItemInput) => {
     setIsSubmitting(true);
     try {
-      // Separate tags and customValues from item data
       const { tags: tagIds, customValues, ...itemData } = data;
 
-      // Create item in database
       const item = await createItem(itemData);
 
-      // Save tags if provided
       if (tagIds && tagIds.length > 0) {
         await setTagsForItem(item.id, tagIds);
       }
 
-      // Save custom field values if provided
       if (customValues && Object.keys(customValues).length > 0) {
         await setItemCustomValues(item.id, customValues);
       }
 
-      await loadItems(); // Refresh the list
+      await loadItems();
       setShowAddModal(false);
       Alert.alert('성공', '항목이 추가되었습니다.');
     } catch (error) {
@@ -197,191 +224,119 @@ export default function ItemsScreen() {
   };
 
   const toggleTag = (tagId: string) => {
-    setSelectedTags((prev) => {
-      if (prev.includes(tagId)) {
-        // Remove tag
-        return prev.filter((id) => id !== tagId);
-      } else {
-        // Add tag
-        return [...prev, tagId];
-      }
-    });
+    setSelectedTags((prev) =>
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+    );
   };
 
   const clearFilters = () => {
     setSelectedFilter('all');
     setSelectedTags([]);
-    setSelectedMonth(null);
+    setDateFilter({ type: 'this_month' });
   };
 
-  const handleMonthChange = (month: Date | null) => {
-    setSelectedMonth(month);
-  };
-
-  const formatAmount = (amount: number) => {
-    return `₩${amount.toLocaleString('ko-KR')}`;
-  };
-
-  const getSelectedMonthText = () => {
-    if (selectedMonth === null) {
-      return '전체 기간';
-    }
-    const year = selectedMonth.getFullYear();
-    const month = selectedMonth.getMonth() + 1;
-    return `${year}년 ${month}월`;
+  const handleFilterSheetApply = ({ dateFilter: df, selectedTags: st }: FilterState) => {
+    setDateFilter(df);
+    setSelectedTags(st);
+    setShowFilterSheet(false);
   };
 
   const renderHeader = () => (
-    <View className="mb-4">
-      {/* Month Selector */}
-      <MonthSelector
-        selectedMonth={selectedMonth}
-        onMonthChange={handleMonthChange}
-      />
-
-      {/* Stats Card */}
-      <View className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-xl p-5 mb-4">
-        {/* Selected Period Indicator */}
-        <View className="mb-3 pb-3 border-b border-white/20 dark:border-white/10">
-          <Text className="text-white/80 dark:text-white/70 text-xs font-medium mb-1">
-            조회 기간
-          </Text>
-          <Text className="text-white text-base font-bold">
-            {getSelectedMonthText()}
-          </Text>
-        </View>
-
-        <View className="flex-row items-center justify-between mb-4">
-          <View className="flex-1">
-            <Text className="text-white/80 dark:text-white/70 text-sm font-medium mb-1">
-              총 항목
-            </Text>
-            <Text className="text-white text-3xl font-bold">
-              {stats.totalItems}건
-            </Text>
-          </View>
-          <View className="bg-white/20 dark:bg-white/10 rounded-full p-4">
-            <Ionicons name="receipt" size={32} color="#FFFFFF" />
-          </View>
-        </View>
-
-        {/* Total Amount */}
-        <View className="border-t border-white/20 dark:border-white/10 pt-3">
-          <Text className="text-white/80 dark:text-white/70 text-sm font-medium mb-1">
-            총 금액
-          </Text>
-          <Text className="text-white text-2xl font-bold">
-            {formatAmount(stats.totalAmount)}
-          </Text>
-        </View>
-
-        {/* Count by Classification */}
-        {selectedFilter === 'all' && (
-          <View className="border-t border-white/20 dark:border-white/10 pt-3 mt-3">
-            <View className="flex-row items-center justify-between">
-              {CLASSIFICATIONS.map((classification) => {
-                const count = stats.countByClassification[classification.id] || 0;
-                return (
-                  <View key={classification.id} className="flex-1 items-center">
-                    <Text className="text-white/80 dark:text-white/70 text-xs font-medium mb-1">
-                      {classification.name}
-                    </Text>
-                    <Text className="text-white text-lg font-bold">
-                      {count}건
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-        )}
-      </View>
-
-      {/* Filter Tabs */}
-      <View className="mb-4">
+    <View className="mb-2">
+      {/* Filter Bar: classification chips + filter button */}
+      <View className="flex-row items-center mb-2">
         <FlatList
           data={FILTER_OPTIONS}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 4, gap: 8 }}
+          contentContainerStyle={{ gap: 6 }}
           keyExtractor={(item) => item.id}
+          style={{ flex: 1 }}
           renderItem={({ item }) => (
             <SelectableChip
               label={item.name}
               isSelected={selectedFilter === item.id}
               onPress={() => handleFilterChange(item.id)}
-              icon={item.icon}
             />
           )}
         />
-      </View>
-
-      {/* Tag Filter */}
-      {tags.length > 0 && (
-        <View className="mb-4">
-          <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            태그 필터
-          </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8 }}
-          >
-            {/* "All" chip */}
-            <SelectableChip
-              label="전체"
-              isSelected={selectedTags.length === 0}
-              onPress={() => setSelectedTags([])}
+        {/* Advanced filter button */}
+        <TouchableOpacity
+          onPress={() => setShowFilterSheet(true)}
+          className="ml-2 p-2 rounded-full"
+          style={{
+            backgroundColor: hasAdvancedFilters ? '#3B82F6' : undefined,
+          }}
+          activeOpacity={0.7}
+          accessibilityLabel="필터 열기"
+          accessibilityRole="button"
+        >
+          <View className={hasAdvancedFilters ? '' : 'bg-gray-100 dark:bg-gray-700 rounded-full p-0.5'}>
+            <Ionicons
+              name="options-outline"
+              size={20}
+              color={hasAdvancedFilters ? '#FFFFFF' : iconColor}
             />
-
-            {/* Tag chips */}
-            {tags.map((tag) => (
-              <SelectableChip
-                key={tag.id}
-                label={tag.name}
-                isSelected={selectedTags.includes(tag.id)}
-                onPress={() => toggleTag(tag.id)}
-                color={tag.color}
-                variant="outlined"
-              />
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
-      {/* Clear Filter Button */}
-      {(selectedFilter !== 'all' || selectedTags.length > 0 || selectedMonth === null) && (
-        <View className="mb-4">
-          <TouchableOpacity
-            onPress={clearFilters}
-            className="flex-row items-center justify-center py-2 px-4 bg-gray-100 dark:bg-gray-800 rounded-lg"
-            activeOpacity={0.7}
-            accessibilityLabel="필터 초기화"
-            accessibilityRole="button"
-          >
-            <Ionicons name="close-circle-outline" size={18} color="#6B7280" />
-            <Text className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-              필터 초기화
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Section Header */}
-      <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-lg font-bold text-gray-900 dark:text-gray-100">
-          항목 목록
-        </Text>
-        <Text className="text-sm text-gray-500 dark:text-gray-400">
-          총 {filteredItems.length}건
-          {selectedTags.length > 0 && ` (태그: ${selectedTags.length}개)`}
-        </Text>
+          </View>
+        </TouchableOpacity>
       </View>
+
+      {/* Compact stats */}
+      <View className="flex-row items-center mb-2">
+        <Text className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          {stats.totalItems}건
+        </Text>
+        {stats.totalAmount > 0 && (
+          <Text className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            {' · '}₩{stats.totalAmount.toLocaleString('ko-KR')}
+          </Text>
+        )}
+      </View>
+
+      {/* Active filter chips (only shown when filters are active) */}
+      {hasAdvancedFilters && (
+        <View className="flex-row flex-wrap gap-2 mb-2">
+          {dateFilter.type !== 'all' && (
+            <TouchableOpacity
+              onPress={() => setDateFilter({ type: 'all' })}
+              className="flex-row items-center px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full"
+              activeOpacity={0.7}
+              accessibilityLabel={`${getDateFilterLabel()} 필터 제거`}
+              accessibilityRole="button"
+            >
+              <Text className="text-xs text-blue-700 dark:text-blue-300 mr-1">
+                {getDateFilterLabel()}
+              </Text>
+              <Ionicons name="close" size={12} color="#1D4ED8" />
+            </TouchableOpacity>
+          )}
+          {selectedTags.map((tagId) => {
+            const tag = tags.find((t) => t.id === tagId);
+            if (tag == null) return null;
+            return (
+              <TouchableOpacity
+                key={tagId}
+                onPress={() => toggleTag(tagId)}
+                className="flex-row items-center px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full"
+                activeOpacity={0.7}
+                accessibilityLabel={`${tag.name} 태그 제거`}
+                accessibilityRole="button"
+              >
+                <Text className="text-xs text-gray-700 dark:text-gray-300 mr-1">
+                  #{tag.name}
+                </Text>
+                <Ionicons name="close" size={12} color="#6B7280" />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
 
   const renderEmptyState = () => {
-    const hasActiveFilters = selectedFilter !== 'all' || selectedTags.length > 0 || selectedMonth !== null;
+    const hasActiveFilters =
+      selectedFilter !== 'all' || selectedTags.length > 0 || dateFilter.type !== 'all';
 
     return (
       <View className="items-center justify-center py-16">
@@ -411,9 +366,9 @@ export default function ItemsScreen() {
     );
   };
 
-  const renderItem = ({ item }: { item: Item }) => (
+  const renderItem = useCallback(({ item }: { item: Item }) => (
     <ItemCard item={item} />
-  );
+  ), []);
 
   if (isLoading && !isRefreshing) {
     return (
@@ -437,7 +392,7 @@ export default function ItemsScreen() {
         ]}
       >
         <FlatList
-        className="flex-1 bg-white dark:bg-gray-900"
+          className="flex-1 bg-white dark:bg-gray-900"
           data={filteredItems}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
@@ -461,6 +416,14 @@ export default function ItemsScreen() {
             onCancel={() => setShowAddModal(false)}
           />
         )}
+
+        <ItemsFilterSheet
+          visible={showFilterSheet}
+          onClose={() => setShowFilterSheet(false)}
+          onApply={handleFilterSheetApply}
+          currentFilters={{ dateFilter, selectedTags }}
+          tags={tags}
+        />
       </TabScreenContent>
     </>
   );

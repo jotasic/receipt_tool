@@ -5,4 +5,6 @@ export { UsagePurposeSelector } from './UsagePurposeSelector';
 export { TagSelector } from './TagSelector';
 export { OcrOverlay } from './OcrOverlay';
 export { CustomFieldInput } from './CustomFieldInput';
+export { ItemsFilterSheet } from './ItemsFilterSheet';
 export type { SelectionMode, SelectedItem } from './OcrOverlay';
+export type { DateFilter, DateFilterType, FilterState } from './ItemsFilterSheet';

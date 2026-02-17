@@ -26,10 +26,16 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           use_sticky_comment: true
           prompt: |
-            이슈 내용을 읽고 Claude Code CLI가 바로 작업할 수 있도록 아래 형식으로 요약 댓글을 작성해줘.
+            Issue #${{ github.event.issue.number }} 이 방금 생성되었습니다.
+
+            제목: ${{ github.event.issue.title }}
+
+            내용:
+            ${{ github.event.issue.body }}
+
+            위 이슈를 분석해서 Claude Code CLI가 바로 작업할 수 있도록 아래 형식으로 이슈에 댓글을 달아줘.
             한국어로 작성하고, 코드/파일명은 영어 그대로 유지해.
 
-            ---
             ## 🤖 Claude Code 작업 브리핑
 
             ### 작업 유형
@@ -53,7 +59,6 @@ jobs:
 
             ### 주의사항
             다크모드, 타입 안전성, 한국어 UI 등 이슈 특성에 맞는 주의사항
-            ---
 
   # @claude 멘션 시 대화형 응답
   claude:

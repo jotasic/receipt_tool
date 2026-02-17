@@ -1,6 +1,6 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { Tabs, usePathname } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Colors from '@/constants/Colors';
@@ -16,6 +16,7 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const pathname = usePathname();
 
   // TabBar height calculation constants
   const TAB_BAR_HEIGHT = 60;
@@ -25,6 +26,9 @@ export default function TabLayout() {
   const bottomPadding = MIN_PADDING;
   const tabBarHeight = TAB_BAR_HEIGHT + bottomPadding;
 
+  // Hide tab bar on 2-depth+ screens (item detail, monthly report, etc.)
+  const isDeepScreen = pathname.includes('/item/') || pathname.includes('/monthly/');
+
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1 bg-white dark:bg-gray-900">
       <Tabs
@@ -33,11 +37,13 @@ export default function TabLayout() {
           tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
           // Hide default header (we use custom Header component)
           headerShown: false,
-          tabBarStyle: {
-            paddingBottom: bottomPadding,
-            paddingTop: 8,
-            height: tabBarHeight,
-          },
+          tabBarStyle: isDeepScreen
+            ? { display: 'none' }
+            : {
+                paddingBottom: bottomPadding,
+                paddingTop: 8,
+                height: tabBarHeight,
+              },
           tabBarLabelStyle: {
             fontSize: 12,
             fontWeight: '600',

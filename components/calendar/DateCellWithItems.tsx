@@ -1,7 +1,7 @@
 /**
  * DateCellWithItems Component
  *
- * 월 모드 달력의 날짜 셀 컴포넌트.
+ * 월 모드 달력의 날짜 셀 컴포넌트 (FlatList 주 단위 방식).
  * 날짜 숫자와 함께 해당 날짜의 증빙을 분류별 색상 태그로 표시합니다.
  * 오늘 날짜는 Outlook 스타일의 파란 원으로 표시합니다.
  */
@@ -26,8 +26,7 @@ interface DateCellWithItemsProps {
   };
   items: Item[];
   onPress: () => void;
-  marking?: unknown;
-  state?: string;
+  isToday: boolean;
 }
 
 /**
@@ -40,10 +39,8 @@ export function DateCellWithItems({
   date,
   items,
   onPress,
-  state,
+  isToday,
 }: DateCellWithItemsProps) {
-  const isToday = state === 'today';
-  const isDisabled = state === 'disabled';
   const hasItems = items.length > 0;
 
   // 최대 2개까지 표시
@@ -53,48 +50,43 @@ export function DateCellWithItems({
   return (
     <TouchableOpacity
       onPress={onPress}
-      disabled={isDisabled}
       activeOpacity={0.7}
-      className="border-r border-b border-gray-200 dark:border-gray-700 p-1.5"
-      style={{ height: 110, width: '100%' }}
+      className="flex-1 border-r border-b border-gray-200 dark:border-gray-700 p-1"
     >
-      {/* 날짜 숫자: disabled(다른 달 extra days)이면 표시 안 함 → 중복 방지 */}
-      {!isDisabled && (
-        <View className="items-start mb-1">
-          {isToday ? (
-            <View className="bg-blue-500 rounded-full w-7 h-7 items-center justify-center">
-              <Text className="text-xs font-bold text-white">{date.day}</Text>
-            </View>
-          ) : date.day === 1 ? (
-            // 1일: "3월 1" 형태로 표시 (Outlook 스타일)
-            <Text className="text-xs font-medium px-1 text-gray-500 dark:text-gray-400">
-              {date.month}월 1
-            </Text>
-          ) : (
-            <Text className="text-xs font-medium px-1 text-gray-900 dark:text-gray-100">
-              {date.day}
-            </Text>
-          )}
-        </View>
-      )}
+      {/* 날짜 숫자 */}
+      <View className="items-start mb-0.5">
+        {isToday ? (
+          <View className="bg-blue-500 rounded-full w-6 h-6 items-center justify-center">
+            <Text className="text-xs font-bold text-white">{date.day}</Text>
+          </View>
+        ) : date.day === 1 ? (
+          // 1일: "3월 1" 형태로 (Outlook 스타일, 흐린 색)
+          <Text className="text-xs font-medium text-gray-500 dark:text-gray-400 leading-tight">
+            {date.month}월{'\n'}1
+          </Text>
+        ) : (
+          <Text className="text-xs font-medium text-gray-900 dark:text-gray-100">
+            {date.day}
+          </Text>
+        )}
+      </View>
 
       {/* 증빙 미리보기 - 분류별 색상 */}
-      {hasItems && !isDisabled && (
+      {hasItems && (
         <View className="flex-1 gap-0.5">
           {visibleItems.map((item) => {
             const color = CLASSIFICATION_COLOR[item.classification] ?? '#6B7280';
             // hex alpha 33 ≈ 20% opacity 배경
             const bgColor = color + '33';
-
             return (
               <View
                 key={item.id}
-                className="rounded px-1 py-0.5"
+                className="rounded px-0.5 py-0.5"
                 style={{ backgroundColor: bgColor }}
               >
                 <Text
-                  className="text-xs"
-                  style={{ color }}
+                  className="text-xs leading-tight"
+                  style={{ color, fontSize: 9 }}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -103,10 +95,9 @@ export function DateCellWithItems({
               </View>
             );
           })}
-
           {remainingCount > 0 && (
-            <Text className="text-xs text-gray-400 dark:text-gray-500">
-              +{remainingCount}건
+            <Text className="text-gray-400 dark:text-gray-500" style={{ fontSize: 9 }}>
+              +{remainingCount}
             </Text>
           )}
         </View>

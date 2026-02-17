@@ -1,61 +1,144 @@
 /**
  * MonthViewCalendar Component
  *
- * 월 모드: Outlook 스타일의 수직 연속 스크롤 달력.
- * CalendarList를 사용하여 위아래 드래그로 월 이동이 가능하고,
- * 이번달과 다음달 일부가 동시에 화면에 보입니다.
+ * FlatList 기반 주(week) 단위 연속 스크롤 달력.
+ * CalendarList와 달리 월 경계 없이 자연스럽게 연속됩니다.
  */
 
-import React, { useMemo } from 'react';
-import { View, Text, useColorScheme } from 'react-native';
-import { CalendarList, LocaleConfig } from 'react-native-calendars';
+import React, { useMemo, useCallback, useRef } from 'react';
+import { View, Text, FlatList, ViewToken } from 'react-native';
 import type { Item } from '@/types/item';
-import { getCalendarTheme, koreanLocaleConfig } from '@/constants/calendarTheme';
 import { DateCellWithItems } from './DateCellWithItems';
 
-// 한국어 로케일 설정
-LocaleConfig.locales['ko'] = koreanLocaleConfig;
-LocaleConfig.defaultLocale = 'ko';
+const CELL_HEIGHT = 100; // 각 주 행의 높이
+const PAST_MONTHS = 12;
+const FUTURE_MONTHS = 12;
+
+// 날짜 → 'YYYY-MM-DD' 문자열
+function toDateString(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+// 해당 날짜가 속한 주의 일요일 반환
+function getStartOfWeek(date: Date): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() - d.getDay());
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+// 전체 주 목록 생성 (오늘 기준 전후 N개월)
+function generateWeeks(
+  pastMonths: number,
+  futureMonths: number
+): { key: string; days: Date[] }[] {
+  const today = new Date();
+
+  // 범위 시작: pastMonths 전 달의 1일이 속한 주의 시작
+  const rangeStartMonth = new Date(today.getFullYear(), today.getMonth() - pastMonths, 1);
+  let weekStart = getStartOfWeek(rangeStartMonth);
+
+  // 범위 끝: futureMonths 후 달의 마지막 날
+  const rangeEnd = new Date(today.getFullYear(), today.getMonth() + futureMonths + 1, 0);
+  rangeEnd.setHours(23, 59, 59, 999);
+
+  const weeks: { key: string; days: Date[] }[] = [];
+
+  while (weekStart <= rangeEnd) {
+    const days: Date[] = [];
+    for (let i = 0; i < 7; i++) {
+      days.push(new Date(weekStart.getTime() + i * 24 * 60 * 60 * 1000));
+    }
+    weeks.push({ key: toDateString(days[0]), days });
+    weekStart = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+  }
+
+  return weeks;
+}
 
 interface MonthViewCalendarProps {
   items: Item[];
   onDatePress: (date: string) => void;
-  currentMonth?: string; // YYYY-MM (optional)
-  onCurrentMonthChange?: (month: string) => void; // 스크롤 시 현재 보이는 달 전달 ("YYYY-MM")
+  currentMonth?: string;
+  onCurrentMonthChange?: (month: string) => void;
 }
 
-/**
- * MonthViewCalendar
- *
- * react-native-calendars의 CalendarList 컴포넌트를 사용하여
- * 수직 연속 스크롤 방식으로 월 이동을 지원합니다.
- * 상단에 요일 헤더가 sticky로 고정됩니다.
- * 월 섹션 헤더는 제거하고, 각 달 1일 셀에 "M월 1" 형태로 표시합니다.
- */
 export function MonthViewCalendar({
   items,
   onDatePress,
-  currentMonth,
   onCurrentMonthChange,
 }: MonthViewCalendarProps) {
-  const colorScheme = useColorScheme();
-  const theme = getCalendarTheme(colorScheme ?? 'light');
-  const isDark = colorScheme === 'dark';
+  const weeks = useMemo(() => generateWeeks(PAST_MONTHS, FUTURE_MONTHS), []);
 
-  // 날짜별로 항목 그룹화
+  // 날짜별 아이템 그룹화
   const itemsByDate = useMemo(() => {
     const grouped: Record<string, Item[]> = {};
     items.forEach((item) => {
-      if (!grouped[item.date]) {
-        grouped[item.date] = [];
-      }
+      if (!grouped[item.date]) grouped[item.date] = [];
       grouped[item.date].push(item);
     });
     return grouped;
   }, [items]);
 
-  // 오늘 날짜
-  const today = new Date().toISOString().split('T')[0];
+  const today = useMemo(() => toDateString(new Date()), []);
+
+  // 오늘이 속한 주의 인덱스 (초기 스크롤 위치)
+  const todayIndex = useMemo(() => {
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+    const idx = weeks.findIndex((w) => {
+      const first = new Date(w.days[0]);
+      const last = new Date(w.days[6]);
+      first.setHours(0, 0, 0, 0);
+      last.setHours(23, 59, 59, 999);
+      return todayDate >= first && todayDate <= last;
+    });
+    return idx >= 0 ? idx : 0;
+  }, [weeks]);
+
+  // 현재 보이는 달 감지 (수요일 기준으로 해당 주의 달 판단)
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 });
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems.length > 0 && onCurrentMonthChange) {
+        const firstItem = viewableItems[0].item as { key: string; days: Date[] };
+        const middleDay = firstItem.days[3]; // 수요일 기준
+        const year = middleDay.getFullYear();
+        const month = String(middleDay.getMonth() + 1).padStart(2, '0');
+        onCurrentMonthChange(`${year}-${month}`);
+      }
+    },
+    [onCurrentMonthChange]
+  );
+
+  // 주 행 렌더
+  const renderWeek = useCallback(
+    ({ item }: { item: { key: string; days: Date[] } }) => (
+      <View style={{ flexDirection: 'row', height: CELL_HEIGHT }}>
+        {item.days.map((day) => {
+          const dateStr = toDateString(day);
+          return (
+            <DateCellWithItems
+              key={dateStr}
+              date={{
+                dateString: dateStr,
+                day: day.getDate(),
+                month: day.getMonth() + 1,
+                year: day.getFullYear(),
+              }}
+              items={itemsByDate[dateStr] ?? []}
+              onPress={() => onDatePress(dateStr)}
+              isToday={dateStr === today}
+            />
+          );
+        })}
+      </View>
+    ),
+    [itemsByDate, onDatePress, today]
+  );
 
   return (
     <View className="flex-1 bg-white dark:bg-gray-900">
@@ -78,63 +161,20 @@ export function MonthViewCalendar({
         ))}
       </View>
 
-      <CalendarList
-        // 현재 날짜 기준 전후 12개월
-        pastScrollRange={12}
-        futureScrollRange={12}
-        // 수직 스크롤
-        horizontal={false}
-        // 스크롤 스냅 비활성화 (자연스러운 연속 스크롤)
-        pagingEnabled={false}
-        // 섹션 헤더 완전 제거: 빈 View 반환
-        renderHeader={() => <View />}
-        // 요일 헤더 숨김 (위에서 sticky로 직접 렌더링)
-        hideDayNames={true}
-        // 테마 (stylesheet 오버라이드는 타입 캐스트 필요)
-        theme={
-          {
-            ...theme,
-            calendarBackground: isDark ? '#111827' : '#FFFFFF',
-            'stylesheet.calendar.header': {
-              week: { display: 'none' },
-            },
-          } as object
-        }
-        // 날짜 셀 커스터마이징
-        dayComponent={({ date, state }) => {
-          if (!date) return null;
-          const dateItems = itemsByDate[date.dateString] || [];
-          return (
-            <DateCellWithItems
-              date={date}
-              items={dateItems}
-              onPress={() => onDatePress(date.dateString)}
-              state={state}
-            />
-          );
-        }}
-        // 오늘 날짜 마킹
-        markedDates={{
-          [today]: { marked: false, selected: false },
-        }}
-        // 시작 요일: 일요일
-        firstDay={0}
-        // 이전/다음 달 날짜 표시
-        hideExtraDays={false}
-        // 월 형식
-        monthFormat="M월"
-        // 현재 월로 스크롤
-        current={currentMonth || today}
-        showScrollIndicator={false}
-        // 현재 보이는 달 변경 감지
-        onVisibleMonthsChange={(months) => {
-          if (months.length > 0 && onCurrentMonthChange) {
-            const first = months[0];
-            onCurrentMonthChange(
-              `${first.year}-${String(first.month).padStart(2, '0')}`
-            );
-          }
-        }}
+      <FlatList
+        data={weeks}
+        renderItem={renderWeek}
+        keyExtractor={(item) => item.key}
+        initialScrollIndex={todayIndex}
+        getItemLayout={(_, index) => ({
+          length: CELL_HEIGHT,
+          offset: CELL_HEIGHT * index,
+          index,
+        })}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig.current}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews
       />
     </View>
   );

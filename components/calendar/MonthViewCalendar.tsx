@@ -21,6 +21,7 @@ interface MonthViewCalendarProps {
   items: Item[];
   onDatePress: (date: string) => void;
   currentMonth?: string; // YYYY-MM (optional)
+  onCurrentMonthChange?: (month: string) => void; // 스크롤 시 현재 보이는 달 전달 ("YYYY-MM")
 }
 
 /**
@@ -29,11 +30,13 @@ interface MonthViewCalendarProps {
  * react-native-calendars의 CalendarList 컴포넌트를 사용하여
  * 수직 연속 스크롤 방식으로 월 이동을 지원합니다.
  * 상단에 요일 헤더가 sticky로 고정됩니다.
+ * 월 섹션 헤더는 제거하고, 각 달 1일 셀에 "M월 1" 형태로 표시합니다.
  */
 export function MonthViewCalendar({
   items,
   onDatePress,
   currentMonth,
+  onCurrentMonthChange,
 }: MonthViewCalendarProps) {
   const colorScheme = useColorScheme();
   const theme = getCalendarTheme(colorScheme ?? 'light');
@@ -83,22 +86,8 @@ export function MonthViewCalendar({
         horizontal={false}
         // 스크롤 스냅 비활성화 (자연스러운 연속 스크롤)
         pagingEnabled={false}
-        // 월 헤더 커스터마이징 (월 이름만 표시)
-        renderHeader={(date) => {
-          const month = date
-            ? new Date(date.toString()).toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: 'long',
-              })
-            : '';
-          return (
-            <View className="py-3 px-4">
-              <Text className="text-base font-bold text-gray-900 dark:text-gray-100">
-                {month}
-              </Text>
-            </View>
-          );
-        }}
+        // 섹션 헤더 완전 제거: 빈 View 반환
+        renderHeader={() => <View />}
         // 요일 헤더 숨김 (위에서 sticky로 직접 렌더링)
         hideDayNames={true}
         // 테마 (stylesheet 오버라이드는 타입 캐스트 필요)
@@ -137,6 +126,15 @@ export function MonthViewCalendar({
         // 현재 월로 스크롤
         current={currentMonth || today}
         showScrollIndicator={false}
+        // 현재 보이는 달 변경 감지
+        onVisibleMonthsChange={(months) => {
+          if (months.length > 0 && onCurrentMonthChange) {
+            const first = months[0];
+            onCurrentMonthChange(
+              `${first.year}-${String(first.month).padStart(2, '0')}`
+            );
+          }
+        }}
       />
     </View>
   );

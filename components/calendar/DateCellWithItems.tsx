@@ -64,6 +64,17 @@ export function DateCellWithItems({
           <View className="bg-blue-500 rounded-full w-7 h-7 items-center justify-center">
             <Text className="text-xs font-bold text-white">{date.day}</Text>
           </View>
+        ) : date.day === 1 ? (
+          // 1일: "3월 1" 형태로 표시 (Outlook 스타일 - 티 안 나게 작은 텍스트)
+          <Text
+            className={`text-xs font-medium px-1 ${
+              isDisabled
+                ? 'text-gray-300 dark:text-gray-600'
+                : 'text-gray-500 dark:text-gray-400'
+            }`}
+          >
+            {date.month}월 1
+          </Text>
         ) : (
           <Text
             className={`text-xs font-medium px-1 ${

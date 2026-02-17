@@ -23,6 +23,9 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
+  const [currentVisibleMonth, setCurrentVisibleMonth] = useState<string>(
+    new Date().toISOString().slice(0, 7) // "YYYY-MM"
+  );
   const [isReady, setIsReady] = useState(false);
   const focusKeyRef = useRef(0);
   const [focusKey, setFocusKey] = useState(0);
@@ -52,6 +55,12 @@ export default function CalendarScreen() {
     return marks;
   }, [items, selectedDate]);
 
+  // "YYYY-MM" → "YYYY년 M월" 변환
+  const formatMonthTitle = (ym: string) => {
+    const [year, month] = ym.split('-');
+    return `${year}년 ${parseInt(month, 10)}월`;
+  };
+
   // View mode change handler
   const handleViewModeChange = (index: number) => {
     setViewMode(index === 0 ? 'agenda' : 'month');
@@ -66,7 +75,7 @@ export default function CalendarScreen() {
   return (
     <>
       <Header
-        title="달력"
+        title={viewMode === 'month' ? formatMonthTitle(currentVisibleMonth) : '달력'}
         rightElement={
           <SegmentedControl
             values={['증빙', '월']}
@@ -81,7 +90,11 @@ export default function CalendarScreen() {
             <ActivityIndicator size="large" color={spinnerColor} />
           </View>
         ) : viewMode === 'month' ? (
-          <MonthViewCalendar items={items} onDatePress={handleDatePress} />
+          <MonthViewCalendar
+            items={items}
+            onDatePress={handleDatePress}
+            onCurrentMonthChange={setCurrentVisibleMonth}
+          />
         ) : (
           <AgendaCalendar
             key={focusKey}

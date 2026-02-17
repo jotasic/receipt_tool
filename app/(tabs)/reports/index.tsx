@@ -7,7 +7,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { Stack, router } from 'expo-router';
+import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
@@ -41,7 +41,7 @@ function MonthCard({ data }: { data: MonthData }) {
   const { year, month, summary, isLoading } = data;
 
   const handlePress = () => {
-    router.push(`/report/monthly/${year}/${month}`);
+    router.push(`/(tabs)/reports/monthly/${year}/${month}` as any);
   };
 
   if (isLoading) {
@@ -151,9 +151,8 @@ export default function ReportsScreen() {
     <>
       <Header title="정산" />
       <TabScreenContent>
-        <Stack.Screen options={{ headerShown: false }} />
         <FlatList
-        className="flex-1 bg-white dark:bg-gray-900"
+          className="flex-1 bg-white dark:bg-gray-900"
           data={monthsData}
           keyExtractor={(item) => `${item.year}-${item.month}`}
           renderItem={({ item }) => <MonthCard data={item} />}
@@ -172,7 +171,7 @@ export default function ReportsScreen() {
               </Text>
             </View>
           }
-          />
+        />
       </TabScreenContent>
     </>
   );

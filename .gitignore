@@ -47,6 +47,7 @@ yarn-error.*
 
 # Claude Code local settings
 .claude/settings.local.json
+.claude/current-issue.json
 
 # Database files
 *.db

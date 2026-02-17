@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,7 +14,7 @@ interface ItemCardProps {
   showDate?: boolean;
 }
 
-export function ItemCard({ item, onPress, showDate = true }: ItemCardProps) {
+export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate = true }: ItemCardProps) {
   const classificationConfig = getClassificationConfig(item.classification);
   const chevronColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
   const defaultColor = useThemeColor(colors.light.text.secondary, colors.dark.text.secondary);
@@ -67,7 +68,7 @@ export function ItemCard({ item, onPress, showDate = true }: ItemCardProps) {
           style={{ backgroundColor: `${classificationConfig?.color || defaultColor}15` }}
         >
           <Ionicons
-            name={classificationConfig?.icon as keyof typeof Ionicons.glyphMap || 'document'}
+            name={(classificationConfig?.icon || 'document') as React.ComponentProps<typeof Ionicons>['name']}
             size={20}
             color={classificationConfig?.color || defaultColor}
           />
@@ -81,9 +82,9 @@ export function ItemCard({ item, onPress, showDate = true }: ItemCardProps) {
         </View>
 
         {/* Amount */}
-        {shouldShowAmount && (
+        {shouldShowAmount && item.amount !== undefined && item.amount !== null && (
           <Text className="font-bold text-gray-900 dark:text-gray-100 text-base ml-2">
-            {formatAmount(item.amount!)}
+            {formatAmount(item.amount)}
           </Text>
         )}
       </View>
@@ -109,4 +110,4 @@ export function ItemCard({ item, onPress, showDate = true }: ItemCardProps) {
       </View>
     </TouchableOpacity>
   );
-}
+});

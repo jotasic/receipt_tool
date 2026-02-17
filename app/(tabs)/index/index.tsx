@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator, Alert } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -177,7 +177,11 @@ export default function HomeScreen() {
                           className="rounded-full p-3 mr-3"
                           style={{ backgroundColor: `${classification.color}20` }}
                         >
-                          <Ionicons name={classification.icon as any} size={24} color={classification.color} />
+                          <Ionicons
+                            name={classification.icon as React.ComponentProps<typeof Ionicons>['name']}
+                            size={24}
+                            color={classification.color}
+                          />
                         </View>
                         <View className="flex-1">
                           <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">

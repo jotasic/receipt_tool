@@ -67,7 +67,7 @@ export async function importDatabaseFromJSON(jsonString: string): Promise<void> 
   for (const tag of data.tables.tags || []) {
     await db.runAsync(
       'INSERT INTO tags (id, name, color, created_at) VALUES (?, ?, ?, ?)',
-      [tag.id, tag.name, tag.color, tag.created_at]
+      [tag.id, tag.name, tag.color, tag.createdAt]
     );
   }
 
@@ -78,11 +78,11 @@ export async function importDatabaseFromJSON(jsonString: string): Promise<void> 
       [
         purpose.id,
         purpose.name,
-        purpose.name_en,
+        purpose.nameEn,
         purpose.icon,
         purpose.color,
-        purpose.is_active,
-        purpose.display_order,
+        purpose.isActive,
+        purpose.displayOrder,
       ]
     );
   }
@@ -94,12 +94,12 @@ export async function importDatabaseFromJSON(jsonString: string): Promise<void> 
       [
         field.id,
         field.name,
-        field.field_type,
-        field.options,
-        field.is_required,
-        field.entity_type,
-        field.display_order,
-        field.created_at,
+        field.fieldType,
+        field.options ? JSON.stringify(field.options) : null,
+        field.isRequired,
+        field.entityType,
+        field.displayOrder,
+        field.createdAt,
       ]
     );
   }
@@ -112,16 +112,16 @@ export async function importDatabaseFromJSON(jsonString: string): Promise<void> 
         item.id,
         item.title,
         item.classification,
-        item.usage_purpose,
-        item.amount,
+        item.usagePurpose,
+        item.amount ?? null,
         item.date,
-        item.store_name,
-        item.file_path,
-        item.file_type,
-        item.ocr_text,
-        item.memo,
-        item.created_at,
-        item.updated_at,
+        item.storeName ?? null,
+        item.filePath ?? null,
+        item.fileType ?? null,
+        item.ocrText ?? null,
+        item.memo ?? null,
+        item.createdAt,
+        item.updatedAt,
       ]
     );
   }
@@ -149,11 +149,11 @@ export async function importDatabaseFromJSON(jsonString: string): Promise<void> 
       [
         report.id,
         report.title,
-        report.total_amount,
+        report.totalAmount,
         report.status,
-        report.submitted_at,
-        report.created_at,
-        report.updated_at,
+        report.submittedAt ?? null,
+        report.createdAt,
+        report.updatedAt,
       ]
     );
   }

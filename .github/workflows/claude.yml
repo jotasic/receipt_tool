@@ -16,26 +16,24 @@ jobs:
     if: github.event_name == 'issues' && github.event.action == 'opened'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       issues: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          use_sticky_comment: true
+          claude_args: --allowedTools "Bash(gh issue:*)"
           prompt: |
-            Issue #${{ github.event.issue.number }} 이 방금 생성되었습니다.
+            REPO: ${{ github.repository }}
+            ISSUE NUMBER: ${{ github.event.issue.number }}
+            TITLE: ${{ github.event.issue.title }}
+            BODY: ${{ github.event.issue.body }}
 
-            제목: ${{ github.event.issue.title }}
+            위 이슈를 분석해서 아래 형식의 브리핑을 작성한 뒤,
+            다음 명령으로 이슈에 댓글을 달아줘:
+            gh issue comment ${{ github.event.issue.number }} --body "<브리핑 내용>"
 
-            내용:
-            ${{ github.event.issue.body }}
-
-            위 이슈를 분석해서 Claude Code CLI가 바로 작업할 수 있도록 아래 형식으로 출력해줘.
-            한국어로 작성하고, 코드/파일명은 영어 그대로 유지해.
-            (출력 내용은 자동으로 이슈 댓글로 게시됨)
+            브리핑 형식 (한국어, 코드/파일명은 영어 유지):
 
             ## 🤖 Claude Code 작업 브리핑
 
@@ -48,11 +46,10 @@ jobs:
 
             ### 영향 범위
             - **에이전트**: react-native-expo-developer / database-specialist / doc-writer / architect 중 해당하는 것
-            - **파일/모듈**: 수정이 예상되는 파일 또는 모듈 목록 (예: `services/item/`, `components/item/ItemCard.tsx`)
+            - **파일/모듈**: 수정이 예상되는 파일 또는 모듈 목록
 
             ### 구현 힌트
             - 핵심 로직 또는 접근 방법
-            - 참고할 기존 코드 패턴 (있다면)
 
             ### 완료 조건
             - [ ] 조건 1

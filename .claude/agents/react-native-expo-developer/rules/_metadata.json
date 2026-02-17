@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "description": "Rule metadata for react-native-expo-developer agent",
+  "lastUpdated": "2026-02-17",
+  "rules": {
+    "critical": [
+      {
+        "path": "react-native/01-rendering.md",
+        "title": "Rendering Rules",
+        "description": "Prevents app crashes from && operator and Text wrapping",
+        "autoReject": true
+      },
+      {
+        "path": "react/01-waterfalls.md",
+        "title": "Eliminating Waterfalls",
+        "description": "Prevents sequential await chains",
+        "autoReject": true
+      },
+      {
+        "path": "react/02-bundle-optimization.md",
+        "title": "Bundle Size Optimization",
+        "description": "Prevents bundle bloat from barrel imports",
+        "autoReject": true
+      },
+      {
+        "path": "typescript/01-type-safety.md",
+        "title": "Type Safety",
+        "description": "Prevents any usage and unsafe type assertions",
+        "autoReject": true
+      }
+    ],
+    "high": [
+      {
+        "path": "react-native/02-list-performance.md",
+        "title": "List Performance",
+        "description": "FlatList/SectionList optimization patterns"
+      },
+      {
+        "path": "react-native/03-animation.md",
+        "title": "Animation",
+        "description": "GPU-only animations (transform/opacity)"
+      },
+      {
+        "path": "react-native/04-scroll-performance.md",
+        "title": "Scroll Performance",
+        "description": "SharedValue for scroll position"
+      },
+      {
+        "path": "react/04-composition-patterns.md",
+        "title": "Composition Patterns",
+        "description": "Compound components, boolean prop prevention"
+      },
+      {
+        "path": "typescript/02-type-design.md",
+        "title": "Type Design",
+        "description": "Interface vs type, generics, discriminated unions"
+      }
+    ],
+    "medium": [
+      {
+        "path": "react-native/05-state-management.md",
+        "title": "State Management",
+        "description": "Derived state, useState patterns"
+      },
+      {
+        "path": "react-native/06-ui-components.md",
+        "title": "UI Components",
+        "description": "Pressable, expo-image, native Modal"
+      },
+      {
+        "path": "react/03-rerender-optimization.md",
+        "title": "Re-render Optimization",
+        "description": "useMemo, useCallback, React.memo patterns"
+      },
+      {
+        "path": "typescript/03-function-patterns.md",
+        "title": "Function Patterns",
+        "description": "Return types, overloads, callbacks"
+      },
+      {
+        "path": "typescript/04-utility-types.md",
+        "title": "Utility Types",
+        "description": "Partial, Pick, Omit, Record patterns"
+      }
+    ],
+    "low": [
+      {
+        "path": "react/05-advanced-patterns.md",
+        "title": "Advanced Patterns",
+        "description": "useEffectEvent, singleton initialization"
+      },
+      {
+        "path": "typescript/05-naming-conventions.md",
+        "title": "Naming Conventions",
+        "description": "Type naming, import type usage"
+      }
+    ]
+  },
+  "categories": {
+    "react-native": {
+      "description": "React Native specific rules",
+      "fileCount": 6
+    },
+    "react": {
+      "description": "React general rules (also applies to RN)",
+      "fileCount": 5
+    },
+    "typescript": {
+      "description": "TypeScript rules",
+      "fileCount": 5
+    }
+  },
+  "stats": {
+    "totalRules": 16,
+    "critical": 4,
+    "high": 5,
+    "medium": 5,
+    "low": 2
+  }
+}

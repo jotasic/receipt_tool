@@ -120,7 +120,7 @@ export function MonthViewCalendar({
         // 시작 요일: 일요일
         firstDay={0}
         // 이전/다음 달 날짜 표시
-        hideExtraDays={true}
+        hideExtraDays={false}
         // 월 형식
         monthFormat="M월"
         // 현재 월로 스크롤

@@ -58,35 +58,25 @@ export function DateCellWithItems({
       className="border-r border-b border-gray-200 dark:border-gray-700 p-1.5"
       style={{ height: 110, width: '100%' }}
     >
-      {/* 날짜 숫자 */}
-      <View className="items-start mb-1">
-        {isToday ? (
-          <View className="bg-blue-500 rounded-full w-7 h-7 items-center justify-center">
-            <Text className="text-xs font-bold text-white">{date.day}</Text>
-          </View>
-        ) : date.day === 1 ? (
-          // 1일: "3월 1" 형태로 표시 (Outlook 스타일 - 티 안 나게 작은 텍스트)
-          <Text
-            className={`text-xs font-medium px-1 ${
-              isDisabled
-                ? 'text-gray-300 dark:text-gray-600'
-                : 'text-gray-500 dark:text-gray-400'
-            }`}
-          >
-            {date.month}월 1
-          </Text>
-        ) : (
-          <Text
-            className={`text-xs font-medium px-1 ${
-              isDisabled
-                ? 'text-gray-300 dark:text-gray-600'
-                : 'text-gray-900 dark:text-gray-100'
-            }`}
-          >
-            {date.day}
-          </Text>
-        )}
-      </View>
+      {/* 날짜 숫자: disabled(다른 달 extra days)이면 표시 안 함 → 중복 방지 */}
+      {!isDisabled && (
+        <View className="items-start mb-1">
+          {isToday ? (
+            <View className="bg-blue-500 rounded-full w-7 h-7 items-center justify-center">
+              <Text className="text-xs font-bold text-white">{date.day}</Text>
+            </View>
+          ) : date.day === 1 ? (
+            // 1일: "3월 1" 형태로 표시 (Outlook 스타일)
+            <Text className="text-xs font-medium px-1 text-gray-500 dark:text-gray-400">
+              {date.month}월 1
+            </Text>
+          ) : (
+            <Text className="text-xs font-medium px-1 text-gray-900 dark:text-gray-100">
+              {date.day}
+            </Text>
+          )}
+        </View>
+      )}
 
       {/* 증빙 미리보기 - 분류별 색상 */}
       {hasItems && !isDisabled && (

@@ -21,43 +21,33 @@ React Native (Expo) development expert specializing in UI, service logic, compon
 
 ## Rules Reference
 
-Code quality and performance rules organized by priority. **Always reference the appropriate rule before implementing.**
+**Rule index**: `./rules/_metadata.json`
 
-### 🔴 CRITICAL (App Stability)
+Load and apply rules based on priority level. Always reference the appropriate rule before implementing.
 
-| Rule | When to Apply |
-|------|---------------|
-| [RN: Rendering](./rules/react-native/01-rendering.md) | Always (prevents crashes) |
-| [React: Waterfalls](./rules/react/01-waterfalls.md) | Async data fetching |
-| [React: Bundle Size](./rules/react/02-bundle-optimization.md) | Importing modules |
-| [TS: Type Safety](./rules/typescript/01-type-safety.md) | Always (runtime safety) |
+### Priority Levels
 
-### 🟠 HIGH (Performance)
+| Level | Description | Action |
+|-------|-------------|--------|
+| 🔴 `critical` | App crashes, runtime errors | Must fix immediately |
+| 🟠 `high` | Performance degradation | Should fix |
+| 🟡 `medium` | Code quality issues | Recommended |
+| 🟢 `low` | Best practices | Optional |
 
-| Rule | When to Apply |
-|------|---------------|
-| [RN: List Performance](./rules/react-native/02-list-performance.md) | Using FlatList/SectionList |
-| [RN: Animation](./rules/react-native/03-animation.md) | Implementing animations |
-| [RN: Scroll Performance](./rules/react-native/04-scroll-performance.md) | Scroll event handling |
-| [React: Composition](./rules/react/04-composition-patterns.md) | Component design |
-| [TS: Type Design](./rules/typescript/02-type-design.md) | Defining types/interfaces |
+### How to Use Rules
 
-### 🟡 MEDIUM (Code Quality)
+1. **Read `_metadata.json`** to find relevant rules by category
+2. **Load rule file** at the specified `path`
+3. **Apply patterns** from "✅ Correct" section
+4. **Avoid patterns** from "❌ Incorrect" section
 
-| Rule | When to Apply |
-|------|---------------|
-| [RN: State Management](./rules/react-native/05-state-management.md) | Using useState/Zustand |
-| [RN: UI Components](./rules/react-native/06-ui-components.md) | Building components |
-| [React: Re-render Optimization](./rules/react/03-rerender-optimization.md) | Optimizing renders |
-| [TS: Function Patterns](./rules/typescript/03-function-patterns.md) | Writing functions |
-| [TS: Utility Types](./rules/typescript/04-utility-types.md) | Type transformations |
+### Rule Categories
 
-### 🟢 LOW (Best Practices)
-
-| Rule | When to Apply |
-|------|---------------|
-| [React: Advanced Patterns](./rules/react/05-advanced-patterns.md) | Complex scenarios |
-| [TS: Naming Conventions](./rules/typescript/05-naming-conventions.md) | Naming decisions |
+| Category | Description |
+|----------|-------------|
+| `react-native/*` | RN-specific patterns (rendering, lists, animations) |
+| `react/*` | React general patterns (waterfalls, composition) |
+| `typescript/*` | Type safety and design patterns |
 
 ---
 
@@ -65,7 +55,7 @@ Code quality and performance rules organized by priority. **Always reference the
 
 ### Before Writing Code
 
-- [ ] Review relevant rules from above table
+- [ ] Read `_metadata.json` and load relevant rules for the task
 - [ ] Check if similar code exists in codebase
 - [ ] Consider performance implications
 

@@ -196,18 +196,38 @@ Claude: [에이전트 호출하여 구현 시작]
 | 코드 리뷰 | `code-reviewer` | PR 리뷰 |
 | 구조 설계 | `architect` | 시스템 설계 |
 
+### 에이전트 규칙 시스템
+
+`react-native-expo-developer` 에이전트는 **Vercel 기반 성능 및 품질 규칙**을 포함합니다.
+
+**규칙 위치**: `.claude/agents/react-native-expo-developer/rules/`
+
+| 카테고리 | 파일 수 | 우선순위 |
+|----------|--------|----------|
+| `react-native/` | 6개 | CRITICAL~MEDIUM |
+| `react/` | 5개 | CRITICAL~LOW |
+| `typescript/` | 5개 | CRITICAL~LOW |
+
+**상세 내용**: 에이전트가 자동으로 해당 규칙 파일을 참조하여 코드 작성
+
 ---
 
 ## 품질 기준
 
 모든 코드는 다음 기준을 충족해야 합니다:
 
-- [ ] TypeScript 에러 0
+### 프로젝트 전용 요구사항
+
 - [ ] **다크 모드 완벽 지원 (필수)**
 - [ ] 한국어 UI 메시지
+- [ ] Android에서 정상 동작 (우선)
+- [ ] iOS 호환성 고려 (플랫폼 분기 처리)
+
+### 일반 품질 기준
+
+- [ ] TypeScript 에러 0
 - [ ] 에러 핸들링 (try-catch, Alert)
 - [ ] 로딩 상태 표시
-- [ ] Android에서 정상 동작
 
 ### CRITICAL: 다크모드는 필수 요구사항
 

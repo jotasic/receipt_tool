@@ -29,6 +29,12 @@ export default function ReportsLayout() {
           title: '월별 정산',
         }}
       />
+      <Stack.Screen
+        name="item"
+        options={{
+          title: '항목',
+        }}
+      />
     </Stack>
   );
 }

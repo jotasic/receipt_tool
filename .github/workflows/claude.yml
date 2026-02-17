@@ -11,17 +11,62 @@ on:
     types: [submitted]
 
 jobs:
+  # 이슈 생성 시 자동 요약 (Claude Code CLI가 읽기 좋은 형식)
+  claude-auto-summary:
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          use_sticky_comment: true
+          prompt: |
+            이슈 내용을 읽고 Claude Code CLI가 바로 작업할 수 있도록 아래 형식으로 요약 댓글을 작성해줘.
+            한국어로 작성하고, 코드/파일명은 영어 그대로 유지해.
+
+            ---
+            ## 🤖 Claude Code 작업 브리핑
+
+            ### 작업 유형
+            - **타입**: feat / fix / refactor / docs / chore 중 하나
+            - **우선순위**: P0 (긴급) / P1 (높음) / P2 (보통)
+
+            ### 요약
+            1-2줄로 핵심 내용만
+
+            ### 영향 범위
+            - **에이전트**: react-native-expo-developer / database-specialist / doc-writer / architect 중 해당하는 것
+            - **파일/모듈**: 수정이 예상되는 파일 또는 모듈 목록 (예: `services/item/`, `components/item/ItemCard.tsx`)
+
+            ### 구현 힌트
+            - 핵심 로직 또는 접근 방법
+            - 참고할 기존 코드 패턴 (있다면)
+
+            ### 완료 조건
+            - [ ] 조건 1
+            - [ ] 조건 2
+
+            ### 주의사항
+            다크모드, 타입 안전성, 한국어 UI 등 이슈 특성에 맞는 주의사항
+            ---
+
+  # @claude 멘션 시 대화형 응답
   claude:
     if: |
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude'))
+      (github.event_name == 'issues' && github.event.action != 'opened' && contains(github.event.issue.body, '@claude'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
-      issues: read
+      pull-requests: write
+      issues: write
       id-token: write
     steps:
       - uses: actions/checkout@v4

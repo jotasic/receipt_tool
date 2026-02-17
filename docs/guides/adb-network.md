@@ -23,12 +23,12 @@
 1. **페어링 코드로 기기 페어링** 탭 클릭
 2. 화면에 표시된 정보 확인:
    - 페어링 코드: `123456` (6자리 숫자)
-   - IP 주소 및 포트: `192.168.50.103:37847`
+   - IP 주소 및 포트: `<DEVICE_IP>:37847`
    - 페어링 코드는 약 1분 후 만료됨
 
 **3단계: 연결용 포트 확인**
 페어링 완료 후 무선 디버깅 메인 화면에서:
-- **IP 주소 및 포트**: `192.168.50.103:5555` (연결용 포트, 페어링 포트와 다름)
+- **IP 주소 및 포트**: `<DEVICE_IP>:5555` (연결용 포트, 페어링 포트와 다름)
 
 #### Android 10 이하
 
@@ -40,7 +40,7 @@
 3. USB 연결 해제
 4. 기기 IP 주소 확인:
    - **설정** → **Wi-Fi** → 현재 네트워크 → **상세정보**
-   - 예: `192.168.0.100`
+   - 예: `<DEVICE_IP>`
 
 ---
 
@@ -57,7 +57,7 @@ Android 기기에서 "페어링 코드로 기기 페어링" 화면의 정보를 
 ~/Library/Android/sdk/platform-tools/adb pair <IP주소>:<페어링포트>
 
 # 예시
-~/Library/Android/sdk/platform-tools/adb pair 192.168.50.103:37847
+~/Library/Android/sdk/platform-tools/adb pair <DEVICE_IP>:37847
 ```
 
 페어링 코드 입력 요청 시 기기 화면에 표시된 6자리 숫자 입력:
@@ -67,7 +67,7 @@ Enter pairing code: 123456
 
 **성공 메시지:**
 ```
-Successfully paired to 192.168.50.103:37847
+Successfully paired to <DEVICE_IP>:37847
 ```
 
 **2단계: 연결**
@@ -79,12 +79,12 @@ Successfully paired to 192.168.50.103:37847
 ~/Library/Android/sdk/platform-tools/adb connect <IP주소>:<연결포트>
 
 # 예시
-~/Library/Android/sdk/platform-tools/adb connect 192.168.50.103:5555
+~/Library/Android/sdk/platform-tools/adb connect <DEVICE_IP>:5555
 ```
 
 **성공 메시지:**
 ```
-connected to 192.168.50.103:5555
+connected to <DEVICE_IP>:5555
 ```
 
 #### Android 10 이하
@@ -92,7 +92,7 @@ connected to 192.168.50.103:5555
 페어링 불필요, 바로 연결:
 
 ```bash
-~/Library/Android/sdk/platform-tools/adb connect 192.168.0.100:5555
+~/Library/Android/sdk/platform-tools/adb connect <DEVICE_IP>:5555
 ```
 
 #### 연결 확인
@@ -104,7 +104,7 @@ connected to 192.168.50.103:5555
 **출력 예시:**
 ```
 List of devices attached
-192.168.50.103:5555    device
+<DEVICE_IP>:5555    device
 ```
 
 ---
@@ -130,16 +130,16 @@ List of devices attached
 
 - [ ] Android 기기: **설정** → **개발자 옵션** → **무선 디버깅** 활성화
 - [ ] Android 기기: **페어링 코드로 기기 페어링** 탭 클릭
-- [ ] 페어링 코드 및 페어링 포트 확인 (예: `192.168.50.103:37847`, 코드: `123456`)
-- [ ] 서버: `adb pair 192.168.50.103:37847` 실행 후 코드 입력
+- [ ] 페어링 코드 및 페어링 포트 확인 (예: `<DEVICE_IP>:37847`, 코드: `123456`)
+- [ ] 서버: `adb pair <DEVICE_IP>:37847` 실행 후 코드 입력
 - [ ] Android 기기: 무선 디버깅 메인 화면에서 연결 포트 확인 (예: `5555`)
-- [ ] 서버: `adb connect 192.168.50.103:5555` 실행
+- [ ] 서버: `adb connect <DEVICE_IP>:5555` 실행
 - [ ] 서버: `adb devices` 로 연결 확인
 
 ### 이미 페어링한 경우
 
 - [ ] Android 기기: **무선 디버깅** 활성화 확인
-- [ ] 서버: `adb connect 192.168.50.103:5555` 실행
+- [ ] 서버: `adb connect <DEVICE_IP>:5555` 실행
 - [ ] 서버: `adb devices` 로 연결 확인
 
 ---
@@ -215,7 +215,7 @@ ifconfig | grep inet
 ```bash
 #!/bin/bash
 ADB_PATH=~/Library/Android/sdk/platform-tools/adb
-DEVICE_IP="192.168.0.100"  # 기기 IP로 변경
+DEVICE_IP="<DEVICE_IP>"  # 기기 IP로 변경
 DEVICE_PORT="5555"
 
 echo "Connecting to Android device..."

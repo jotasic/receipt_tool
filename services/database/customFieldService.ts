@@ -5,7 +5,7 @@
  */
 
 import { getDatabase } from './getDatabase';
-import type { CustomFieldRow, ReceiptCustomValueRow, DocumentCustomValueRow, ItemCustomValueRow } from './types';
+import type { CustomFieldRow, ItemCustomValueRow } from './types';
 import type {
   CustomField,
   CreateCustomFieldInput,
@@ -23,7 +23,7 @@ function rowToCustomField(row: CustomFieldRow): CustomField {
     fieldType: row.field_type,
     options: row.options ? JSON.parse(row.options) : undefined,
     isRequired: row.is_required === 1,
-    entityType: row.entity_type,
+    entityType: 'item',
     displayOrder: row.display_order,
     createdAt: row.created_at,
   };
@@ -60,7 +60,7 @@ export async function createCustomField(input: CreateCustomFieldInput): Promise<
       input.fieldType,
       input.options ? JSON.stringify(input.options) : null,
       input.isRequired ? 1 : 0,
-      input.entityType,
+      'item',
       input.displayOrder || 0,
       now,
     ]
@@ -72,7 +72,7 @@ export async function createCustomField(input: CreateCustomFieldInput): Promise<
     fieldType: input.fieldType,
     options: input.options,
     isRequired: input.isRequired || false,
-    entityType: input.entityType,
+    entityType: 'item',
     displayOrder: input.displayOrder || 0,
     createdAt: now,
   };
@@ -87,26 +87,6 @@ export async function getCustomFields(): Promise<CustomField[]> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<CustomFieldRow>(
     'SELECT * FROM custom_fields ORDER BY display_order ASC, name ASC'
-  );
-
-  return rows.map(rowToCustomField);
-}
-
-/**
- * Get custom fields by entity type
- *
- * @param entityType - Entity type ('receipt', 'document', 'item', or 'both')
- * @returns Promise<CustomField[]> - Array of custom fields
- */
-export async function getCustomFieldsByEntityType(
-  entityType: 'receipt' | 'document' | 'item'
-): Promise<CustomField[]> {
-  const db = await getDatabase();
-  const rows = await db.getAllAsync<CustomFieldRow>(
-    `SELECT * FROM custom_fields
-     WHERE entity_type = ? OR entity_type = 'both'
-     ORDER BY display_order ASC, name ASC`,
-    [entityType]
   );
 
   return rows.map(rowToCustomField);
@@ -160,10 +140,6 @@ export async function updateCustomField(
     fields.push('is_required = ?');
     values.push(updates.isRequired ? 1 : 0);
   }
-  if (updates.entityType !== undefined) {
-    fields.push('entity_type = ?');
-    values.push(updates.entityType);
-  }
   if (updates.displayOrder !== undefined) {
     fields.push('display_order = ?');
     values.push(updates.displayOrder);
@@ -187,184 +163,6 @@ export async function deleteCustomField(id: string): Promise<void> {
   const db = await getDatabase();
   // Cascade delete will remove values automatically
   await db.runAsync('DELETE FROM custom_fields WHERE id = ?', [id]);
-}
-
-// ============================================================================
-// Receipt Custom Values Operations
-// ============================================================================
-
-/**
- * Set a custom field value for a receipt
- *
- * @param receiptId - Receipt ID
- * @param fieldId - Custom field ID
- * @param value - Value to set
- * @returns Promise<void>
- */
-export async function setReceiptCustomValue(
-  receiptId: string,
-  fieldId: string,
-  value: string | null
-): Promise<void> {
-  const db = await getDatabase();
-  await db.runAsync(
-    `INSERT OR REPLACE INTO receipt_custom_values (receipt_id, field_id, value)
-     VALUES (?, ?, ?)`,
-    [receiptId, fieldId, value]
-  );
-}
-
-/**
- * Get all custom field values for a receipt
- *
- * @param receiptId - Receipt ID
- * @returns Promise<CustomFieldValue[]> - Array of custom field values
- */
-export async function getReceiptCustomValues(receiptId: string): Promise<CustomFieldValue[]> {
-  const db = await getDatabase();
-  const rows = await db.getAllAsync<ReceiptCustomValueRow>(
-    'SELECT * FROM receipt_custom_values WHERE receipt_id = ?',
-    [receiptId]
-  );
-
-  return rows.map((row) => ({
-    fieldId: row.field_id,
-    value: row.value,
-  }));
-}
-
-/**
- * Delete a custom field value for a receipt
- *
- * @param receiptId - Receipt ID
- * @param fieldId - Custom field ID
- * @returns Promise<void>
- */
-export async function deleteReceiptCustomValue(
-  receiptId: string,
-  fieldId: string
-): Promise<void> {
-  const db = await getDatabase();
-  await db.runAsync(
-    'DELETE FROM receipt_custom_values WHERE receipt_id = ? AND field_id = ?',
-    [receiptId, fieldId]
-  );
-}
-
-/**
- * Set multiple custom field values for a receipt
- *
- * @param receiptId - Receipt ID
- * @param values - Array of field values
- * @returns Promise<void>
- */
-export async function setReceiptCustomValues(
-  receiptId: string,
-  values: CustomFieldValue[]
-): Promise<void> {
-  const db = await getDatabase();
-
-  // Delete existing values
-  await db.runAsync('DELETE FROM receipt_custom_values WHERE receipt_id = ?', [receiptId]);
-
-  // Insert new values
-  for (const value of values) {
-    if (value.value !== null) {
-      await db.runAsync(
-        'INSERT INTO receipt_custom_values (receipt_id, field_id, value) VALUES (?, ?, ?)',
-        [receiptId, value.fieldId, value.value]
-      );
-    }
-  }
-}
-
-// ============================================================================
-// Document Custom Values Operations
-// ============================================================================
-
-/**
- * Set a custom field value for a document
- *
- * @param documentId - Document ID
- * @param fieldId - Custom field ID
- * @param value - Value to set
- * @returns Promise<void>
- */
-export async function setDocumentCustomValue(
-  documentId: string,
-  fieldId: string,
-  value: string | null
-): Promise<void> {
-  const db = await getDatabase();
-  await db.runAsync(
-    `INSERT OR REPLACE INTO document_custom_values (document_id, field_id, value)
-     VALUES (?, ?, ?)`,
-    [documentId, fieldId, value]
-  );
-}
-
-/**
- * Get all custom field values for a document
- *
- * @param documentId - Document ID
- * @returns Promise<CustomFieldValue[]> - Array of custom field values
- */
-export async function getDocumentCustomValues(documentId: string): Promise<CustomFieldValue[]> {
-  const db = await getDatabase();
-  const rows = await db.getAllAsync<DocumentCustomValueRow>(
-    'SELECT * FROM document_custom_values WHERE document_id = ?',
-    [documentId]
-  );
-
-  return rows.map((row) => ({
-    fieldId: row.field_id,
-    value: row.value,
-  }));
-}
-
-/**
- * Delete a custom field value for a document
- *
- * @param documentId - Document ID
- * @param fieldId - Custom field ID
- * @returns Promise<void>
- */
-export async function deleteDocumentCustomValue(
-  documentId: string,
-  fieldId: string
-): Promise<void> {
-  const db = await getDatabase();
-  await db.runAsync(
-    'DELETE FROM document_custom_values WHERE document_id = ? AND field_id = ?',
-    [documentId, fieldId]
-  );
-}
-
-/**
- * Set multiple custom field values for a document
- *
- * @param documentId - Document ID
- * @param values - Array of field values
- * @returns Promise<void>
- */
-export async function setDocumentCustomValues(
-  documentId: string,
-  values: CustomFieldValue[]
-): Promise<void> {
-  const db = await getDatabase();
-
-  // Delete existing values
-  await db.runAsync('DELETE FROM document_custom_values WHERE document_id = ?', [documentId]);
-
-  // Insert new values
-  for (const value of values) {
-    if (value.value !== null) {
-      await db.runAsync(
-        'INSERT INTO document_custom_values (document_id, field_id, value) VALUES (?, ?, ?)',
-        [documentId, value.fieldId, value.value]
-      );
-    }
-  }
 }
 
 // ============================================================================
@@ -446,23 +244,12 @@ export async function setItemCustomValues(
 export async function isCustomFieldInUse(fieldId: string): Promise<boolean> {
   const db = await getDatabase();
 
-  // Check in all custom value tables
   const itemCount = await db.getFirstAsync<{ count: number }>(
     'SELECT COUNT(*) as count FROM item_custom_values WHERE field_id = ?',
     [fieldId]
   );
 
-  const receiptCount = await db.getFirstAsync<{ count: number }>(
-    'SELECT COUNT(*) as count FROM receipt_custom_values WHERE field_id = ?',
-    [fieldId]
-  );
-
-  const documentCount = await db.getFirstAsync<{ count: number }>(
-    'SELECT COUNT(*) as count FROM document_custom_values WHERE field_id = ?',
-    [fieldId]
-  );
-
-  return (itemCount?.count || 0) + (receiptCount?.count || 0) + (documentCount?.count || 0) > 0;
+  return (itemCount?.count || 0) > 0;
 }
 
 /**
@@ -476,15 +263,5 @@ export async function getCustomFieldUsageCount(fieldId: string): Promise<number>
     [fieldId]
   );
 
-  const receiptCount = await db.getFirstAsync<{ count: number }>(
-    'SELECT COUNT(*) as count FROM receipt_custom_values WHERE field_id = ?',
-    [fieldId]
-  );
-
-  const documentCount = await db.getFirstAsync<{ count: number }>(
-    'SELECT COUNT(*) as count FROM document_custom_values WHERE field_id = ?',
-    [fieldId]
-  );
-
-  return (itemCount?.count || 0) + (receiptCount?.count || 0) + (documentCount?.count || 0);
+  return itemCount?.count || 0;
 }

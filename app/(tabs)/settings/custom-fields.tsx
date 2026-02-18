@@ -36,7 +36,7 @@ import {
   getCustomFieldUsageCount,
   isCustomFieldInUse,
 } from '@/services/database/customFieldService';
-import type { CustomField, CustomFieldType, CustomFieldEntityType } from '@/types/customField';
+import type { CustomField, CustomFieldType } from '@/types/customField';
 
 interface CustomFieldWithCount extends CustomField {
   usageCount: number;
@@ -70,7 +70,6 @@ export default function CustomFieldsScreen() {
   // Form states
   const [fieldName, setFieldName] = useState('');
   const [fieldType, setFieldType] = useState<CustomFieldType>('text');
-  const [entityType, setEntityType] = useState<CustomFieldEntityType>('item');
   const [isRequired, setIsRequired] = useState(false);
   const [optionsText, setOptionsText] = useState('');
   const [showTypePicker, setShowTypePicker] = useState(false);
@@ -106,13 +105,8 @@ export default function CustomFieldsScreen() {
 
   // Filter and search fields
   const filteredFields = fields.filter((field) => {
-    // Filter by entity type - maintain backward compatibility for legacy types
-    if (selectedFilter !== 'all') {
-      if (field.entityType === 'both') {
-        // "both" type matches all filters
-      } else if (field.entityType !== selectedFilter) {
-        return false;
-      }
+    if (selectedFilter !== 'all' && field.entityType !== selectedFilter) {
+      return false;
     }
 
     // Filter by search query
@@ -127,7 +121,6 @@ export default function CustomFieldsScreen() {
   const handleOpenCreateModal = () => {
     setFieldName('');
     setFieldType('text');
-    setEntityType('item');
     setIsRequired(false);
     setOptionsText('');
     setShowCreateModal(true);
@@ -138,7 +131,6 @@ export default function CustomFieldsScreen() {
     setEditingField(field);
     setFieldName(field.name);
     setFieldType(field.fieldType);
-    setEntityType(field.entityType);
     setIsRequired(field.isRequired);
     setOptionsText(field.options?.join('\n') || '');
     setShowEditModal(true);
@@ -192,7 +184,7 @@ export default function CustomFieldsScreen() {
         fieldType,
         options,
         isRequired,
-        entityType,
+        entityType: 'item',
         displayOrder: maxOrder + 1,
       });
 
@@ -355,26 +347,9 @@ export default function CustomFieldsScreen() {
     return FIELD_TYPES.find((t) => t.value === type) || FIELD_TYPES[0];
   };
 
-  // Get entity type badge - includes legacy labels for backward compatibility
-  const getEntityTypeBadge = (type: CustomFieldEntityType): string => {
-    switch (type) {
-      case 'item':
-        return '항목';
-      case 'receipt':
-        return '영수증(레거시)';
-      case 'document':
-        return '문서(레거시)';
-      case 'both':
-        return '전체(레거시)';
-      default:
-        return type;
-    }
-  };
-
   // Render field item
   const renderFieldItem = (field: CustomFieldWithCount, index: number) => {
     const typeInfo = getFieldTypeInfo(field.fieldType);
-    const entityBadge = getEntityTypeBadge(field.entityType);
 
     return (
       <View
@@ -398,11 +373,6 @@ export default function CustomFieldsScreen() {
                   <Text className="text-xs font-medium text-red-700 dark:text-red-400">필수</Text>
                 </View>
               )}
-              <View className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 rounded">
-                <Text className="text-xs font-medium text-blue-700 dark:text-blue-400">
-                  {entityBadge}
-                </Text>
-              </View>
             </View>
             <View className="flex-row items-center mt-1 flex-wrap gap-2">
               <Text className="text-sm text-gray-500 dark:text-gray-400">

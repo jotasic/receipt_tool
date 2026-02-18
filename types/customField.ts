@@ -1,17 +1,15 @@
 /**
  * Custom Field Type Definition
- *
- * Represents user-defined custom fields for receipts and documents
  */
 
 export type CustomFieldType = 'text' | 'number' | 'date' | 'select';
-export type CustomFieldEntityType = 'receipt' | 'document' | 'item' | 'both';
+export type CustomFieldEntityType = 'item';
 
 export interface CustomField {
   id: string;
   name: string;
   fieldType: CustomFieldType;
-  options?: string[];  // For select type fields
+  options?: string[];
   isRequired: boolean;
   entityType: CustomFieldEntityType;
   displayOrder: number;
@@ -23,7 +21,7 @@ export interface CreateCustomFieldInput {
   fieldType: CustomFieldType;
   options?: string[];
   isRequired?: boolean;
-  entityType: CustomFieldEntityType;
+  entityType?: CustomFieldEntityType;
   displayOrder?: number;
 }
 
@@ -32,7 +30,6 @@ export interface UpdateCustomFieldInput {
   fieldType?: CustomFieldType;
   options?: string[];
   isRequired?: boolean;
-  entityType?: CustomFieldEntityType;
   displayOrder?: number;
 }
 

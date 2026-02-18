@@ -42,7 +42,7 @@ import {
   ocrLogger,
   getCurrentProvider,
 } from '@/services/ocr';
-import { getCustomFieldsByEntityType } from '@/services/database/customFieldService';
+import { getCustomFields } from '@/services/database/customFieldService';
 import type { OcrError, OcrBlock } from '@/services/ocr';
 import type { CreateItemInput } from '@/types/item';
 import type { ItemClassification, UsagePurpose } from '@/types/shared';
@@ -136,7 +136,7 @@ export function ItemForm({
    */
   const loadCustomFields = async () => {
     try {
-      const fields = await getCustomFieldsByEntityType('item');
+      const fields = await getCustomFields();
       setCustomFields(fields);
 
       // Initialize custom values from initialData if editing

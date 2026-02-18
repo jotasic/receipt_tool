@@ -63,8 +63,6 @@ export type {
   ReceiptTagRow,
   DocumentTagRow,
   CustomFieldRow,
-  ReceiptCustomValueRow,
-  DocumentCustomValueRow,
   ItemRow,
   ReportItemRow,
   UsagePurposeRow,
@@ -170,18 +168,15 @@ export {
 export {
   createCustomField,
   getCustomFields,
-  getCustomFieldsByEntityType,
   getCustomFieldById,
   updateCustomField,
   deleteCustomField,
-  setReceiptCustomValue,
-  getReceiptCustomValues,
-  deleteReceiptCustomValue,
-  setReceiptCustomValues,
-  setDocumentCustomValue,
-  getDocumentCustomValues,
-  deleteDocumentCustomValue,
-  setDocumentCustomValues,
+  isCustomFieldInUse,
+  getCustomFieldUsageCount,
+  setItemCustomValue,
+  getItemCustomValues,
+  deleteItemCustomValues,
+  setItemCustomValues,
 } from './customFieldService';
 
 // Item service operations (unified model)

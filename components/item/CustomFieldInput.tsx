@@ -14,11 +14,12 @@
  * - Error state handling
  */
 
-import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { CustomField } from '@/types';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { colors } from '@/design-system/tokens/colors';
+import { DatePickerInput } from '@/components/common';
 
 interface CustomFieldInputProps {
   field: CustomField;
@@ -51,39 +52,31 @@ export function CustomFieldInput({
   );
 
   /**
-   * Render number input
+   * Render number input (with comma formatting)
    */
-  const renderNumberInput = () => (
-    <TextInput
-      value={value || ''}
-      onChangeText={onValueChange}
-      placeholder={`${field.name} 입력`}
-      keyboardType="numeric"
-      className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-base text-gray-900 dark:text-gray-100"
-      placeholderTextColor={placeholderColor}
-    />
-  );
-
-  /**
-   * Render date input
-   *
-   * Note: For now, using a simple text input with format validation.
-   * Future enhancement: Use a proper date picker component.
-   */
-  const renderDateInput = () => (
-    <View>
+  const renderNumberInput = () => {
+    const numericValue = parseInt(value || '', 10);
+    const displayValue = isNaN(numericValue) ? '' : numericValue.toLocaleString('ko-KR');
+    return (
       <TextInput
-        value={value || ''}
-        onChangeText={onValueChange}
-        placeholder="YYYY-MM-DD"
+        value={displayValue}
+        onChangeText={(text) => onValueChange(text.replace(/[^0-9]/g, '') || null)}
+        placeholder={`${field.name} 입력`}
+        keyboardType="numeric"
         className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-base text-gray-900 dark:text-gray-100"
         placeholderTextColor={placeholderColor}
-        autoCapitalize="none"
       />
-      <Text className="text-xs text-gray-500 dark:text-gray-300 mt-1 ml-1">
-        형식: YYYY-MM-DD (예: 2026-02-15)
-      </Text>
-    </View>
+    );
+  };
+
+  /**
+   * Render date input using DatePickerInput component
+   */
+  const renderDateInput = () => (
+    <DatePickerInput
+      value={value || ''}
+      onChange={(d) => onValueChange(d)}
+    />
   );
 
   /**

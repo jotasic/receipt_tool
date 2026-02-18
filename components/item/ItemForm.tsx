@@ -71,7 +71,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { Input, Button, BottomSheet, FullScreenModal } from '@/components/common';
+import { Input, Button, BottomSheet, FullScreenModal, DatePickerInput } from '@/components/common';
 import { ClassificationSelector } from './ClassificationSelector';
 import { UsagePurposeSelector } from './UsagePurposeSelector';
 import { TagSelector } from './TagSelector';
@@ -765,12 +765,10 @@ export function ItemForm({
         />
 
         {/* Date Input - Common field, always visible */}
-        <Input
+        <DatePickerInput
           label="날짜 (필수)"
           value={date}
-          onChangeText={setDate}
-          placeholder="YYYY-MM-DD"
-          autoCapitalize="none"
+          onChange={setDate}
           error={errors.date}
         />
 

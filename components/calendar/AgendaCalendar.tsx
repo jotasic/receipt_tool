@@ -69,14 +69,15 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
       return acc;
     }, {} as Record<string, Item[]>);
 
-    // Convert to section array and sort by date (newest first)
+    // Convert to section array, filter to date range, and sort by date (newest first)
     return Object.keys(itemsByDate)
+      .filter(date => date >= minDate && date <= maxDate)
       .sort((a, b) => b.localeCompare(a))
       .map(date => ({
         title: date,
         data: itemsByDate[date],
       }));
-  }, [items]);
+  }, [items, minDate, maxDate]);
 
   // Render item
   const renderItem = useCallback(({ item }: { item: Item }) => {

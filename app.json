@@ -55,7 +55,8 @@
           "photosPermission": "영수증 사진을 선택하기 위해 갤러리 접근이 필요합니다.",
           "cameraPermission": "영수증 촬영을 위해 카메라 접근이 필요합니다."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true

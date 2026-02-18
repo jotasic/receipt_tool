@@ -68,8 +68,12 @@ export async function migrateToUnifiedModel(
     // Verify required tables exist
     await verifyRequiredTables(db);
 
-    // Start transaction
-    await db.execAsync('BEGIN TRANSACTION');
+    // Only manage transaction if we're not already inside one
+    // (init.ts schema creation may leave an implicit transaction active)
+    const needsTransaction = !db.isInTransactionSync();
+    if (needsTransaction) {
+      await db.execAsync('BEGIN');
+    }
 
     try {
       // Step 1: Seed usage purposes
@@ -95,22 +99,25 @@ export async function migrateToUnifiedModel(
       console.log('[UnifyMigration] Step 5: Validating migrated data...');
       await validateMigration(db, result);
 
-      // Commit transaction
-      await db.execAsync('COMMIT');
-      result.success = true;
-
-      console.log('[UnifyMigration] Migration completed successfully');
-      console.log('[UnifyMigration] Summary:', {
-        receipts: result.receiptsCount,
-        documents: result.documentsCount,
-        reportLinks: result.reportLinksCount,
-        timestamp: result.timestamp,
-      });
+      if (needsTransaction) {
+        await db.execAsync('COMMIT');
+      }
     } catch (migrationError) {
-      // Rollback on error
-      await db.execAsync('ROLLBACK');
+      if (needsTransaction) {
+        try { await db.execAsync('ROLLBACK'); } catch {}
+      }
       throw migrationError;
     }
+
+    result.success = true;
+
+    console.log('[UnifyMigration] Migration completed successfully');
+    console.log('[UnifyMigration] Summary:', {
+      receipts: result.receiptsCount,
+      documents: result.documentsCount,
+      reportLinks: result.reportLinksCount,
+      timestamp: result.timestamp,
+    });
   } catch (error) {
     result.success = false;
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

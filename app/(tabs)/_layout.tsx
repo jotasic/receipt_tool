@@ -26,8 +26,14 @@ export default function TabLayout() {
   const bottomPadding = MIN_PADDING;
   const tabBarHeight = TAB_BAR_HEIGHT + bottomPadding;
 
-  // Hide tab bar on 2-depth+ screens (item detail, monthly report, etc.)
-  const isDeepScreen = pathname.includes('/item/') || pathname.includes('/monthly/');
+  // Hide tab bar on 2-depth+ screens (item detail, monthly report, settings sub-screens, etc.)
+  const isDeepScreen =
+    pathname.includes('/item/') ||
+    pathname.includes('/monthly/') ||
+    pathname.includes('/settings/tags') ||
+    pathname.includes('/settings/backup') ||
+    pathname.includes('/settings/custom-fields') ||
+    pathname.includes('/settings/usage-purposes');
 
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1 bg-white dark:bg-gray-900">

@@ -65,9 +65,13 @@ export async function migrateDocumentTypes(
       `[Migration] Found ${count} document(s) with deprecated types to migrate`
     );
 
-    // Perform the migration within a transaction
-    await db.execAsync('BEGIN TRANSACTION');
+    // Perform the migration, managing transaction only if not already in one
+    const needsTransaction = !db.isInTransactionSync();
+    if (needsTransaction) {
+      await db.execAsync('BEGIN');
+    }
 
+    let changes = 0;
     try {
       // Update deprecated document types to 'other'
       const result = await db.runAsync(
@@ -76,17 +80,21 @@ export async function migrateDocumentTypes(
              updated_at = datetime('now')
          WHERE document_type IN ('contract', 'estimate', 'invoice')`
       );
-
-      await db.execAsync('COMMIT');
-
-      console.log(
-        `[Migration] Successfully migrated ${result.changes} document(s) to 'other' type`
-      );
-      console.log('[Migration] Document type migration completed successfully');
+      changes = result.changes;
+      if (needsTransaction) {
+        await db.execAsync('COMMIT');
+      }
     } catch (updateError) {
-      await db.execAsync('ROLLBACK');
+      if (needsTransaction) {
+        try { await db.execAsync('ROLLBACK'); } catch {}
+      }
       throw updateError;
     }
+
+    console.log(
+      `[Migration] Successfully migrated ${changes} document(s) to 'other' type`
+    );
+    console.log('[Migration] Document type migration completed successfully');
   } catch (error) {
     console.error('[Migration] Document type migration failed:', error);
     console.error('[Migration] Error details:', {

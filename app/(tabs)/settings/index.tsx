@@ -332,28 +332,28 @@ export default function SettingsScreen() {
               icon="pricetags"
               title="태그 관리"
               hasArrow
-              onPress={() => router.push('/settings/tags' as any)}
+              onPress={() => router.push('/(tabs)/settings/tags')}
               disabled={isClearing}
             />
             <SettingItem
               icon="pricetag"
               title="사용처 관리"
               hasArrow
-              onPress={() => router.push('/settings/usage-purposes' as any)}
+              onPress={() => router.push('/(tabs)/settings/usage-purposes')}
               disabled={isClearing}
             />
             <SettingItem
               icon="create-outline"
               title="커스텀 필드 관리"
               hasArrow
-              onPress={() => router.push('/settings/custom-fields' as any)}
+              onPress={() => router.push('/(tabs)/settings/custom-fields')}
               disabled={isClearing}
             />
             <SettingItem
               icon="cloud-outline"
               title="백업 및 복원"
               hasArrow
-              onPress={() => router.push('/settings/backup' as any)}
+              onPress={() => router.push('/(tabs)/settings/backup')}
               disabled={isClearing}
             />
           </View>

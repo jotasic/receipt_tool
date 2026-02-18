@@ -36,7 +36,7 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate =
     } else if (currentTab === 'reports') {
       router.push(`/(tabs)/reports/item/${item.id}`);
     } else {
-      router.push(`/(tabs)/index/item/${item.id}`);
+      router.push(`/(tabs)/home/item/${item.id}`);
     }
   }, [onPress, item, segments]);
 

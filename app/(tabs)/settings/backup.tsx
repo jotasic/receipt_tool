@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
+import { Header } from '@/components/common';
 import {
   createBackup,
   shareBackup,
@@ -165,6 +166,7 @@ export default function BackupScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
+      <Header title="백업 및 복원" showBack={true} />
       <ScrollView className="flex-1 bg-white dark:bg-gray-900">
         {/* Loading overlay */}
         {isLoading && (

@@ -27,7 +27,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { Input, Button, FullScreenModal, FloatingActionBar } from '@/components/common';
+import { Header, Input, Button, FullScreenModal, FloatingActionBar } from '@/components/common';
 import {
   getCustomFields,
   createCustomField,
@@ -693,6 +693,7 @@ export default function CustomFieldsScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
+      <Header title="커스텀 필드 관리" showBack={true} />
       <View className="flex-1 bg-white dark:bg-gray-900">
         {/* Search bar */}
         <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

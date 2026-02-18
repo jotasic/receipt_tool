@@ -7,11 +7,12 @@ import {
   Alert,
   ActivityIndicator,
   useColorScheme,
+  Pressable,
 } from 'react-native';
 import { router, useLocalSearchParams, Stack, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
-import { ClassificationBadge, UsagePurposeBadge, TagBadge, FloatingActionBar, Header } from '@/components/common';
+import { ClassificationBadge, UsagePurposeBadge, TagBadge, FloatingActionBar, Header, ImageZoomModal } from '@/components/common';
 import { ItemForm } from '@/components/item';
 import { useItemStore } from '@/store/itemStore';
 import { getItemById, updateItem, deleteItem } from '@/services/database/itemService';
@@ -29,6 +30,7 @@ export default function ItemDetailScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
   const updateItemInStore = useItemStore((state) => state.updateItem);
   const deleteItemFromStore = useItemStore((state) => state.deleteItem);
   const colorScheme = useColorScheme();
@@ -305,22 +307,28 @@ export default function ItemDetailScreen() {
           {/* Item Image */}
           {item.filePath && (
             <View className="mb-6">
-              <View
-                className="w-full rounded-lg"
-                style={{
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 3.84,
-                  elevation: 5,
-                }}
+              <Pressable
+                onPress={() => setShowImageModal(true)}
+                accessibilityLabel="이미지 확대 보기"
+                accessibilityRole="button"
               >
-                <Image
-                  source={{ uri: item.filePath }}
-                  className="w-full h-64 rounded-lg bg-gray-100"
-                  resizeMode="contain"
-                />
-              </View>
+                <View
+                  className="w-full rounded-lg overflow-hidden"
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 3.84,
+                    elevation: 5,
+                  }}
+                >
+                  <Image
+                    source={{ uri: item.filePath }}
+                    className="w-full h-64 bg-gray-100 dark:bg-gray-800"
+                    resizeMode="contain"
+                  />
+                </View>
+              </Pressable>
             </View>
           )}
 
@@ -488,6 +496,14 @@ export default function ItemDetailScreen() {
           } as any}
           onSubmit={handleUpdateItem}
           onCancel={() => setShowEditModal(false)}
+        />
+      )}
+
+      {item?.filePath && (
+        <ImageZoomModal
+          visible={showImageModal}
+          imageUri={item.filePath}
+          onClose={() => setShowImageModal(false)}
         />
       )}
     </>

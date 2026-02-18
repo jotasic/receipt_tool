@@ -15,3 +15,4 @@ export { FullScreenModal } from './FullScreenModal';
 export type { FullScreenModalProps, RightButton } from './FullScreenModal';
 export { FloatingActionBar, type FloatingAction } from './FloatingActionBar';
 export { SegmentedControl } from './SegmentedControl';
+export { ImageZoomModal } from './ImageZoomModal';

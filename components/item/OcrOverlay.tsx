@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { OcrBlock, OcrLine } from '@/services/ocr/types';
+import { shouldShowOcrLine } from '@/services/ocr/filters';
 import { colors } from '@/design-system/tokens/colors';
 
 export type SelectionMode = 'storeName' | 'amount' | 'date';
@@ -237,6 +238,7 @@ export function OcrOverlay({
 
           {allLines.map(({ line, lineIndex }) => {
             if (!line.frame) return null;
+            if (!shouldShowOcrLine(line)) return null;
 
             const selectedItem = findSelectedItem(lineIndex);
             const isSelected = !!selectedItem;

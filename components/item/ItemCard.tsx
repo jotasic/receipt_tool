@@ -120,10 +120,8 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate =
             {formatDate(item.date)}
           </Text>
         )}
-
-        {/* Chevron */}
-        <Ionicons name="chevron-forward" size={18} color={chevronColor} />
       </View>
     </Pressable>
   );
 });
+

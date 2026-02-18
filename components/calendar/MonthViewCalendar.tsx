@@ -9,6 +9,7 @@ import React, { useMemo, useCallback, useRef, forwardRef, useImperativeHandle } 
 import { View, Text, FlatList, ViewToken } from 'react-native';
 import type { Item } from '@/types/item';
 import { DateCellWithItems } from './DateCellWithItems';
+import { getCalendarDateRange } from '@/constants/calendarRange';
 
 // 빈 배열 안정 참조 (매 렌더마다 새 배열 생성 방지)
 const EMPTY_ITEMS: Item[] = [];
@@ -18,8 +19,8 @@ export interface MonthViewCalendarRef {
 }
 
 const CELL_HEIGHT = 100; // 각 주 행의 높이
-const PAST_MONTHS = 12;
-const FUTURE_MONTHS = 12;
+const PAST_MONTHS = 3;
+const FUTURE_MONTHS = 3;
 
 // 날짜 → 'YYYY-MM-DD' 문자열
 function toDateString(date: Date): string {
@@ -94,6 +95,9 @@ export const MonthViewCalendar = forwardRef<MonthViewCalendarRef, MonthViewCalen
 
   const today = useMemo(() => toDateString(new Date()), []);
 
+  // 선택 가능 날짜 범위 (매 렌더마다 재계산 방지)
+  const dateRange = useMemo(() => getCalendarDateRange(), []);
+
   // 오늘이 속한 주의 인덱스 (초기 스크롤 위치)
   const todayIndex = useMemo(() => {
     const todayDate = new Date();
@@ -139,6 +143,7 @@ export const MonthViewCalendar = forwardRef<MonthViewCalendarRef, MonthViewCalen
       <View style={{ flexDirection: 'row', height: CELL_HEIGHT }}>
         {item.days.map((day) => {
           const dateStr = toDateString(day);
+          const isDisabled = dateStr < dateRange.minDate || dateStr > dateRange.maxDate;
           return (
             <DateCellWithItems
               key={dateStr}
@@ -148,12 +153,13 @@ export const MonthViewCalendar = forwardRef<MonthViewCalendarRef, MonthViewCalen
               items={itemsByDate[dateStr] ?? EMPTY_ITEMS}
               onDatePress={onDatePress}
               isToday={dateStr === today}
+              isDisabled={isDisabled}
             />
           );
         })}
       </View>
     ),
-    [itemsByDate, onDatePress, today]
+    [itemsByDate, onDatePress, today, dateRange]
   );
 
   return (

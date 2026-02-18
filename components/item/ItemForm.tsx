@@ -16,6 +16,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { getCalendarDateRange } from '@/constants/calendarRange';
 
 // 날짜 유효성 검사 (YYYY-MM-DD 형식 + 실제 존재하는 날짜)
 function isValidDateFormat(dateStr: string): boolean {
@@ -334,7 +335,15 @@ export function ItemForm({
     } else if (item.mode === 'date') {
       const parsed = parseDateFromOcrText(item.text);
       if (parsed) {
-        setDate(parsed);
+        const { minDate, maxDate } = getCalendarDateRange();
+        if (parsed < minDate || parsed > maxDate) {
+          Alert.alert(
+            '날짜 범위 초과',
+            `선택한 날짜(${parsed})는 허용 범위(${minDate.slice(0, 7)} ~ ${maxDate.slice(0, 7)})를 벗어납니다.\n직접 입력해주세요.`
+          );
+        } else {
+          setDate(parsed);
+        }
       } else {
         Alert.alert('변환 실패', '선택한 텍스트에서 날짜를 인식할 수 없습니다.\n직접 YYYY-MM-DD 형식으로 입력해주세요.');
       }
@@ -462,6 +471,11 @@ export function ItemForm({
       newErrors.date = '날짜를 입력해주세요';
     } else if (!isValidDateFormat(date)) {
       newErrors.date = '날짜 형식이 올바르지 않습니다 (YYYY-MM-DD)';
+    } else {
+      const { minDate, maxDate } = getCalendarDateRange();
+      if (date < minDate || date > maxDate) {
+        newErrors.date = `날짜는 ${minDate.slice(0, 7)} ~ ${maxDate.slice(0, 7)} 범위 내여야 합니다`;
+      }
     }
 
     setErrors(newErrors);

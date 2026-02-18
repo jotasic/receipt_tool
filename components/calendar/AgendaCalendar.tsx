@@ -6,6 +6,7 @@ import { getCalendarTheme, koreanLocaleConfig } from '@/constants/calendarTheme'
 import { ItemCard } from '@/components/item/ItemCard';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { colors } from '@/design-system/tokens/colors';
+import { getCalendarDateRange } from '@/constants/calendarRange';
 import type { MarkedDates } from 'react-native-calendars/src/types';
 import type { Item } from '@/types/item';
 
@@ -29,6 +30,9 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
   const colorScheme = useColorScheme();
   const theme = getCalendarTheme(colorScheme || 'light');
   const iconColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
+
+  // 선택 가능 날짜 범위 (매 렌더마다 재계산 방지)
+  const { minDate, maxDate } = useMemo(() => getCalendarDateRange(), []);
 
   // Merge markedDates with selected date
   // Hide marker on selected date
@@ -117,6 +121,8 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
         firstDay={0} // 일요일 시작
         markedDates={finalMarkedDates}
         onDayPress={(day) => onDateSelect(day.dateString)}
+        minDate={minDate}
+        maxDate={maxDate}
         // 요일 색상 커스터마이징
         dayComponent={undefined} // 기본 컴포넌트 사용
         // 주말 색상 설정을 위한 추가 테마

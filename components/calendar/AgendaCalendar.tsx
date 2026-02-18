@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { View, Text, useColorScheme } from 'react-native';
 import { CalendarProvider, ExpandableCalendar, AgendaList, LocaleConfig } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
@@ -75,9 +75,9 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
   }, [items]);
 
   // Render item
-  const renderItem = ({ item }: { item: Item }) => {
+  const renderItem = useCallback(({ item }: { item: Item }) => {
     return <ItemCard item={item} showDate={false} />;
-  };
+  }, []);
 
   // Render empty section (for dates with no items)
   const renderEmptyDate = () => {

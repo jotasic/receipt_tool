@@ -10,6 +10,9 @@ import { View, Text, FlatList, ViewToken } from 'react-native';
 import type { Item } from '@/types/item';
 import { DateCellWithItems } from './DateCellWithItems';
 
+// 빈 배열 안정 참조 (매 렌더마다 새 배열 생성 방지)
+const EMPTY_ITEMS: Item[] = [];
+
 export interface MonthViewCalendarRef {
   scrollToToday: () => void;
 }
@@ -145,8 +148,8 @@ export const MonthViewCalendar = forwardRef<MonthViewCalendarRef, MonthViewCalen
                 month: day.getMonth() + 1,
                 year: day.getFullYear(),
               }}
-              items={itemsByDate[dateStr] ?? []}
-              onPress={() => onDatePress(dateStr)}
+              items={itemsByDate[dateStr] ?? EMPTY_ITEMS}
+              onDatePress={onDatePress}
               isToday={dateStr === today}
             />
           );

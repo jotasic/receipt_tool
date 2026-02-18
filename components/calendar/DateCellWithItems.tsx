@@ -6,7 +6,7 @@
  * 오늘 날짜는 Outlook 스타일의 파란 원으로 표시합니다.
  */
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import type { Item } from '@/types/item';
 import { CLASSIFICATIONS } from '@/constants/items';
@@ -25,7 +25,7 @@ interface DateCellWithItemsProps {
     year: number;
   };
   items: Item[];
-  onPress: () => void;
+  onDatePress: (dateString: string) => void;
   isToday: boolean;
 }
 
@@ -35,10 +35,10 @@ interface DateCellWithItemsProps {
  * 날짜 셀에 증빙 미리보기를 분류별 색상으로 표시하는 컴포넌트.
  * 최대 2개의 증빙을 표시하고, 더 많으면 "+N건" 추가.
  */
-export function DateCellWithItems({
+export const DateCellWithItems = React.memo(function DateCellWithItems({
   date,
   items,
-  onPress,
+  onDatePress,
   isToday,
 }: DateCellWithItemsProps) {
   const hasItems = items.length > 0;
@@ -47,9 +47,13 @@ export function DateCellWithItems({
   const visibleItems = items.slice(0, 2);
   const remainingCount = items.length - visibleItems.length;
 
+  const handlePress = useCallback(() => {
+    onDatePress(date.dateString);
+  }, [onDatePress, date.dateString]);
+
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.7}
       className="flex-1 border-r border-b border-gray-200 dark:border-gray-700 p-1"
     >
@@ -104,4 +108,4 @@ export function DateCellWithItems({
       )}
     </TouchableOpacity>
   );
-}
+});

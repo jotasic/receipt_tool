@@ -90,7 +90,7 @@ export function DateCellWithItems({
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {item.storeName || item.title}
+                  {item.title}
                 </Text>
               </View>
             );

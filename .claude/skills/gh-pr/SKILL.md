@@ -58,9 +58,14 @@ gh pr create \
 
 ## Checklist
 <checklist items from context>
+
+---
+Closes #<issue number from current-issue.json>
 EOF
 )"
 ```
+
+**Note:** If `current-issue.json` has an `issue` field, always append `Closes #<issue>` at the bottom of the body. This auto-closes the linked issue when the PR is merged.
 
 **On failure:**
 - PR already exists for this branch → output existing PR URL: `PR already open: <url>`

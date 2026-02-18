@@ -26,6 +26,9 @@ export const unstable_settings = {
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+// DB 초기화는 모듈 로드 시 1회만 실행 (React 생명주기와 무관)
+const DB_READY_PROMISE = initDatabase();
+
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -35,21 +38,18 @@ export default function RootLayout() {
   const [dbError, setDbError] = useState<Error | null>(null);
   const { theme, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
 
-  // Initialize database and settings on app start
+  // DB_READY_PROMISE 결과를 React 상태로 연결
+  // 컴포넌트가 언마운트/리마운트돼도 Promise는 모듈 레벨에서 계속 진행됨
   useEffect(() => {
-    async function setupDatabase() {
-      try {
-        console.log('Initializing database...');
-        await initDatabase();
-        console.log('Database initialized successfully');
-        setDbInitialized(true);
-      } catch (err) {
-        console.error('Database initialization failed:', err);
-        setDbError(err instanceof Error ? err : new Error('Unknown database error'));
-      }
-    }
-
-    setupDatabase();
+    let isMounted = true;
+    DB_READY_PROMISE
+      .then(() => {
+        if (isMounted) setDbInitialized(true);
+      })
+      .catch((err) => {
+        if (isMounted) setDbError(err instanceof Error ? err : new Error('Unknown database error'));
+      });
+    return () => { isMounted = false; };
   }, []);
 
   // Load settings on app start

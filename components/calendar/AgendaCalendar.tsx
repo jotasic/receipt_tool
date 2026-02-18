@@ -124,6 +124,8 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
         onDayPress={(day) => onDateSelect(day.dateString)}
         minDate={minDate}
         maxDate={maxDate}
+        pastScrollRange={3}
+        futureScrollRange={3}
         // 요일 색상 커스터마이징
         dayComponent={undefined} // 기본 컴포넌트 사용
         // 주말 색상 설정을 위한 추가 테마

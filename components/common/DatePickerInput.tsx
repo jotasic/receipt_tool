@@ -17,7 +17,6 @@ import {
 import { Calendar } from 'react-native-calendars';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { getCalendarDateRange } from '@/constants/calendarRange';
 import { getCalendarTheme } from '@/constants/calendarTheme';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { colors } from '@/design-system/tokens/colors';
@@ -49,7 +48,6 @@ export function DatePickerInput({
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
 
-  const { minDate, maxDate } = useMemo(() => getCalendarDateRange(), []);
   const theme = useMemo(() => getCalendarTheme(colorScheme || 'light'), [colorScheme]);
   const iconColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
   const hasValue = Boolean(value);
@@ -142,8 +140,6 @@ export function DatePickerInput({
             current={value || undefined}
             onDayPress={handleDayPress}
             markedDates={markedDates}
-            minDate={minDate}
-            maxDate={maxDate}
             theme={theme}
             firstDay={0}
           />

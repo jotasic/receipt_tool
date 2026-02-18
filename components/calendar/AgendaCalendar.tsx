@@ -131,7 +131,7 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
         <AgendaList
           sections={sections}
           renderItem={renderItem}
-          dayFormat="M월 d일 EEEE"
+          dayFormat="M월 d일 dddd"
           sectionStyle={{
             paddingHorizontal: 16,
             paddingVertical: 12,

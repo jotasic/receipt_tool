@@ -100,7 +100,7 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
           등록된 증빙이 없습니다
         </Text>
         <Text className="text-gray-400 dark:text-gray-500 mt-2 text-sm text-center">
-          홈 탭에서 증빙을 등록해보세요
+          증빙 탭에서 증빙을 등록해보세요
         </Text>
       </View>
     );

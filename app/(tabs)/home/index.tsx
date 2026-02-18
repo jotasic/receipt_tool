@@ -222,9 +222,6 @@ export default function HomeScreen() {
                 <Text className="text-gray-500 dark:text-gray-400 text-base text-center">
                   아직 등록된 증빙이 없습니다
                 </Text>
-                <Text className="text-gray-400 dark:text-gray-500 text-sm text-center mt-2">
-                  하단의 + 버튼을 눌러 증빙을 추가해보세요
-                </Text>
               </View>
             </Card>
           </View>

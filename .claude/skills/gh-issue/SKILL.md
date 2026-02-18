@@ -14,7 +14,7 @@ Reads a GitHub issue and its Claude Code briefing, syncs main, creates a work br
 ## Execution Flow
 
 ```
-Read issue → Parse briefing → Sync main → Create branch → Save context
+Read issue → Parse or Analyze → Sync main → Create branch → Save context
 ```
 
 ---
@@ -31,9 +31,11 @@ gh issue view $ARGUMENTS --comments
 
 ---
 
-## Step 2: Parse Briefing
+## Step 2: Parse Briefing or Analyze
 
-Look for `🤖 Claude Code 작업 브리핑` comment.
+### Case A: Briefing exists
+
+Look for `🤖 Claude Code 작업 브리핑` comment (posted by @github-actions or @claude).
 
 Extract:
 - `type` → feat / fix / refactor / docs / chore
@@ -43,16 +45,43 @@ Extract:
 - `hints` → implementation hints
 - `checklist` → completion criteria
 
-**On failure (no briefing comment):**
-```
-⚠️  Warning: No briefing comment found. GitHub Action may still be running.
-    Falling back to raw issue body for context.
-    Quality of analysis may be lower.
+→ Proceed to Step 3.
 
-Continue with raw issue? [Y/n]
+### Case B: No briefing found
+
+Analyze the issue title + body directly and:
+
+1. Fill in all fields (type, priority, agent, files, hints, checklist)
+2. Post analysis as a comment on the issue:
+
+```bash
+gh issue comment $ARGUMENTS --body "$(cat <<'EOF'
+## 🤖 Claude Code 작업 브리핑
+
+### 작업 유형
+- **타입**: <feat/fix/refactor/docs/chore>
+- **우선순위**: <P0/P1/P2>
+
+### 요약
+<1-2줄 핵심 내용>
+
+### 영향 범위
+- **에이전트**: <agent>
+- **파일/모듈**: <files>
+
+### 구현 힌트
+- <hint>
+
+### 완료 조건
+- [ ] <condition>
+
+### 주의사항
+<dark mode, type safety, Korean UI, etc.>
+EOF
+)"
 ```
 
-If Y → parse issue title + body directly to fill fields above.
+3. Use the analyzed content to proceed to Step 3.
 
 ---
 
@@ -71,15 +100,19 @@ git checkout main && git pull origin main
 
 ## Step 4: Create Branch
 
-Branch name format: `<issue-number>-<kebab-slug-from-title>`
+Branch name format based on `type`:
 
-Examples:
-- Issue #24 "Fix layout header overlap" → `24-fix-layout-header-overlap`
-- Issue #15 "달력 탭 초기 로드 오류" → `15-fix-calendar-initial-load`
+| Type | Format | Example |
+|------|--------|---------|
+| `fix` / `bug` | `fix/<issue-number>-<kebab-slug>` | `fix/24-layout-header-overlap` |
+| `feat` | `feature/<issue-number>-<kebab-slug>` | `feature/15-calendar-initial-load` |
+| `refactor` | `refactor/<issue-number>-<kebab-slug>` | `refactor/30-item-service` |
+| `docs` | `docs/<issue-number>-<kebab-slug>` | `docs/8-update-readme` |
+| `chore` | `chore/<issue-number>-<kebab-slug>` | `chore/5-update-deps` |
 
 Rules:
-- Max 50 characters total
-- Lowercase kebab-case
+- Max 60 characters total
+- Lowercase kebab-case for the slug part
 - Non-ASCII characters → translate to English meaning
 
 ```bash
@@ -89,10 +122,10 @@ git checkout -b <branch-name>
 **On failure:**
 - Branch already exists →
   ```
-  ⚠️  Branch 24-fix-layout already exists.
+  ⚠️  Branch fix/24-layout already exists.
   Switch to existing branch? [Y/n]
   ```
-  If Y → `git checkout 24-fix-layout`
+  If Y → `git checkout fix/24-layout`
   If N → abort
 
 ---
@@ -105,7 +138,7 @@ Write `.claude/current-issue.json`:
 {
   "issue": 24,
   "title": "Fix layout header overlap",
-  "branch": "24-fix-layout-header-overlap",
+  "branch": "fix/24-layout-header-overlap",
   "type": "fix",
   "priority": "P1",
   "agent": "react-native-expo-developer",
@@ -122,7 +155,7 @@ Write `.claude/current-issue.json`:
 ```
 ✅ Issue #24 context ready
 
-Branch:   24-fix-layout-header-overlap
+Branch:   fix/24-layout-header-overlap
 Type:     fix  |  Priority: P1
 Agent:    react-native-expo-developer
 Files:    components/item/ItemCard.tsx

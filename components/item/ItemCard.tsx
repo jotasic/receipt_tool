@@ -16,7 +16,6 @@ interface ItemCardProps {
 
 export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate = true }: ItemCardProps) {
   const classificationConfig = getClassificationConfig(item.classification);
-  const chevronColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
   const defaultColor = useThemeColor(colors.light.text.secondary, colors.dark.text.secondary);
   const segments = useSegments();
 
@@ -112,15 +111,14 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate =
         <UsagePurposeBadge usagePurpose={item.usagePurpose} />
       </View>
 
-      {/* Bottom Row: Date, Chevron */}
-      <View className="flex-row items-center justify-between mt-2 ml-13">
-        {/* Date */}
-        {showDate && (
+      {/* Bottom Row: Date */}
+      {showDate && (
+        <View className="flex-row items-center mt-2 ml-13">
           <Text className="text-sm text-gray-500 dark:text-gray-400">
             {formatDate(item.date)}
           </Text>
-        )}
-      </View>
+        </View>
+      )}
     </Pressable>
   );
 });

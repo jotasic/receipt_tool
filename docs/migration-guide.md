@@ -559,8 +559,94 @@ Legacy `categories` table and `category_id` field are kept for backward compatib
 
 When creating new items, always use `usagePurpose` instead of categories.
 
+## 최근 업데이트 (2024-2026)
+
+### DB 초기화 패턴 개선
+
+**문제점**: React StrictMode에서 useEffect 내부의 setDbInitialized가 언마운트 시 무시됨
+
+**해결책**: 모듈 레벨에서 DB 초기화 Promise를 즉시 시작
+
+```typescript
+// ✅ 개선된 패턴
+const DB_READY_PROMISE = initDatabase();  // 모듈 로드 시 즉시 시작
+
+useEffect(() => {
+  let isMounted = true;
+  DB_READY_PROMISE
+    .then(() => { if (isMounted) setDbInitialized(true); })
+    .catch(err => { if (isMounted) setDbError(err); });
+  return () => { isMounted = false; };
+}, []);
+```
+
+상세: [Database Guide](/docs/guides/database.md#quick-start)
+
+### DatePickerInput 컴포넌트 교체
+
+**이전**: `@react-native-community/datetimepicker` (최신 Expo 미지원)
+
+**현재**: `react-native-calendars` 기반 순수 JS 구현
+- Modal 내 Calendar 표시
+- 다크모드 완벽 지원
+- Expo Go 호환 (native module 불필요)
+
+상세: [Design System > DatePickerInput](/docs/architecture/design-system.md#datepickerinput)
+
+### 달력 범위 제한 (±3개월)
+
+성능 최적화를 위해 달력 표시 범위 제한:
+
+```typescript
+export const CALENDAR_PAST_MONTHS = 3;
+export const CALENDAR_FUTURE_MONTHS = 3;
+
+// MonthViewCalendar, AgendaCalendar에 적용
+// DatePickerInput: 제한 없음 (사용자 자유 입력)
+```
+
+상세: [Calendar Tab > Date Range Limit](/docs/architecture/calendar-tab.md#날짜-범위-제한)
+
+### 정산 탭 데이터 갱신 개선
+
+**이전**: `useEffect([], [])` → 마운트 1회만 로드
+
+**현재**: `useFocusEffect` → 탭 포커스 시마다 갱신
+
+```typescript
+useFocusEffect(
+  useCallback(() => {
+    loadAllMonths();  // 탭 포커스 시마다 호출
+  }, [])
+);
+```
+
+**효과**: 항목 추가 후 탭 전환 시 금액이 자동 갱신
+
+상세: [Reports Screen](/docs/architecture/reports-screen.md)
+
+### 신규 컴포넌트 추가
+
+#### ImageZoomModal
+이미지 핀치 줌 기능 (react-native-reanimated)
+- 핀치 줌 (1x ~ 4x)
+- 팬 (드래그)
+- 더블탭 줌
+- 더블탭 리셋
+
+상세: [Image Zoom Modal](/docs/components/image-zoom-modal.md)
+
+#### OCR 필터 서비스
+OCR 텍스트 박스 필터링 로직 분리
+- 세로 텍스트 제거
+- 최소 크기 필터
+- 단일 문자 제거
+
+상세: [OCR Filters](/docs/services/ocr-filters.md)
+
 ## 참고 문서
 
 - [architecture.md](/docs/architecture.md) - 현재 아키텍처
 - [services.md](/docs/services.md) - Item 서비스 레퍼런스
+- [components.md](/docs/components.md) - 공통 컴포넌트
 - `/services/database/migrations/` - 마이그레이션 스크립트

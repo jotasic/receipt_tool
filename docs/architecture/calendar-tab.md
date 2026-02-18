@@ -6,6 +6,31 @@ Receipt Tool의 달력 탭 구조 및 뷰 관리 방식입니다.
 
 달력 탭은 증빙을 월별/일별로 시각화하고, SegmentedControl을 사용하여 뷰를 전환하는 화면입니다.
 
+### 날짜 범위 제한
+
+성능 최적화를 위해 달력 표시 범위를 제한합니다:
+
+- **과거**: 현재 기준 3개월 전
+- **미래**: 현재 기준 3개월 후
+
+**상수**: `/constants/calendarRange.ts`
+
+```typescript
+export const CALENDAR_PAST_MONTHS = 3;
+export const CALENDAR_FUTURE_MONTHS = 3;
+
+export function getCalendarDateRange(): { minDate: string; maxDate: string } {
+  // 오늘 기준 ±3개월 범위 반환 (YYYY-MM-DD 형식)
+}
+```
+
+**적용:**
+- `MonthViewCalendar`: 표시 범위 제한 (무한 스크롤 방지)
+- `AgendaCalendar`: `pastScrollRange={3}`, `futureScrollRange={3}`
+
+**미적용:**
+- `DatePickerInput`: 사용자는 어느 날짜든 입력 가능 (범위 제한 없음)
+
 ## 라우팅 구조
 
 ```
@@ -228,6 +253,26 @@ export default function CalendarTab() {
 - 상위 컴포넌트의 상태 증가
 
 ## 성능 최적화
+
+### 달력 범위 제한
+
+무한 스크롤을 방지하기 위해 `getCalendarDateRange()` 사용:
+
+```typescript
+import { getCalendarDateRange } from '@/constants/calendarRange';
+
+function MonthlyCalendarView() {
+  const { minDate, maxDate } = getCalendarDateRange();
+
+  return (
+    <Calendar
+      minDate={minDate}
+      maxDate={maxDate}
+      // ...
+    />
+  );
+}
+```
 
 ### React.memo 활용
 

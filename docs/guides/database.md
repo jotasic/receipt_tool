@@ -35,28 +35,35 @@ Receipt Tool은 expo-sqlite를 사용하여 로컬에 데이터를 저장합니�
 
 ### 1. 데이터베이스 초기화
 
-앱 시작 시 한 번만 호출:
+앱 시작 시 모듈 레벨에서 DB 초기화 Promise를 먼저 실행한 후, React 상태와 연결합니다:
 
 ```typescript
 import { useEffect, useState } from 'react';
 import { initDatabase } from '@/services/database';
 
+// 모듈 로드 시 1회만 실행 (React 생명주기와 무관)
+const DB_READY_PROMISE = initDatabase();
+
 function App() {
   const [dbReady, setDbReady] = useState(false);
+  const [dbError, setDbError] = useState<Error | null>(null);
 
+  // DB_READY_PROMISE 결과를 React 상태로 연결
   useEffect(() => {
-    async function setupDatabase() {
-      try {
-        await initDatabase();
-        setDbReady(true);
-        console.log('Database initialized');
-      } catch (error) {
-        console.error('Database init failed:', error);
-      }
-    }
-
-    setupDatabase();
+    let isMounted = true;
+    DB_READY_PROMISE
+      .then(() => {
+        if (isMounted) setDbReady(true);
+      })
+      .catch((err) => {
+        if (isMounted) setDbError(err instanceof Error ? err : new Error('Unknown error'));
+      });
+    return () => { isMounted = false; };
   }, []);
+
+  if (dbError) {
+    return <ErrorScreen error={dbError} />;
+  }
 
   if (!dbReady) {
     return <LoadingScreen />;
@@ -65,6 +72,11 @@ function App() {
   return <MainApp />;
 }
 ```
+
+**주요 개선:**
+- 모듈 로드 시 Promise 즉시 시작 (React 생명주기와 무관)
+- React StrictMode 언마운트 시에도 DB 초기화 계속 진행
+- `isMounted` 체크로 언마운트 상태 추적
 
 ### 2. Item 기본 작업
 

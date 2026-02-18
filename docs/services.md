@@ -20,6 +20,7 @@ Receipt Tool 서비스 레퍼런스
 | [item-service.md](./services/item-service.md) | 증빙 CRUD, 조회, 통계 |
 | [report-service.md](./services/report-service.md) | 리포트 CRUD, 상태 관리, Item 연결 |
 | [ocr-service.md](./services/ocr-service.md) | OCR 추출, 에러 처리, 로깅 |
+| [ocr-filters.md](./services/ocr-filters.md) | OCR 텍스트 박스 필터링 |
 | [stores.md](./services/stores.md) | Zustand 스토어 (itemStore, reportStore) |
 | [types.md](./services/types.md) | TypeScript 타입 정의 |
 | [database-utils.md](./services/database-utils.md) | 트랜잭션, 통계, 유지보수 |

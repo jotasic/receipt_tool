@@ -147,6 +147,40 @@ letterSpacing = { tight: -0.5, normal: 0, wide: 0.5 }
     └── 콘텐츠
 ```
 
+### DatePickerInput - 날짜 선택 입력
+
+**사용 대상**: 모든 날짜 입력 필드 (항목 추가/수정 등)
+
+**기술**: react-native-calendars 기반 순수 JS 구현 (native module 불필요, Expo Go 호환)
+
+**특징**:
+- 터치 시 Modal 내에서 Calendar 표시
+- 월/연도 네비게이션 가능
+- 다크모드 완벽 지원
+- 날짜 범위 제한 없음 (사용자는 어느 날짜든 입력 가능)
+
+**Props**:
+```typescript
+interface DatePickerInputProps {
+  label?: string;              // 입력 필드 라벨
+  value: string;               // 선택된 날짜 (YYYY-MM-DD)
+  onChange: (date: string) => void;  // 날짜 변경 콜백
+  error?: string;              // 에러 메시지
+}
+```
+
+**Example:**
+```typescript
+const [date, setDate] = useState('2024-02-15');
+
+<DatePickerInput
+  label="지출 날짜"
+  value={date}
+  onChange={setDate}
+  error={!date ? '날짜를 선택하세요' : undefined}
+/>
+```
+
 ### ScreenLayout - 모든 일반 화면
 
 **사용 대상**: 모든 일반 화면 (탭, 상세, 설정 등)

@@ -50,18 +50,10 @@ const FIELD_TYPES: { value: CustomFieldType; label: string; icon: keyof typeof I
   { value: 'select', label: '선택', icon: 'list-outline' },
 ];
 
-// Entity type options
-const ENTITY_TYPES: { value: CustomFieldEntityType; label: string; badge: string }[] = [
-  { value: 'item', label: '항목', badge: '항목' },
-  { value: 'receipt', label: '영수증', badge: '영수증' },
-  { value: 'document', label: '문서', badge: '문서' },
-  { value: 'both', label: '전체', badge: '전체' },
-];
-
-// Filter options (includes "all")
+// Filter options - only current valid types
 const FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: 'all', label: '전체' },
-  ...ENTITY_TYPES,
+  { value: 'item', label: '항목' },
 ];
 
 export default function CustomFieldsScreen() {
@@ -82,7 +74,6 @@ export default function CustomFieldsScreen() {
   const [isRequired, setIsRequired] = useState(false);
   const [optionsText, setOptionsText] = useState('');
   const [showTypePicker, setShowTypePicker] = useState(false);
-  const [showEntityTypePicker, setShowEntityTypePicker] = useState(false);
 
   // Load custom fields when screen is focused
   useFocusEffect(
@@ -115,7 +106,7 @@ export default function CustomFieldsScreen() {
 
   // Filter and search fields
   const filteredFields = fields.filter((field) => {
-    // Filter by entity type
+    // Filter by entity type - maintain backward compatibility for legacy types
     if (selectedFilter !== 'all') {
       if (field.entityType === 'both') {
         // "both" type matches all filters
@@ -364,9 +355,20 @@ export default function CustomFieldsScreen() {
     return FIELD_TYPES.find((t) => t.value === type) || FIELD_TYPES[0];
   };
 
-  // Get entity type badge
-  const getEntityTypeBadge = (type: CustomFieldEntityType) => {
-    return ENTITY_TYPES.find((t) => t.value === type)?.badge || type;
+  // Get entity type badge - includes legacy labels for backward compatibility
+  const getEntityTypeBadge = (type: CustomFieldEntityType): string => {
+    switch (type) {
+      case 'item':
+        return '항목';
+      case 'receipt':
+        return '영수증(레거시)';
+      case 'document':
+        return '문서(레거시)';
+      case 'both':
+        return '전체(레거시)';
+      default:
+        return type;
+    }
   };
 
   // Render field item
@@ -533,29 +535,6 @@ export default function CustomFieldsScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Entity Type Picker */}
-          <View className="mb-4">
-            <Text className="text-gray-700 dark:text-gray-300 text-base font-medium mb-2">
-              적용 대상 {isEdit && '(수정 불가)'}
-            </Text>
-            <TouchableOpacity
-              onPress={() => !isEdit && setShowEntityTypePicker(true)}
-              className="flex-row items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
-              activeOpacity={isEdit ? 1 : 0.7}
-              disabled={isEdit}
-            >
-              <Text className="flex-1 text-gray-700 dark:text-gray-300">
-                {ENTITY_TYPES.find((t) => t.value === entityType)?.label || entityType}
-              </Text>
-              {!isEdit && <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />}
-            </TouchableOpacity>
-            {isEdit && (
-              <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                데이터 무결성을 위해 적용 대상은 수정할 수 없습니다
-              </Text>
-            )}
-          </View>
-
           {/* Required Toggle */}
           <View className="flex-row items-center justify-between py-3 mb-4">
             <View>
@@ -657,35 +636,6 @@ export default function CustomFieldsScreen() {
               </TouchableOpacity>
             ))}
           </View>
-      </FullScreenModal>
-
-      {/* Entity type picker modal */}
-      <FullScreenModal
-        visible={showEntityTypePicker}
-        onClose={() => setShowEntityTypePicker(false)}
-        title="적용 대상 선택"
-        scrollable={false}
-      >
-        <View className="flex-1">
-            {ENTITY_TYPES.map((type) => (
-              <TouchableOpacity
-                key={type.value}
-                onPress={() => {
-                  setEntityType(type.value);
-                  setShowEntityTypePicker(false);
-                }}
-                className="flex-row items-center justify-between py-4 px-4 border-b border-gray-200 dark:border-gray-700"
-                activeOpacity={0.7}
-              >
-                <Text className="text-base text-gray-900 dark:text-gray-100">
-                  {type.label}
-                </Text>
-                {entityType === type.value && (
-                  <Ionicons name="checkmark" size={24} color="#3B82F6" />
-                )}
-              </TouchableOpacity>
-            ))}
-        </View>
       </FullScreenModal>
     </>
   );

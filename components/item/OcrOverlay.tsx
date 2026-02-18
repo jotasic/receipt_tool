@@ -15,10 +15,12 @@ import {
   Pressable,
   LayoutChangeEvent,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import type { OcrBlock, OcrLine } from '@/services/ocr/types';
 import { shouldShowOcrLine } from '@/services/ocr/filters';
 import { colors } from '@/design-system/tokens/colors';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
 export type SelectionMode = 'storeName' | 'amount' | 'date';
 
@@ -72,6 +74,7 @@ export function OcrOverlay({
   onDeselectItem,
   activeMode,
 }: OcrOverlayProps) {
+  const insets = useSafeAreaInsets();
   const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 });
   const [modalVisible, setModalVisible] = useState(false);
   const [tappedLine, setTappedLine] = useState<{ text: string; lineIndex: string } | null>(null);
@@ -315,13 +318,13 @@ export function OcrOverlay({
           onPress={() => setModalVisible(false)}
         >
           <Pressable
-            className="bg-white rounded-t-3xl"
+            className="bg-white dark:bg-gray-800 rounded-t-3xl"
             onPress={(e) => e.stopPropagation()}
           >
-            <View className="p-6">
+            <View className="p-6" style={{ paddingBottom: insets.bottom + 24 }}>
               {/* 헤더 */}
               <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-lg font-semibold text-gray-900">
+                <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   항목 선택
                 </Text>
                 <TouchableOpacity
@@ -334,9 +337,9 @@ export function OcrOverlay({
 
               {/* 선택된 텍스트 */}
               {tappedLine && (
-                <View className="bg-gray-100 p-3 rounded-lg mb-4">
-                  <Text className="text-sm text-gray-600 mb-1">선택한 텍스트</Text>
-                  <Text className="text-base font-medium text-gray-900">
+                <View className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mb-4">
+                  <Text className="text-sm text-gray-600 dark:text-gray-400 mb-1">선택한 텍스트</Text>
+                  <Text className="text-base font-medium text-gray-900 dark:text-gray-100">
                     {tappedLine.text}
                   </Text>
                 </View>

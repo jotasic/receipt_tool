@@ -395,7 +395,7 @@ export default function ItemDetailScreen() {
                 <View className="flex-row items-center mb-1">
                   <Ionicons name="storefront-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
                   <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-2">
-                    가맹점
+                    사용처
                   </Text>
                 </View>
                 <Text className="text-base text-gray-900 dark:text-gray-100 ml-6">

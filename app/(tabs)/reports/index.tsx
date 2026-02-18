@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
@@ -137,9 +137,11 @@ export default function ReportsScreen() {
     setMonthsData(results);
   };
 
-  useEffect(() => {
-    loadAllMonths();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadAllMonths();
+    }, [])
+  );
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

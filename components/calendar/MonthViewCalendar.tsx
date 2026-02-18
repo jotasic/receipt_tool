@@ -5,10 +5,14 @@
  * CalendarList와 달리 월 경계 없이 자연스럽게 연속됩니다.
  */
 
-import React, { useMemo, useCallback, useRef } from 'react';
+import React, { useMemo, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import { View, Text, FlatList, ViewToken } from 'react-native';
 import type { Item } from '@/types/item';
 import { DateCellWithItems } from './DateCellWithItems';
+
+export interface MonthViewCalendarRef {
+  scrollToToday: () => void;
+}
 
 const CELL_HEIGHT = 100; // 각 주 행의 높이
 const PAST_MONTHS = 12;
@@ -66,12 +70,14 @@ interface MonthViewCalendarProps {
   onCurrentMonthChange?: (month: string) => void;
 }
 
-export function MonthViewCalendar({
-  items,
-  onDatePress,
-  onCurrentMonthChange,
-}: MonthViewCalendarProps) {
+export const MonthViewCalendar = forwardRef<MonthViewCalendarRef, MonthViewCalendarProps>(
+  function MonthViewCalendar({
+    items,
+    onDatePress,
+    onCurrentMonthChange,
+  }, ref) {
   const weeks = useMemo(() => generateWeeks(PAST_MONTHS, FUTURE_MONTHS), []);
+  const flatListRef = useRef<FlatList>(null);
 
   // 날짜별 아이템 그룹화
   const itemsByDate = useMemo(() => {
@@ -98,6 +104,16 @@ export function MonthViewCalendar({
     });
     return idx >= 0 ? idx : 0;
   }, [weeks]);
+
+  // 오늘로 스크롤하는 메서드 노출
+  useImperativeHandle(ref, () => ({
+    scrollToToday: () => {
+      flatListRef.current?.scrollToIndex({
+        index: todayIndex,
+        animated: true,
+      });
+    },
+  }));
 
   // 현재 보이는 달 감지 (수요일 기준으로 해당 주의 달 판단)
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 });
@@ -162,6 +178,7 @@ export function MonthViewCalendar({
       </View>
 
       <FlatList
+        ref={flatListRef}
         data={weeks}
         renderItem={renderWeek}
         keyExtractor={(item) => item.key}
@@ -178,4 +195,4 @@ export function MonthViewCalendar({
       />
     </View>
   );
-}
+});

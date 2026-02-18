@@ -15,7 +15,48 @@
  * - Loading states
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
+// 날짜 유효성 검사 (YYYY-MM-DD 형식 + 실제 존재하는 날짜)
+function isValidDateFormat(dateStr: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const d = new Date(year, month - 1, day);
+  return d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day;
+}
+
+// OCR 텍스트에서 날짜 파싱 → YYYY-MM-DD 반환, 실패 시 null
+function parseDateFromOcrText(text: string): string | null {
+  const cleaned = text.trim();
+
+  // 한국어 포맷: 2025년 1월 15일, 2025년01월15일
+  const koreanMatch = cleaned.match(/(\d{4})[년]\s*(\d{1,2})[월]\s*(\d{1,2})[일]?/);
+  if (koreanMatch) {
+    const candidate = `${koreanMatch[1]}-${koreanMatch[2].padStart(2, '0')}-${koreanMatch[3].padStart(2, '0')}`;
+    if (isValidDateFormat(candidate)) return candidate;
+  }
+
+  // 구분자 포맷: YYYY-MM-DD, YYYY.MM.DD, YYYY/MM/DD, YY.MM.DD 등
+  const sepMatch = cleaned.match(/(\d{2,4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+  if (sepMatch) {
+    let year = sepMatch[1];
+    if (year.length === 2) {
+      const y = parseInt(year, 10);
+      year = y >= 50 ? '19' + year : '20' + year;
+    }
+    const candidate = `${year}-${sepMatch[2].padStart(2, '0')}-${sepMatch[3].padStart(2, '0')}`;
+    if (isValidDateFormat(candidate)) return candidate;
+  }
+
+  return null;
+}
+
+// 금액 콤마 포맷
+function formatAmountDisplay(raw: string): string {
+  if (!raw) return '';
+  const num = parseInt(raw, 10);
+  return isNaN(num) ? '' : num.toLocaleString('ko-KR');
+}
 import {
   View,
   Text,
@@ -285,17 +326,17 @@ export function ItemForm({
       if (!title) setTitle(item.text);
     } else if (item.mode === 'amount') {
       const numericValue = item.text.replace(/[^0-9]/g, '');
-      setAmount(numericValue);
-    } else if (item.mode === 'date') {
-      const dateMatch = item.text.match(/(\d{2,4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
-      if (dateMatch) {
-        let year = dateMatch[1];
-        if (year.length === 2) {
-          year = '20' + year;
-        }
-        setDate(`${year}-${dateMatch[2].padStart(2, '0')}-${dateMatch[3].padStart(2, '0')}`);
+      if (numericValue) {
+        setAmount(numericValue);
       } else {
-        setDate(item.text);
+        Alert.alert('변환 실패', '선택한 텍스트에서 금액을 추출할 수 없습니다.');
+      }
+    } else if (item.mode === 'date') {
+      const parsed = parseDateFromOcrText(item.text);
+      if (parsed) {
+        setDate(parsed);
+      } else {
+        Alert.alert('변환 실패', '선택한 텍스트에서 날짜를 인식할 수 없습니다.\n직접 YYYY-MM-DD 형식으로 입력해주세요.');
       }
     }
   };
@@ -409,12 +450,18 @@ export function ItemForm({
       newErrors.title = '제목을 입력해주세요';
     }
 
-    if (showAmount && (!amount || parseInt(amount) <= 0)) {
-      newErrors.amount = '금액을 입력해주세요';
+    if (showAmount) {
+      if (!amount) {
+        newErrors.amount = '금액을 입력해주세요';
+      } else if (!/^\d+$/.test(amount) || parseInt(amount, 10) <= 0) {
+        newErrors.amount = '유효한 금액을 입력해주세요 (양의 정수)';
+      }
     }
 
     if (!date) {
       newErrors.date = '날짜를 입력해주세요';
+    } else if (!isValidDateFormat(date)) {
+      newErrors.date = '날짜 형식이 올바르지 않습니다 (YYYY-MM-DD)';
     }
 
     setErrors(newErrors);
@@ -717,9 +764,9 @@ export function ItemForm({
         {showAmount && (
           <Input
             label="금액 (필수)"
-            value={amount}
-            onChangeText={setAmount}
-            placeholder="금액"
+            value={formatAmountDisplay(amount)}
+            onChangeText={(text) => setAmount(text.replace(/[^0-9]/g, ''))}
+            placeholder="예: 50,000"
             keyboardType="numeric"
             error={errors.amount}
           />

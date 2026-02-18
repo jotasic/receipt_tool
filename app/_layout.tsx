@@ -7,7 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Appearance, View } from 'react-native';
+import { Appearance, View, ActivityIndicator, Text } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { initDatabase } from '@/services/database';
@@ -82,7 +82,12 @@ export default function RootLayout() {
   }, [loaded, dbInitialized, settingsLoaded]);
 
   if (!loaded || !dbInitialized || !settingsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: '#ffffff' }} />;
+    return (
+      <View style={{ flex: 1, backgroundColor: '#ffffff', alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#2563eb" />
+        <Text style={{ marginTop: 12, color: '#6b7280', fontSize: 14 }}>로딩 중...</Text>
+      </View>
+    );
   }
 
   return <RootLayoutNav />;

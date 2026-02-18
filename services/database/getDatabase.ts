@@ -8,12 +8,9 @@
 import { initDatabase, getDatabaseInstance } from './init';
 import type * as SQLite from 'expo-sqlite';
 
-// Pending initialization promise - prevents concurrent initDatabase() calls
-let pendingInit: Promise<SQLite.SQLiteDatabase> | null = null;
-
 /**
  * Get database instance, initializing if needed.
- * Concurrent callers share the same initialization promise.
+ * initDatabase() itself handles concurrent calls via singleton promise.
  *
  * @returns Promise<SQLite.SQLiteDatabase>
  */
@@ -23,12 +20,5 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
     return existingDb;
   }
 
-  if (!pendingInit) {
-    pendingInit = initDatabase().catch((err) => {
-      pendingInit = null; // reset on error so retry is possible
-      throw err;
-    });
-  }
-
-  return pendingInit;
+  return initDatabase();
 }

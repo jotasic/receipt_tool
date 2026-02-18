@@ -12,11 +12,13 @@ import { migrateToUnifiedModel, MigrationResult } from './migrations/unifyModels
 export const DB_NAME = 'receipt_tool.db';
 
 let dbInstance: SQLite.SQLiteDatabase | null = null;
+let initPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 /**
  * Initialize the SQLite database
  *
  * Creates all tables, indexes, and seeds default categories
+ * Uses singleton promise to prevent concurrent initialization.
  * @returns Promise<SQLite.SQLiteDatabase> - The initialized database instance
  */
 export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
@@ -25,6 +27,20 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     return dbInstance;
   }
 
+  // Prevent concurrent initialization - share the same promise
+  if (initPromise) {
+    return initPromise;
+  }
+
+  initPromise = _initDatabase().catch((err) => {
+    initPromise = null; // reset on error so retry is possible
+    throw err;
+  });
+
+  return initPromise;
+}
+
+async function _initDatabase(): Promise<SQLite.SQLiteDatabase> {
   try {
     // Open database connection
     const db = await SQLite.openDatabaseAsync(DB_NAME);

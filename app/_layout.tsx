@@ -81,16 +81,24 @@ export default function RootLayout() {
     }
   }, [loaded, dbInitialized, settingsLoaded]);
 
-  if (!loaded || !dbInitialized || !settingsLoaded) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#ffffff', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color="#2563eb" />
-        <Text style={{ marginTop: 12, color: '#6b7280', fontSize: 14 }}>로딩 중...</Text>
-      </View>
-    );
-  }
+  // 폰트 미로드 시 null (스플래시 스크린이 덮음)
+  if (!loaded) return null;
 
-  return <RootLayoutNav />;
+  const isReady = dbInitialized && settingsLoaded;
+
+  // RootLayoutNav를 즉시 렌더링하여 내비게이션 초기화 시작
+  // 로딩 오버레이로 덮어 사용자에게는 로딩 화면 표시
+  return (
+    <>
+      <RootLayoutNav />
+      {!isReady && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#2563eb" />
+          <Text style={{ marginTop: 12, color: '#6b7280', fontSize: 14 }}>로딩 중...</Text>
+        </View>
+      )}
+    </>
+  );
 }
 
 function RootLayoutNav() {

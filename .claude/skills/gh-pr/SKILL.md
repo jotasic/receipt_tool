@@ -60,7 +60,7 @@ gh pr create \
 <checklist items from context>
 
 ---
-Closes #<issue number from current-issue.json>
+Resolves #<issue number from current-issue.json>
 EOF
 )"
 ```

@@ -18,12 +18,9 @@ CLASSIFICATIONS.forEach((c) => {
 });
 
 interface DateCellWithItemsProps {
-  date: {
-    dateString: string; // YYYY-MM-DD
-    day: number;
-    month: number;
-    year: number;
-  };
+  dateString: string; // YYYY-MM-DD
+  day: number;
+  month: number;
   items: Item[];
   onDatePress: (dateString: string) => void;
   isToday: boolean;
@@ -36,7 +33,9 @@ interface DateCellWithItemsProps {
  * 최대 2개의 증빙을 표시하고, 더 많으면 "+N건" 추가.
  */
 export const DateCellWithItems = React.memo(function DateCellWithItems({
-  date,
+  dateString,
+  day,
+  month,
   items,
   onDatePress,
   isToday,
@@ -48,8 +47,8 @@ export const DateCellWithItems = React.memo(function DateCellWithItems({
   const remainingCount = items.length - visibleItems.length;
 
   const handlePress = useCallback(() => {
-    onDatePress(date.dateString);
-  }, [onDatePress, date.dateString]);
+    onDatePress(dateString);
+  }, [onDatePress, dateString]);
 
   return (
     <TouchableOpacity
@@ -61,16 +60,16 @@ export const DateCellWithItems = React.memo(function DateCellWithItems({
       <View className="items-start mb-0.5">
         {isToday ? (
           <View className="bg-blue-500 rounded-full w-6 h-6 items-center justify-center">
-            <Text className="text-xs font-bold text-white">{date.day}</Text>
+            <Text className="text-xs font-bold text-white">{day}</Text>
           </View>
-        ) : date.day === 1 ? (
+        ) : day === 1 ? (
           // 1일: "3월 1" 형태로 (Outlook 스타일, 흐린 색)
           <Text className="text-xs font-medium text-gray-500 dark:text-gray-400 leading-tight">
-            {date.month}월{'\n'}1
+            {month}월{'\n'}1
           </Text>
         ) : (
           <Text className="text-xs font-medium text-gray-900 dark:text-gray-100">
-            {date.day}
+            {day}
           </Text>
         )}
       </View>

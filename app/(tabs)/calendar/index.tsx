@@ -7,7 +7,7 @@
  */
 
 import { useState, useMemo, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Header, SegmentedControl } from '@/components/common';
 import { AgendaCalendar } from '@/components/calendar/AgendaCalendar';
@@ -26,23 +26,18 @@ export default function CalendarScreen() {
   const [currentVisibleMonth, setCurrentVisibleMonth] = useState<string>(
     new Date().toISOString().slice(0, 7) // "YYYY-MM"
   );
-  const [isReady, setIsReady] = useState(false);
   const focusKeyRef = useRef(0);
   const [focusKey, setFocusKey] = useState(0);
   const monthCalendarRef = useRef<MonthViewCalendarRef>(null);
-  const { items, loadItems } = useItemStore();
-  const spinnerColor = useThemeColor('#3B82F6', '#60A5FA');
+  const { items, loadItemsIfStale } = useItemStore();
   const todayButtonColor = useThemeColor('#2563EB', '#60A5FA');
 
   useFocusEffect(
     useCallback(() => {
       focusKeyRef.current += 1;
-      const currentKey = focusKeyRef.current;
-      loadItems().then(() => {
-        setFocusKey(currentKey);
-        setIsReady(true);
-      });
-    }, [loadItems])
+      setFocusKey(focusKeyRef.current);
+      loadItemsIfStale();
+    }, [loadItemsIfStale])
   );
 
   // Create markers for dates with items (agenda mode)
@@ -107,11 +102,7 @@ export default function CalendarScreen() {
         }
       />
       <TabScreenContent>
-        {!isReady ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color={spinnerColor} />
-          </View>
-        ) : viewMode === 'month' ? (
+        {viewMode === 'month' ? (
           <MonthViewCalendar
             ref={monthCalendarRef}
             items={items}

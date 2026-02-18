@@ -14,15 +14,15 @@ import { CLASSIFICATIONS } from '@/constants/items';
 import type { CreateItemInput } from '@/types';
 
 export default function HomeScreen() {
-  const { items, isLoading, loadItems } = useItemStore();
+  const { items, isLoading, loadItems, loadItemsIfStale } = useItemStore();
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load items when screen is focused
+  // Load items when screen is focused (30초 staleness 캐시)
   useFocusEffect(
     useCallback(() => {
-      loadItems();
-    }, [loadItems])
+      loadItemsIfStale();
+    }, [loadItemsIfStale])
   );
 
   const handleAddItem = () => {

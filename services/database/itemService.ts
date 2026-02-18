@@ -111,6 +111,62 @@ export async function getItems(): Promise<Item[]> {
 }
 
 /**
+ * Get all items with their tags in 2 queries (instead of 1+N)
+ *
+ * @returns Promise<Item[]> - Array of all items with tags, ordered by date descending
+ */
+export async function getItemsWithTags(): Promise<Item[]> {
+  try {
+    const db = await getDatabase();
+
+    // Query 1: fetch all items
+    const itemRows = await db.getAllAsync<ItemRow>(
+      'SELECT * FROM items ORDER BY date DESC'
+    );
+
+    if (itemRows.length === 0) return [];
+
+    // Query 2: fetch all tags for all items at once via IN clause
+    const itemIds = itemRows.map((r) => r.id);
+    const placeholders = itemIds.map(() => '?').join(',');
+    const tagRows = await db.getAllAsync<{
+      item_id: string;
+      tag_id: string;
+      tag_name: string;
+      tag_color: string;
+      tag_created_at: string;
+    }>(
+      `SELECT it.item_id, t.id AS tag_id, t.name AS tag_name, t.color AS tag_color, t.created_at AS tag_created_at
+       FROM tags t
+       INNER JOIN item_tags it ON t.id = it.tag_id
+       WHERE it.item_id IN (${placeholders})
+       ORDER BY t.name ASC`,
+      itemIds
+    );
+
+    // Group tags by item_id
+    const tagsByItemId: Record<string, { id: string; name: string; color: string; createdAt: string }[]> = {};
+    for (const row of tagRows) {
+      if (!tagsByItemId[row.item_id]) tagsByItemId[row.item_id] = [];
+      tagsByItemId[row.item_id].push({
+        id: row.tag_id,
+        name: row.tag_name,
+        color: row.tag_color,
+        createdAt: row.tag_created_at,
+      });
+    }
+
+    return itemRows.map((row) => ({
+      ...rowToItem(row),
+      tags: tagsByItemId[row.id] ?? [],
+    }));
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    throw new Error(`[Database] Failed to get items with tags: ${errorMessage}`);
+  }
+}
+
+/**
  * Get an item by ID
  *
  * @param id - Item ID

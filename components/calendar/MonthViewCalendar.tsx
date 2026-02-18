@@ -142,12 +142,9 @@ export const MonthViewCalendar = forwardRef<MonthViewCalendarRef, MonthViewCalen
           return (
             <DateCellWithItems
               key={dateStr}
-              date={{
-                dateString: dateStr,
-                day: day.getDate(),
-                month: day.getMonth() + 1,
-                year: day.getFullYear(),
-              }}
+              dateString={dateStr}
+              day={day.getDate()}
+              month={day.getMonth() + 1}
               items={itemsByDate[dateStr] ?? EMPTY_ITEMS}
               onDatePress={onDatePress}
               isToday={dateStr === today}

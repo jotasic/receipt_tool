@@ -46,7 +46,7 @@ function isItemClassification(value: string): value is ItemClassification {
 }
 
 export default function ItemsScreen() {
-  const { items, isLoading, loadItems } = useItemStore();
+  const { items, isLoading, loadItems, loadItemsIfStale } = useItemStore();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
   const [tags, setTags] = useState<Tag[]>([]);
@@ -61,11 +61,11 @@ export default function ItemsScreen() {
   // Get URL parameters
   const params = useLocalSearchParams<{ classification?: string }>();
 
-  // Load items when screen comes into focus
+  // Load items when screen comes into focus (30초 staleness 캐시)
   useFocusEffect(
     useCallback(() => {
-      loadItems();
-    }, [loadItems])
+      loadItemsIfStale();
+    }, [loadItemsIfStale])
   );
 
   // Load tags on mount
@@ -241,7 +241,7 @@ export default function ItemsScreen() {
     setShowFilterSheet(false);
   };
 
-  const renderHeader = () => (
+  const renderHeader = useCallback(() => (
     <View className="mb-2">
       {/* Filter Bar: classification chips + filter button */}
       <View className="flex-row items-center mb-2">
@@ -332,9 +332,10 @@ export default function ItemsScreen() {
         </View>
       )}
     </View>
-  );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ), [stats, selectedFilter, hasAdvancedFilters, dateFilter, selectedTags, tags, iconColor]);
 
-  const renderEmptyState = () => {
+  const renderEmptyState = useCallback(() => {
     const hasActiveFilters =
       selectedFilter !== 'all' || selectedTags.length > 0 || dateFilter.type !== 'all';
 
@@ -364,7 +365,8 @@ export default function ItemsScreen() {
         )}
       </View>
     );
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFilter, selectedTags, dateFilter, clearFilters]);
 
   const renderItem = useCallback(({ item }: { item: Item }) => (
     <ItemCard item={item} />

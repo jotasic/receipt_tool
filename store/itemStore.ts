@@ -1,14 +1,16 @@
 import { create } from 'zustand';
 import type { Item, ItemClassification, UsagePurpose } from '@/types/item';
 import { requiresSubmission, isProofDocument, isExpense } from '@/types/item';
-import { getItems } from '@/services/database/itemService';
-import { getTagsForItem } from '@/services/database/tagService';
+import { getItemsWithTags } from '@/services/database/itemService';
+
+const STALE_THRESHOLD_MS = 30_000; // 30초
 
 interface ItemStore {
   // State
   items: Item[];
   isLoading: boolean;
   error: string | null;
+  lastLoadedAt: number | null;
 
   // Actions
   setItems: (items: Item[]) => void;
@@ -17,7 +19,10 @@ interface ItemStore {
   deleteItem: (id: string) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
+  /** 항상 강제 로드 (생성/수정/삭제 후 호출) */
   loadItems: () => Promise<void>;
+  /** 30초 이내 로드된 경우 스킵 (탭 전환 시 호출) */
+  loadItemsIfStale: () => Promise<void>;
 
   // Selectors
   getItemsByClassification: (classification: ItemClassification) => Item[];
@@ -32,6 +37,7 @@ export const useItemStore = create<ItemStore>((set, get) => ({
   items: [],
   isLoading: false,
   error: null,
+  lastLoadedAt: null,
 
   setItems: (items) => set({ items }),
   addItem: (item) => set((state) => ({
@@ -48,27 +54,27 @@ export const useItemStore = create<ItemStore>((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
 
-  // Load items from database
+  // Load items from database (항상 강제 로드)
   loadItems: async () => {
     set({ isLoading: true, error: null });
     try {
-      const items = await getItems();
-
-      // Load tags for each item
-      const itemsWithTags = await Promise.all(
-        items.map(async (item) => {
-          const tags = await getTagsForItem(item.id);
-          return { ...item, tags };
-        })
-      );
-
-      set({ items: itemsWithTags, isLoading: false });
+      const items = await getItemsWithTags();
+      set({ items, isLoading: false, lastLoadedAt: Date.now() });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to load items',
-        isLoading: false
+        isLoading: false,
       });
     }
+  },
+
+  // 30초 이내 로드된 경우 스킵 (탭 전환 시 호출)
+  loadItemsIfStale: async () => {
+    const { lastLoadedAt, loadItems } = get();
+    if (lastLoadedAt && Date.now() - lastLoadedAt < STALE_THRESHOLD_MS) {
+      return;
+    }
+    await loadItems();
   },
 
   // Selectors

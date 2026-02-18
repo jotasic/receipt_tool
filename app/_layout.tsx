@@ -7,7 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Appearance } from 'react-native';
+import { Appearance, View } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { initDatabase } from '@/services/database';
@@ -82,7 +82,7 @@ export default function RootLayout() {
   }, [loaded, dbInitialized, settingsLoaded]);
 
   if (!loaded || !dbInitialized || !settingsLoaded) {
-    return null;
+    return <View style={{ flex: 1, backgroundColor: '#ffffff' }} />;
   }
 
   return <RootLayoutNav />;

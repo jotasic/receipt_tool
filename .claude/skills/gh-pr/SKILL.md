@@ -9,7 +9,7 @@ category: workflow
 # GH PR
 
 Creates a pull request from the current branch targeting `main`.
-Uses `.claude/current-issue.json` for PR title and body if available.
+Uses `.claude/issue-<number>.json` for PR title and body if available.
 
 ## Execution Flow
 
@@ -33,8 +33,14 @@ git branch --show-current
 
 ## Step 2: Load Context (optional)
 
+Find the issue context file from the current branch name:
+
 ```bash
-cat .claude/current-issue.json
+# Get current branch (e.g., fix/24-layout-header-overlap)
+git branch --show-current
+
+# Extract issue number from branch name → load .claude/issue-24.json
+cat .claude/issue-<number>.json
 ```
 
 If found → use `type`, `title`, `issue` for PR title and body.

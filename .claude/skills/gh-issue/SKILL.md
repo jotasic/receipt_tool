@@ -132,7 +132,7 @@ git checkout -b <branch-name>
 
 ## Step 5: Save Context
 
-Write `.claude/current-issue.json`:
+Write `.claude/issue-<number>.json` (e.g., `.claude/issue-24.json`):
 
 ```json
 {
@@ -148,6 +148,10 @@ Write `.claude/current-issue.json`:
 }
 ```
 
+File naming: `.claude/issue-{issue_number}.json`
+- Completed issues remain as historical records
+- Each issue has its own file, no confusion with old context
+
 ---
 
 ## Output
@@ -155,6 +159,7 @@ Write `.claude/current-issue.json`:
 ```
 ✅ Issue #24 context ready
 
+File:     .claude/issue-24.json
 Branch:   fix/24-layout-header-overlap
 Type:     fix  |  Priority: P1
 Agent:    react-native-expo-developer

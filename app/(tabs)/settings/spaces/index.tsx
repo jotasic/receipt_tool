@@ -6,12 +6,17 @@ import {
   Pressable,
   Alert,
   ActivityIndicator,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useSpaceStore } from '@/store/spaceStore';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import {
   getAllSpaces,
   createSpace,
@@ -21,10 +26,30 @@ import {
 } from '@/services/database/spaceService';
 import type { Space } from '@/types/space';
 
+interface EditModal {
+  visible: boolean;
+  mode: 'add' | 'edit';
+  space?: Space;
+  text: string;
+}
+
 export default function SpacesScreen() {
   const { refreshSpaces } = useSpaceStore();
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [editModal, setEditModal] = useState<EditModal>({
+    visible: false,
+    mode: 'add',
+    text: '',
+  });
+  const [isSaving, setIsSaving] = useState(false);
+
+  const inputBg = useThemeColor('#F9FAFB', '#1F2937');
+  const inputBorder = useThemeColor('#D1D5DB', '#374151');
+  const inputText = useThemeColor('#111827', '#F9FAFB');
+  const modalBg = useThemeColor('#FFFFFF', '#1F2937');
+  const titleColor = useThemeColor('#111827', '#F9FAFB');
+  const cancelTextColor = useThemeColor('#6B7280', '#9CA3AF');
 
   useFocusEffect(
     useCallback(() => {
@@ -45,49 +70,44 @@ export default function SpacesScreen() {
   };
 
   const handleAddSpace = () => {
-    Alert.prompt(
-      '공간 추가',
-      '새 공간 이름을 입력해주세요',
-      async (name) => {
-        if (!name || !name.trim()) return;
-        try {
-          await createSpace({ name: name.trim() });
-          await loadSpaces();
-          await refreshSpaces();
-          Alert.alert('성공', '공간이 추가되었습니다.');
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : '알 수 없는 오류';
-          Alert.alert('오류', `공간 추가에 실패했습니다.\n${message}`);
-        }
-      },
-      'plain-text',
-      '',
-      'default'
-    );
+    setEditModal({ visible: true, mode: 'add', text: '' });
   };
 
   const handleEditSpace = (space: Space) => {
-    Alert.prompt(
-      '공간 수정',
-      '새 이름을 입력해주세요',
-      async (name) => {
-        if (!name || !name.trim()) return;
-        try {
-          await updateSpace(space.id, { name: name.trim() });
-          await loadSpaces();
-          await refreshSpaces();
-          Alert.alert('성공', '공간 이름이 수정되었습니다.');
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : '알 수 없는 오류';
-          Alert.alert('오류', `공간 수정에 실패했습니다.\n${message}`);
-        }
-      },
-      'plain-text',
-      space.name,
-      'default'
-    );
+    setEditModal({ visible: true, mode: 'edit', space, text: space.name });
+  };
+
+  const handleModalConfirm = async () => {
+    const name = editModal.text.trim();
+    if (!name) return;
+
+    setIsSaving(true);
+    try {
+      if (editModal.mode === 'add') {
+        await createSpace({ name });
+        await loadSpaces();
+        await refreshSpaces();
+        setEditModal({ visible: false, mode: 'add', text: '' });
+        Alert.alert('성공', '공간이 추가되었습니다.');
+      } else if (editModal.mode === 'edit' && editModal.space) {
+        await updateSpace(editModal.space.id, { name });
+        await loadSpaces();
+        await refreshSpaces();
+        setEditModal({ visible: false, mode: 'add', text: '' });
+        Alert.alert('성공', '공간 이름이 수정되었습니다.');
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : '알 수 없는 오류';
+      const action = editModal.mode === 'add' ? '추가' : '수정';
+      Alert.alert('오류', `공간 ${action}에 실패했습니다.\n${message}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleModalCancel = () => {
+    setEditModal({ visible: false, mode: 'add', text: '' });
   };
 
   const handleDeleteSpace = async (space: Space) => {
@@ -127,6 +147,10 @@ export default function SpacesScreen() {
       console.error('Failed to check space usage:', error);
     }
   };
+
+  const modalTitle = editModal.mode === 'add' ? '공간 추가' : '공간 수정';
+  const modalPlaceholder =
+    editModal.mode === 'add' ? '새 공간 이름을 입력해주세요' : '공간 이름을 수정해주세요';
 
   return (
     <>
@@ -229,6 +253,74 @@ export default function SpacesScreen() {
           </ScrollView>
         )}
       </TabScreenContent>
+
+      {/* 공간 추가/수정 모달 */}
+      <Modal
+        visible={editModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleModalCancel}
+        statusBarTranslucent
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1 items-center justify-center"
+        >
+          <Pressable
+            className="absolute inset-0 bg-black/50"
+            onPress={handleModalCancel}
+          />
+          <View
+            className="w-80 rounded-2xl p-6 shadow-xl"
+            style={{ backgroundColor: modalBg }}
+          >
+            <Text
+              className="text-base font-bold mb-4"
+              style={{ color: titleColor }}
+            >
+              {modalTitle}
+            </Text>
+            <TextInput
+              value={editModal.text}
+              onChangeText={(text) =>
+                setEditModal((prev) => ({ ...prev, text }))
+              }
+              placeholder={modalPlaceholder}
+              placeholderTextColor={cancelTextColor}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleModalConfirm}
+              className="rounded-xl px-4 py-3 mb-5 text-base"
+              style={{
+                backgroundColor: inputBg,
+                borderColor: inputBorder,
+                borderWidth: 1,
+                color: inputText,
+              }}
+            />
+            <View className="flex-row gap-3">
+              <Pressable
+                onPress={handleModalCancel}
+                className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 items-center"
+              >
+                <Text className="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                  취소
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={handleModalConfirm}
+                disabled={isSaving || !editModal.text.trim()}
+                className="flex-1 py-3 rounded-xl bg-blue-500 items-center"
+                style={{ opacity: isSaving || !editModal.text.trim() ? 0.5 : 1 }}
+              >
+                <Text className="text-sm font-semibold text-white">
+                  {isSaving ? '저장 중...' : '확인'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </>
   );
 }

@@ -104,11 +104,6 @@ export function SpaceDrawer() {
     router.push('/(tabs)/settings/spaces' as never);
   };
 
-  const handleAddSpace = () => {
-    closeDrawer();
-    router.push('/(tabs)/settings/spaces' as never);
-  };
-
   return (
     <Modal
       visible={isOpen}
@@ -188,24 +183,6 @@ export function SpaceDrawer() {
                 );
               })}
             </View>
-
-            {/* Divider */}
-            <View className="mx-6 border-b border-gray-200 dark:border-gray-700 my-1" />
-
-            {/* Add space button */}
-            <Pressable
-              onPress={handleAddSpace}
-              className="flex-row items-center px-6 py-4"
-              accessibilityLabel="공간 추가"
-              accessibilityRole="button"
-            >
-              <View className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700 items-center justify-center">
-                <Ionicons name="add" size={20} color={iconColor} />
-              </View>
-              <Text className="ml-3 text-base font-medium text-gray-700 dark:text-gray-300">
-                공간 추가
-              </Text>
-            </Pressable>
 
             {/* Divider */}
             <View className="mx-6 border-b border-gray-200 dark:border-gray-700 my-1" />

@@ -11,6 +11,7 @@ import { Appearance, View, ActivityIndicator, Text } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { initDatabase } from '@/services/database';
+import type { MigrationProgress } from '@/services/database/migrations/runner';
 import { useSettingsStore } from '@/store/settingsStore';
 
 export {
@@ -26,25 +27,31 @@ export const unstable_settings = {
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-// DB 초기화는 모듈 로드 시 1회만 실행 (React 생명주기와 무관)
-const DB_READY_PROMISE = initDatabase();
-
 export default function RootLayout() {
+  const colorScheme = useColorScheme();
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
   const [dbInitialized, setDbInitialized] = useState(false);
   const [dbError, setDbError] = useState<Error | null>(null);
+  const [migrationMessage, setMigrationMessage] = useState<string | null>(null);
   const { theme, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
 
-  // DB_READY_PROMISE 결과를 React 상태로 연결
-  // 컴포넌트가 언마운트/리마운트돼도 Promise는 모듈 레벨에서 계속 진행됨
+  // DB 초기화 - 콜백을 통해 마이그레이션 진행 상황을 상태로 연결
   useEffect(() => {
     let isMounted = true;
-    DB_READY_PROMISE
+
+    const onProgress = (progress: MigrationProgress) => {
+      if (isMounted) setMigrationMessage(progress.message);
+    };
+
+    initDatabase(onProgress)
       .then(() => {
-        if (isMounted) setDbInitialized(true);
+        if (isMounted) {
+          setMigrationMessage(null);
+          setDbInitialized(true);
+        }
       })
       .catch((err) => {
         if (isMounted) setDbError(err instanceof Error ? err : new Error('Unknown database error'));
@@ -92,9 +99,11 @@ export default function RootLayout() {
     <>
       <RootLayoutNav />
       {!isReady && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#ffffff', alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color="#2563eb" />
-          <Text style={{ marginTop: 12, color: '#6b7280', fontSize: 14 }}>로딩 중...</Text>
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: colorScheme === 'dark' ? '#111827' : '#ffffff' }}>
+          <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#60A5FA' : '#2563EB'} />
+          <Text style={{ marginTop: 12, fontSize: 14, color: colorScheme === 'dark' ? '#9CA3AF' : '#6b7280' }}>
+            {migrationMessage ?? '로딩 중...'}
+          </Text>
         </View>
       )}
     </>

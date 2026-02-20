@@ -11,6 +11,8 @@ SQLite 데이터베이스 서비스 사용 가이드
 - [고급 기능](#고급-기능)
 - [React Native 통합](#react-native-통합)
 - [데이터베이스 관리](#데이터베이스-관리)
+- [마이그레이션](#마이그레이션)
+- [스키마 다이어그램](#스키마-다이어그램)
 
 ## 개요
 
@@ -661,9 +663,189 @@ try {
 
 ## 마이그레이션
 
-데이터베이스 스키마 변경 시 마이그레이션을 사용합니다.
+데이터베이스 스키마 변경 시 순차 마이그레이션 러너를 사용합니다.
 
-상세: `/services/database/migrations/README.md`
+### 마이그레이션 시스템 개요
+
+마이그레이션 러너는 `db_migrations` 테이블에 버전을 기록하여 순차적으로 실행됩니다. 각 마이그레이션은 멱등성을 보장하여 반복 실행 시에도 안전합니다.
+
+#### 버전 추적 테이블
+
+```sql
+CREATE TABLE db_migrations (
+  version INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+#### 현재 마이그레이션 목록
+
+| 버전 | 이름 | 설명 |
+|------|------|------|
+| v1 | initial_schema | 초기 스키마 마커 (빈 마이그레이션) |
+| v2 | unified_model | receipts + documents → items 통합 모델 |
+| v3 | document_types | 폐기된 문서 타입 → 'other' 변환 |
+
+### 새 마이그레이션 추가 방법
+
+#### 1단계: 마이그레이션 파일 작성
+
+`services/database/migrations/` 디렉토리에 새 마이그레이션 파일을 생성합니다:
+
+```typescript
+// services/database/migrations/migrateV4NewFeature.ts
+import * as SQLite from 'expo-sqlite';
+
+export async function migrateV4(db: SQLite.SQLiteDatabase): Promise<void> {
+  try {
+    console.log('[Migration] Starting v4 migration...');
+
+    // 멱등성 보장: IF NOT EXISTS 또는 IF CONDITIONS 사용
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS new_table (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL
+      );
+    `);
+
+    // 데이터 마이그레이션 (INSERT OR IGNORE 사용)
+    await db.runAsync(`
+      INSERT OR IGNORE INTO new_table (id, name)
+      SELECT id, name FROM old_table
+    `);
+
+    console.log('[Migration] v4 migration completed successfully');
+  } catch (error) {
+    console.error('[Migration] v4 migration failed:', error);
+    throw error;
+  }
+}
+```
+
+#### 2단계: runner.ts에 마이그레이션 등록
+
+```typescript
+// services/database/migrations/runner.ts
+
+import { migrateV4 } from './migrateV4NewFeature';
+
+// v4 마이그레이션 함수
+async function migrateV4(
+  db: SQLite.SQLiteDatabase,
+  onProgress?: MigrationProgressCallback
+): Promise<void> {
+  onProgress?.({ message: '새 기능 마이그레이션 중...' });
+  await migrateV4(db);
+}
+
+// ALL_MIGRATIONS 배열에 추가
+export const ALL_MIGRATIONS: Migration[] = [
+  { version: 1, name: 'initial_schema', run: migrateV1 },
+  { version: 2, name: 'unified_model', run: migrateV2 },
+  { version: 3, name: 'document_types', run: migrateV3 },
+  { version: 4, name: 'new_feature', run: migrateV4 },  // 새 항목
+];
+```
+
+### 마이그레이션 4대 원칙
+
+#### 1. 독립 완결성
+- 각 마이그레이션은 이전 버전이 완료된 상태를 전제
+- 특정 버전 이후에서만 실행 가능한 작업은 명시적으로 확인
+
+#### 2. 즉시 기록
+- 마이그레이션 완료 즉시 `db_migrations`에 버전 기록
+- 실패 시 버전 기록 X (다음 시작 시 재시도)
+
+#### 3. 멱등성 보장
+- `CREATE TABLE IF NOT EXISTS` 사용
+- `INSERT OR IGNORE` 사용
+- 중복 실행되어도 결과 동일
+
+#### 4. 실패 미기록
+- 실패하면 exception throw
+- 마이그레이션 기록 안 함 → 다음 시작 시 자동 재시도
+
+### MigrationProgress 타입
+
+마이그레이션 진행 상황을 UI에 표시할 때 사용:
+
+```typescript
+interface MigrationProgress {
+  message: string;      // "업데이트 3/5 진행 중..."
+  current?: number;     // 현재 버전 (예: 3)
+  total?: number;       // 전체 마이그레이션 수 (예: 5)
+}
+```
+
+### 마이그레이션 진행 콜백
+
+마이그레이션 진행률을 UI에 표시:
+
+```typescript
+import { runMigrations } from '@/services/database/migrations/runner';
+import { getDatabase } from '@/services/database/getDatabase';
+
+const db = getDatabase();
+await runMigrations(db, (progress) => {
+  console.log(progress.message);
+  // 또는 UI 업데이트
+  // setProgressText(progress.message);
+  // setProgress(progress.current / progress.total);
+});
+```
+
+### 마이그레이션 예시: v2 (unified_model)
+
+receipts와 documents 테이블을 items 테이블로 통합:
+
+```typescript
+// 마이그레이션 결과
+export interface MigrationResult {
+  success: boolean;
+  receiptsCount: number;      // 마이그레이션된 receipts 수
+  documentsCount: number;     // 마이그레이션된 documents 수
+  reportLinksCount: number;   // 마이그레이션된 보고 연결 수
+  errors: string[];
+  timestamp: string;
+}
+```
+
+**마이그레이션 단계:**
+1. usage_purposes 시드
+2. receipts → items (분류 매핑: personal/corporate)
+3. documents → items (모두 proof_document)
+4. report_receipts + report_documents → report_items
+
+### 마이그레이션 예시: v3 (document_types)
+
+폐기된 문서 타입을 'other'로 변환:
+
+```typescript
+// 폐기된 타입:
+// - contract (계약서)
+// - estimate (견적서)
+// - invoice (청구서)
+// → 모두 'other'로 변환
+
+UPDATE documents
+SET document_type = 'other'
+WHERE document_type IN ('contract', 'estimate', 'invoice');
+```
+
+### 데이터베이스 초기화
+
+마이그레이션 때문에 데이터가 손상된 경우 전체 리셋:
+
+```typescript
+import { resetDatabase } from '@/services/database';
+
+// 경고: 모든 데이터 삭제됨!
+await resetDatabase();
+```
+
+다음 앱 시작 시 모든 마이그레이션을 처음부터 실행합니다.
 
 ## 스키마 다이어그램
 

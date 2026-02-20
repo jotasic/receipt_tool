@@ -6,8 +6,7 @@
 
 import * as SQLite from 'expo-sqlite';
 import { SCHEMA, INDEXES, DEFAULT_CATEGORIES } from './schema';
-import { migrateDocumentTypes } from './migrations/migrateDocumentTypes';
-import { migrateToUnifiedModel, MigrationResult } from './migrations/unifyModels';
+import { runMigrations, MigrationProgressCallback } from './migrations/runner';
 
 export const DB_NAME = 'receipt_tool.db';
 
@@ -21,7 +20,9 @@ let initPromise: Promise<SQLite.SQLiteDatabase> | null = null;
  * Uses singleton promise to prevent concurrent initialization.
  * @returns Promise<SQLite.SQLiteDatabase> - The initialized database instance
  */
-export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
+export async function initDatabase(
+  onProgress?: MigrationProgressCallback
+): Promise<SQLite.SQLiteDatabase> {
   // Return existing instance if already initialized
   if (dbInstance) {
     return dbInstance;
@@ -32,7 +33,7 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     return initPromise;
   }
 
-  initPromise = _initDatabase().catch((err) => {
+  initPromise = _initDatabase(onProgress).catch((err) => {
     initPromise = null; // reset on error so retry is possible
     throw err;
   });
@@ -40,7 +41,9 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
   return initPromise;
 }
 
-async function _initDatabase(): Promise<SQLite.SQLiteDatabase> {
+async function _initDatabase(
+  onProgress?: MigrationProgressCallback
+): Promise<SQLite.SQLiteDatabase> {
   try {
     // Open database connection
     const db = await SQLite.openDatabaseAsync(DB_NAME);
@@ -114,6 +117,10 @@ async function _initDatabase(): Promise<SQLite.SQLiteDatabase> {
     await db.execAsync(SCHEMA.report_items);
     console.log('Created report_items table');
 
+    // Migration tracking table
+    await db.execAsync(SCHEMA.db_migrations);
+    console.log('Created db_migrations table');
+
     // Create indexes for performance optimization
     // Receipt indexes
     await db.execAsync(INDEXES.receipts_date);
@@ -167,22 +174,8 @@ async function _initDatabase(): Promise<SQLite.SQLiteDatabase> {
     // Seed default categories
     await seedDefaultCategories(db);
 
-    // Run data migrations
-    await migrateDocumentTypes(db);
-
-    // Run unified model migration
-    console.log('Starting unified model migration...');
-    const migrationResult = await migrateToUnifiedModel(db);
-
-    if (migrationResult.success) {
-      console.log('Unified model migration completed:', {
-        receipts: migrationResult.receiptsCount,
-        documents: migrationResult.documentsCount,
-        reportLinks: migrationResult.reportLinksCount,
-      });
-    } else {
-      console.error('Unified model migration failed:', migrationResult.errors);
-    }
+    // Run all pending migrations in sequential order
+    await runMigrations(db, onProgress);
 
     dbInstance = db;
     return db;
@@ -299,11 +292,15 @@ export async function resetDatabase(): Promise<SQLite.SQLiteDatabase> {
     await db.execAsync('DROP TABLE IF EXISTS documents');
     await db.execAsync('DROP TABLE IF EXISTS categories');
 
+    // Migration tracking
+    await db.execAsync('DROP TABLE IF EXISTS db_migrations');
+
     console.log('All tables dropped');
 
     // Close and reinitialize
     await db.closeAsync();
     dbInstance = null;
+    initPromise = null;
 
     return await initDatabase();
   } catch (error) {

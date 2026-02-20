@@ -1,4 +1,4 @@
-# Receipt Tool Architecture
+ Receipt Tool Architecture
 
 **단일 정보원 (Single Source of Truth)**
 

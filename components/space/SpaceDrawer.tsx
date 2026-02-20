@@ -101,7 +101,7 @@ export function SpaceDrawer() {
 
   const handleManageSpaces = () => {
     closeDrawer();
-    router.push('/(tabs)/settings/spaces' as never);
+    router.navigate('/(tabs)/settings/spaces');
   };
 
   return (

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs, usePathname } from 'expo-router';
+import { Tabs, usePathname, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Colors from '@/constants/Colors';
@@ -96,6 +96,13 @@ export default function TabLayout() {
         />
         <Tabs.Screen
           name="settings"
+          listeners={() => ({
+            tabPress: (e) => {
+              // 항상 settings 루트(index)로 이동 - 이전 스택 상태(공간 관리 등) 제거
+              e.preventDefault();
+              router.navigate('/(tabs)/settings');
+            },
+          })}
           options={{
             title: '설정',
             tabBarIcon: ({ color, focused }) => (

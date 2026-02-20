@@ -184,6 +184,32 @@ export interface ItemCustomValueRow {
 }
 
 /**
+ * Database row type for spaces table (Phase 2)
+ */
+export interface SpaceRow {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+  display_order: number;
+  created_at: string;
+}
+
+/**
+ * Database row type for classifications table (Phase 2)
+ */
+export interface ClassificationRow {
+  id: string;
+  space_id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+  is_active: number;
+  display_order: number;
+  created_at: string;
+}
+
+/**
  * Database row type for items table (unified model)
  */
 export interface ItemRow {
@@ -200,6 +226,9 @@ export interface ItemRow {
   memo: string | null;
   created_at: string;
   updated_at: string;
+  // Phase 2: Space feature columns (nullable for backward compat)
+  space_id: string | null;
+  classification_id: string | null;
 }
 
 /**

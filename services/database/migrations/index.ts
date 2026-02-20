@@ -14,3 +14,9 @@ export {
   getMigrationStatistics,
   type MigrationResult,
 } from './unifyModels';
+
+export {
+  migrateSpaceFeature,
+  DEFAULT_SPACE_IDS,
+  DEFAULT_CLASSIFICATION_IDS,
+} from './spaceFeature';

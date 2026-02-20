@@ -7,7 +7,7 @@
  */
 
 import { getDatabase } from './getDatabase';
-import type { ItemRow } from './schema';
+import type { ItemRow } from './types';
 import type { Item, ItemClassification, UsagePurpose } from '@/types/item';
 
 /**
@@ -19,6 +19,8 @@ function rowToItem(row: ItemRow): Item {
     title: row.title,
     classification: row.classification,
     usagePurpose: row.usage_purpose,
+    spaceId: row.space_id ?? undefined,
+    classificationId: row.classification_id ?? undefined,
     amount: row.amount ?? undefined,
     date: row.date,
     storeName: row.store_name ?? undefined,
@@ -58,9 +60,10 @@ export async function createItem(
       INSERT INTO items (
         id, title, classification, usage_purpose, amount, date,
         store_name, file_path, file_type, ocr_text, memo,
+        space_id, classification_id,
         created_at, updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
       [
         id,
@@ -74,6 +77,8 @@ export async function createItem(
         item.fileType ?? null,
         item.ocrText ?? null,
         item.memo ?? null,
+        item.spaceId ?? null,
+        item.classificationId ?? null,
         now,
         now,
       ]
@@ -92,16 +97,20 @@ export async function createItem(
 }
 
 /**
- * Get all items
+ * Get all items, optionally filtered by space
  *
- * @returns Promise<Item[]> - Array of all items ordered by date descending
+ * @param spaceId - Optional space ID to filter by; omit for all items
+ * @returns Promise<Item[]> - Array of items ordered by date descending
  */
-export async function getItems(): Promise<Item[]> {
+export async function getItems(spaceId?: string): Promise<Item[]> {
   try {
     const db = await getDatabase();
-    const rows = await db.getAllAsync<ItemRow>(
-      'SELECT * FROM items ORDER BY date DESC'
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<ItemRow>(
+          'SELECT * FROM items WHERE space_id = ? ORDER BY date DESC',
+          [spaceId]
+        )
+      : await db.getAllAsync<ItemRow>('SELECT * FROM items ORDER BY date DESC');
 
     return rows.map(rowToItem);
   } catch (error) {
@@ -113,16 +122,20 @@ export async function getItems(): Promise<Item[]> {
 /**
  * Get all items with their tags in 2 queries (instead of 1+N)
  *
- * @returns Promise<Item[]> - Array of all items with tags, ordered by date descending
+ * @param spaceId - Optional space ID to filter by; omit for all items
+ * @returns Promise<Item[]> - Array of items with tags, ordered by date descending
  */
-export async function getItemsWithTags(): Promise<Item[]> {
+export async function getItemsWithTags(spaceId?: string): Promise<Item[]> {
   try {
     const db = await getDatabase();
 
-    // Query 1: fetch all items
-    const itemRows = await db.getAllAsync<ItemRow>(
-      'SELECT * FROM items ORDER BY date DESC'
-    );
+    // Query 1: fetch all items (optionally filtered by space)
+    const itemRows = spaceId
+      ? await db.getAllAsync<ItemRow>(
+          'SELECT * FROM items WHERE space_id = ? ORDER BY date DESC',
+          [spaceId]
+        )
+      : await db.getAllAsync<ItemRow>('SELECT * FROM items ORDER BY date DESC');
 
     if (itemRows.length === 0) return [];
 
@@ -250,6 +263,14 @@ export async function updateItem(
     if (updates.memo !== undefined) {
       fields.push('memo = ?');
       values.push(updates.memo ?? null);
+    }
+    if (updates.spaceId !== undefined) {
+      fields.push('space_id = ?');
+      values.push(updates.spaceId ?? null);
+    }
+    if (updates.classificationId !== undefined) {
+      fields.push('classification_id = ?');
+      values.push(updates.classificationId ?? null);
     }
 
     // Always update updated_at
@@ -546,4 +567,36 @@ export async function getProofDocuments(): Promise<Item[]> {
     const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
     throw new Error(`[Database] Failed to get proof documents: ${errorMessage}`);
   }
+}
+
+/**
+ * Get items by classification ID (Phase 2 - DB-backed classification)
+ *
+ * @param classificationId - Classification ID from the classifications table
+ * @returns Promise<Item[]> - Array of items with the specified classificationId
+ */
+export async function getItemsByClassificationId(classificationId: string): Promise<Item[]> {
+  try {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<ItemRow>(
+      'SELECT * FROM items WHERE classification_id = ? ORDER BY date DESC',
+      [classificationId]
+    );
+    return rows.map(rowToItem);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    throw new Error(`[Database] Failed to get items by classification ID: ${errorMessage}`);
+  }
+}
+
+/**
+ * Get items by space ID
+ *
+ * Alias for getItems(spaceId) - provided for explicit intent.
+ *
+ * @param spaceId - Space ID to filter by
+ * @returns Promise<Item[]> - Array of items within the specified space
+ */
+export async function getItemsBySpace(spaceId: string): Promise<Item[]> {
+  return getItems(spaceId);
 }

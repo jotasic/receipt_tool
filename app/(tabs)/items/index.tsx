@@ -3,7 +3,7 @@ import {
   View,
   Text,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   RefreshControl,
   ActivityIndicator,
   Alert,
@@ -15,8 +15,10 @@ import type { DateFilter, FilterState } from '@/components/item';
 import { SelectableChip, Header } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
-import { CLASSIFICATIONS } from '@/constants/items';
-import type { Item, ItemClassification, Tag, CreateItemInput } from '@/types';
+import { useSpaceStore } from '@/store/spaceStore';
+import { getActiveClassificationsBySpace } from '@/services/database/classificationService';
+import type { Classification } from '@/types/space';
+import type { Item, Tag, CreateItemInput } from '@/types';
 import { isExpense } from '@/types/item';
 import { getTags } from '@/services/database/tagService';
 import { createItem } from '@/services/database/itemService';
@@ -24,31 +26,15 @@ import { setTagsForItem } from '@/services/database/tagService';
 import { setItemCustomValues } from '@/services/database/customFieldService';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
-type FilterType = 'all' | ItemClassification;
-
-// Generate filter options from CLASSIFICATIONS constant (single source of truth)
-const FILTER_OPTIONS: Array<{
-  id: FilterType;
-  name: string;
-  icon: keyof typeof Ionicons.glyphMap;
-}> = [
-  { id: 'all', name: '전체', icon: 'apps' },
-  ...CLASSIFICATIONS.map((c) => ({
-    id: c.id as FilterType,
-    name: c.name,
-    icon: c.icon as keyof typeof Ionicons.glyphMap,
-  })),
-];
-
-// Type guard to check if value is a valid ItemClassification
-function isItemClassification(value: string): value is ItemClassification {
-  return CLASSIFICATIONS.some((c) => c.id === value);
-}
+// 분류 필터 타입: 'all' 또는 classificationId (string)
+type FilterType = 'all' | string;
 
 export default function ItemsScreen() {
   const { items, isLoading, loadItems, loadItemsIfStale } = useItemStore();
+  const { currentSpace } = useSpaceStore();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
+  const [classifications, setClassifications] = useState<Classification[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [dateFilter, setDateFilter] = useState<DateFilter>({ type: 'this_month' });
@@ -58,29 +44,45 @@ export default function ItemsScreen() {
 
   const iconColor = useThemeColor('#374151', '#D1D5DB');
 
-  // Get URL parameters
-  const params = useLocalSearchParams<{ classification?: string }>();
+  // URL 파라미터
+  const params = useLocalSearchParams<{ classificationId?: string }>();
 
-  // Load items when screen comes into focus (30초 staleness 캐시)
+  // 포커스마다 항목 + 분류 재로드
   useFocusEffect(
     useCallback(() => {
       loadItemsIfStale();
-    }, [loadItemsIfStale])
+      if (currentSpace) {
+        loadClassifications(currentSpace.id);
+      }
+    }, [loadItemsIfStale, currentSpace])
   );
 
-  // Load tags on mount
+  // 태그 로드 (마운트 시 1회)
   useEffect(() => {
     loadAllTags();
   }, []);
 
-  // Set initial filter from URL parameter
+  // URL 파라미터로 필터 초기 설정
   useEffect(() => {
-    if (params.classification && isItemClassification(params.classification)) {
-      setSelectedFilter(params.classification as FilterType);
-      // Clear URL parameter after setting filter
+    if (params.classificationId) {
+      setSelectedFilter(params.classificationId);
       router.replace('/(tabs)/items');
     }
-  }, [params.classification]);
+  }, [params.classificationId]);
+
+  // currentSpace 변경 시 필터 초기화
+  useEffect(() => {
+    setSelectedFilter('all');
+  }, [currentSpace?.id]);
+
+  const loadClassifications = async (spaceId: string) => {
+    try {
+      const list = await getActiveClassificationsBySpace(spaceId);
+      setClassifications(list);
+    } catch (error) {
+      console.error('Failed to load classifications:', error);
+    }
+  };
 
   const loadAllTags = async () => {
     try {
@@ -91,11 +93,16 @@ export default function ItemsScreen() {
     }
   };
 
-  // Filter items based on selected filter, tags, and dateFilter
+  // 필터링된 항목 목록
   const filteredItems = useMemo(() => {
     let result = items;
 
-    // Filter by dateFilter
+    // 현재 공간 기준 필터
+    if (currentSpace) {
+      result = result.filter((item) => item.spaceId === currentSpace.id);
+    }
+
+    // 날짜 필터
     if (dateFilter.type !== 'all') {
       const now = new Date();
       let from: Date;
@@ -128,12 +135,12 @@ export default function ItemsScreen() {
       });
     }
 
-    // Filter by classification
+    // 분류 필터 (classificationId 기반)
     if (selectedFilter !== 'all') {
-      result = result.filter((item) => item.classification === selectedFilter);
+      result = result.filter((item) => item.classificationId === selectedFilter);
     }
 
-    // Filter by tags (if any tags selected)
+    // 태그 필터
     if (selectedTags.length > 0) {
       result = result.filter((item) => {
         if (!item.tags || item.tags.length === 0) return false;
@@ -142,27 +149,24 @@ export default function ItemsScreen() {
       });
     }
 
-    // Sort by date DESC (most recent first)
+    // 날짜 내림차순 정렬
     return result.sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
-  }, [items, selectedFilter, selectedTags, dateFilter]);
+  }, [items, currentSpace, selectedFilter, selectedTags, dateFilter]);
 
-  // Calculate stats
+  // 통계
   const stats = useMemo(() => {
     const totalItems = filteredItems.length;
-
     const totalAmount = filteredItems.reduce((sum, item) => {
       if (isExpense(item) && item.amount !== undefined && item.amount !== null) {
         return sum + item.amount;
       }
       return sum;
     }, 0);
-
     return { totalItems, totalAmount };
   }, [filteredItems]);
 
-  // Determine if advanced filters (date/tag) are active
   const hasAdvancedFilters = dateFilter.type !== 'all' || selectedTags.length > 0;
 
   const getDateFilterLabel = (): string => {
@@ -187,10 +191,6 @@ export default function ItemsScreen() {
     setIsRefreshing(true);
     await loadItems();
     setIsRefreshing(false);
-  };
-
-  const handleAddItem = () => {
-    setShowAddModal(true);
   };
 
   const handleCreateItem = async (data: CreateItemInput) => {
@@ -219,21 +219,17 @@ export default function ItemsScreen() {
     }
   };
 
-  const handleFilterChange = (filter: FilterType) => {
-    setSelectedFilter(filter);
-  };
-
   const toggleTag = (tagId: string) => {
     setSelectedTags((prev) =>
       prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
     );
   };
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setSelectedFilter('all');
     setSelectedTags([]);
     setDateFilter({ type: 'this_month' });
-  };
+  }, []);
 
   const handleFilterSheetApply = ({ dateFilter: df, selectedTags: st }: FilterState) => {
     setDateFilter(df);
@@ -241,12 +237,24 @@ export default function ItemsScreen() {
     setShowFilterSheet(false);
   };
 
+  // 필터 칩 데이터: '전체' + 분류 목록
+  const filterOptions = useMemo<Array<{ id: FilterType; name: string; icon: string }>>(() => {
+    return [
+      { id: 'all', name: '전체', icon: 'apps' },
+      ...classifications.map((c) => ({
+        id: c.id,
+        name: c.name,
+        icon: c.icon ?? 'folder-outline',
+      })),
+    ];
+  }, [classifications]);
+
   const renderHeader = useCallback(() => (
     <View className="mb-2">
-      {/* Filter Bar: classification chips + filter button */}
+      {/* 분류 필터 칩 + 고급 필터 버튼 */}
       <View className="flex-row items-center mb-2">
         <FlatList
-          data={FILTER_OPTIONS}
+          data={filterOptions}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 6 }}
@@ -256,32 +264,34 @@ export default function ItemsScreen() {
             <SelectableChip
               label={item.name}
               isSelected={selectedFilter === item.id}
-              onPress={() => handleFilterChange(item.id)}
+              onPress={() => setSelectedFilter(item.id)}
             />
           )}
         />
-        {/* Advanced filter button */}
-        <TouchableOpacity
+        <Pressable
           onPress={() => setShowFilterSheet(true)}
           className="ml-2 p-2 rounded-full"
           style={{
             backgroundColor: hasAdvancedFilters ? '#3B82F6' : undefined,
           }}
-          activeOpacity={0.7}
           accessibilityLabel="필터 열기"
           accessibilityRole="button"
         >
-          <View className={hasAdvancedFilters ? '' : 'bg-gray-100 dark:bg-gray-700 rounded-full p-0.5'}>
+          <View
+            className={
+              hasAdvancedFilters ? '' : 'bg-gray-100 dark:bg-gray-700 rounded-full p-0.5'
+            }
+          >
             <Ionicons
               name="options-outline"
               size={20}
               color={hasAdvancedFilters ? '#FFFFFF' : iconColor}
             />
           </View>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
-      {/* Compact stats */}
+      {/* 통계 */}
       <View className="flex-row items-center mb-2">
         <Text className="text-sm font-medium text-gray-600 dark:text-gray-400">
           {stats.totalItems}건
@@ -293,14 +303,13 @@ export default function ItemsScreen() {
         )}
       </View>
 
-      {/* Active filter chips (only shown when filters are active) */}
+      {/* 활성 필터 칩 */}
       {hasAdvancedFilters && (
         <View className="flex-row flex-wrap gap-2 mb-2">
           {dateFilter.type !== 'all' && (
-            <TouchableOpacity
+            <Pressable
               onPress={() => setDateFilter({ type: 'all' })}
               className="flex-row items-center px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full"
-              activeOpacity={0.7}
               accessibilityLabel={`${getDateFilterLabel()} 필터 제거`}
               accessibilityRole="button"
             >
@@ -308,17 +317,16 @@ export default function ItemsScreen() {
                 {getDateFilterLabel()}
               </Text>
               <Ionicons name="close" size={12} color="#1D4ED8" />
-            </TouchableOpacity>
+            </Pressable>
           )}
           {selectedTags.map((tagId) => {
             const tag = tags.find((t) => t.id === tagId);
             if (tag == null) return null;
             return (
-              <TouchableOpacity
+              <Pressable
                 key={tagId}
                 onPress={() => toggleTag(tagId)}
                 className="flex-row items-center px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full"
-                activeOpacity={0.7}
                 accessibilityLabel={`${tag.name} 태그 제거`}
                 accessibilityRole="button"
               >
@@ -326,14 +334,14 @@ export default function ItemsScreen() {
                   #{tag.name}
                 </Text>
                 <Ionicons name="close" size={12} color="#6B7280" />
-              </TouchableOpacity>
+              </Pressable>
             );
           })}
         </View>
       )}
     </View>
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [stats, selectedFilter, hasAdvancedFilters, dateFilter, selectedTags, tags, iconColor]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ), [stats, selectedFilter, hasAdvancedFilters, dateFilter, selectedTags, tags, iconColor, filterOptions]);
 
   const renderEmptyState = useCallback(() => {
     const hasActiveFilters =
@@ -353,19 +361,18 @@ export default function ItemsScreen() {
             : '하단의 + 버튼을 눌러\n첫 항목을 등록해보세요'}
         </Text>
         {hasActiveFilters && (
-          <TouchableOpacity
+          <Pressable
             onPress={clearFilters}
             className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg"
-            activeOpacity={0.7}
             accessibilityLabel="필터 초기화"
             accessibilityRole="button"
           >
             <Text className="text-blue-600 dark:text-blue-400 font-medium">필터 초기화</Text>
-          </TouchableOpacity>
+          </Pressable>
         )}
       </View>
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilter, selectedTags, dateFilter, clearFilters]);
 
   const renderItem = useCallback(({ item }: { item: Item }) => (
@@ -383,12 +390,12 @@ export default function ItemsScreen() {
 
   return (
     <>
-      <Header title="증빙" />
+      <Header title="증빙" showSpaceIcon />
       <TabScreenContent
         floatingActions={[
           {
             icon: 'add',
-            onPress: handleAddItem,
+            onPress: () => setShowAddModal(true),
             variant: 'primary',
           },
         ]}

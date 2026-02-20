@@ -1,21 +1,71 @@
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ItemClassification } from '@/types/shared';
-import { CLASSIFICATIONS } from '@/constants/items';
+import { getActiveClassificationsBySpace } from '@/services/database/classificationService';
+import type { Classification } from '@/types/space';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { colors } from '@/design-system/tokens/colors';
 
 interface ClassificationSelectorProps {
-  selectedClassification?: ItemClassification;
-  onSelect: (classification: ItemClassification) => void;
+  /** 현재 공간 ID - 해당 공간의 분류 목록을 로드하는 데 사용 */
+  spaceId: string;
+  /** 선택된 classification ID */
+  value?: string;
+  /** 분류 선택 시 호출 (classification ID 전달) */
+  onChange: (id: string) => void;
 }
 
 export function ClassificationSelector({
-  selectedClassification,
-  onSelect,
+  spaceId,
+  value,
+  onChange,
 }: ClassificationSelectorProps) {
+  const [classifications, setClassifications] = useState<Classification[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   const borderColor = useThemeColor(colors.light.border, colors.dark.border);
   const bgColor = useThemeColor(colors.light.surface, colors.dark.surface);
+
+  useEffect(() => {
+    if (!spaceId) return;
+    loadClassifications();
+  // spaceId가 변경될 때마다 분류 목록 재로드
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spaceId]);
+
+  const loadClassifications = async () => {
+    setIsLoading(true);
+    try {
+      const list = await getActiveClassificationsBySpace(spaceId);
+      setClassifications(list);
+      // 값이 없거나 현재 선택된 분류가 새 목록에 없을 때 첫 번째 항목 자동 선택
+      if (list.length > 0 && (!value || !list.some((c) => c.id === value))) {
+        onChange(list[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to load classifications:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View className="py-4 items-center">
+        <ActivityIndicator size="small" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (classifications.length === 0) {
+    return (
+      <View className="py-4 items-center">
+        <Text className="text-gray-500 dark:text-gray-400 text-sm">
+          이 공간에 등록된 분류가 없습니다
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View className="w-full">
@@ -28,27 +78,19 @@ export function ClassificationSelector({
           paddingVertical: 8,
         }}
       >
-        {CLASSIFICATIONS.map((classification) => {
-          const isSelected = selectedClassification === classification.id;
-          const subtitle = classification.requiresSubmission ? '제출 필요' : '기록용';
+        {classifications.map((classification) => {
+          const isSelected = value === classification.id;
+          const iconName = classification.icon ?? 'folder-outline';
+          const color = classification.color ?? colors.primary;
 
           return (
             <TouchableOpacity
               key={classification.id}
-              onPress={() => onSelect(classification.id)}
-              className={`
-                flex-col items-center justify-center
-                px-4 py-3 rounded-xl
-                border-2
-                ${isSelected ? 'border-opacity-100' : 'border-gray-200 dark:border-gray-700'}
-                ${isSelected ? 'bg-opacity-10' : 'bg-white dark:bg-gray-800'}
-                min-w-[110px]
-              `}
+              onPress={() => onChange(classification.id)}
+              className="flex-col items-center justify-center px-4 py-3 rounded-xl border-2 min-w-[110px]"
               style={{
-                borderColor: isSelected ? classification.color : borderColor,
-                backgroundColor: isSelected
-                  ? `${classification.color}15`
-                  : bgColor,
+                borderColor: isSelected ? color : borderColor,
+                backgroundColor: isSelected ? `${color}15` : bgColor,
               }}
               activeOpacity={0.7}
               accessibilityRole="button"
@@ -56,26 +98,19 @@ export function ClassificationSelector({
               accessibilityState={{ selected: isSelected }}
             >
               <Ionicons
-                name={classification.icon as keyof typeof Ionicons.glyphMap}
+                name={iconName as keyof typeof Ionicons.glyphMap}
                 size={28}
-                color={classification.color}
+                color={color}
                 style={{ marginBottom: 8 }}
               />
               <Text
-                className={`
-                  text-base font-semibold
-                  ${isSelected ? 'text-gray-800 dark:text-gray-100' : 'text-gray-600 dark:text-gray-300'}
-                `}
+                className={`text-base font-semibold ${
+                  isSelected
+                    ? 'text-gray-800 dark:text-gray-100'
+                    : 'text-gray-600 dark:text-gray-300'
+                }`}
               >
                 {classification.name}
-              </Text>
-              <Text
-                className={`
-                  text-xs mt-1
-                  ${isSelected ? 'text-gray-600 dark:text-gray-300' : 'text-gray-500 dark:text-gray-300'}
-                `}
-              >
-                {subtitle}
               </Text>
             </TouchableOpacity>
           );

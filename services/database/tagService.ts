@@ -56,15 +56,19 @@ export async function createTag(input: CreateTagInput): Promise<Tag> {
 }
 
 /**
- * Get all tags
+ * Get all tags, optionally filtered by space
  *
- * @returns Promise<Tag[]> - Array of all tags
+ * @param spaceId - Optional space ID to filter by; omit for all tags
+ * @returns Promise<Tag[]> - Array of tags ordered by name ascending
  */
-export async function getTags(): Promise<Tag[]> {
+export async function getTags(spaceId?: string): Promise<Tag[]> {
   const db = await getDatabase();
-  const rows = await db.getAllAsync<TagRow>(
-    'SELECT * FROM tags ORDER BY name ASC'
-  );
+  const rows = spaceId
+    ? await db.getAllAsync<TagRow>(
+        'SELECT * FROM tags WHERE space_id = ? ORDER BY name ASC',
+        [spaceId]
+      )
+    : await db.getAllAsync<TagRow>('SELECT * FROM tags ORDER BY name ASC');
 
   return rows.map(rowToTag);
 }

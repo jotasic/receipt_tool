@@ -13,6 +13,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { initDatabase } from '@/services/database';
 import type { MigrationProgress } from '@/services/database/migrations/runner';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useSpaceStore } from '@/store/spaceStore';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -37,6 +38,7 @@ export default function RootLayout() {
   const [dbError, setDbError] = useState<Error | null>(null);
   const [migrationMessage, setMigrationMessage] = useState<string | null>(null);
   const { theme, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
+  const { loadSpaces, isLoaded: spacesLoaded } = useSpaceStore();
 
   // DB 초기화 - 콜백을 통해 마이그레이션 진행 상황을 상태로 연결
   useEffect(() => {
@@ -64,6 +66,13 @@ export default function RootLayout() {
     loadSettings();
   }, [loadSettings]);
 
+  // Load spaces after DB is initialized
+  useEffect(() => {
+    if (dbInitialized) {
+      loadSpaces();
+    }
+  }, [dbInitialized, loadSpaces]);
+
   // Apply theme preference
   useEffect(() => {
     if (settingsLoaded && theme && theme !== 'system') {
@@ -83,15 +92,15 @@ export default function RootLayout() {
   }, [dbError]);
 
   useEffect(() => {
-    if (loaded && dbInitialized && settingsLoaded) {
+    if (loaded && dbInitialized && settingsLoaded && spacesLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [loaded, dbInitialized, settingsLoaded]);
+  }, [loaded, dbInitialized, settingsLoaded, spacesLoaded]);
 
   // 폰트 미로드 시 null (스플래시 스크린이 덮음)
   if (!loaded) return null;
 
-  const isReady = dbInitialized && settingsLoaded;
+  const isReady = dbInitialized && settingsLoaded && spacesLoaded;
 
   // RootLayoutNav를 즉시 렌더링하여 내비게이션 초기화 시작
   // 로딩 오버레이로 덮어 사용자에게는 로딩 화면 표시

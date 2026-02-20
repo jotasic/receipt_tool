@@ -8,7 +8,7 @@
 
 | 항목 | 내용 |
 |-----|-----|
-| 플랫폼 | React Native + Expo SDK 52 |
+| 플랫폼 | React Native + Expo SDK 54 |
 | 라우팅 | Expo Router (파일 기반) |
 | 상태 관리 | Zustand |
 | DB | SQLite (expo-sqlite) |
@@ -26,7 +26,7 @@
 
 - **증빙 스캔/OCR**: 카메라로 증빙 촬영 후 텍스트 자동 추출
 - **통합 증빙 관리**: 개인카드, 법인카드, 기타 증빙 문서 통합 관리
-- **2차원 분류**: ItemClassification × UsagePurpose
+- **완전 동적 3D 분류**: Space × Classification × UsagePurpose
 - **경비 청구/리포트**: 회사 경비 청구용 리포트 생성
 
 ---
@@ -42,6 +42,7 @@
 | [data-flow.md](./architecture/data-flow.md) | 데이터 흐름, 상태 관리 |
 | [design-system.md](./architecture/design-system.md) | 디자인 시스템 구조, 토큰, 레이아웃 컴포넌트, DatePickerInput |
 | [routing-structure.md](./architecture/routing-structure.md) | 라우팅 구조 및 네비게이션 패턴 |
+| [space-feature.md](./architecture/space-feature.md) | 3D 분류 체계: Space, Classification, 상태 관리 |
 | [calendar-tab.md](./architecture/calendar-tab.md) | 달력 탭 구조, 날짜 범위 제한 (±3개월) |
 | [reports-screen.md](./architecture/reports-screen.md) | 정산 탭 구조, useFocusEffect 활용 |
 
@@ -54,8 +55,10 @@
 ```typescript
 interface Item {
   id: string;
-  classification: 'personal_card' | 'corporate_card' | 'proof_document';
-  usagePurpose: 'meal' | 'other' | ...;
+  spaceId?: string;           // 공간 (회사, 개인 등)
+  classificationId?: string;  // 분류 (개인카드, 법인카드 등)
+  classification: 'personal_card' | 'corporate_card' | 'proof_document'; // 호환성
+  usagePurpose: string;       // 목적 (식사, 교통 등)
   title: string;
   amount?: number;
   date: string;
@@ -63,14 +66,15 @@ interface Item {
 }
 ```
 
-### 2차원 분류 시스템
+### 3D 분류 체계
 
-| 분류 | 값 |
-|-----|-----|
-| **Classification** | personal_card, corporate_card, proof_document |
-| **UsagePurpose** | meal, other (동적 확장 가능) |
+| 계층 | 설명 | 예시 |
+|------|------|------|
+| **Space** | 최상위 컨테이너 | 회사, 개인 |
+| **Classification** | 공간별 카테고리 | 개인카드, 법인카드, 증빙서류 |
+| **UsagePurpose** | 기능별 카테고리 | 식사, 교통, 의료 |
 
-상세: [data-models.md](./architecture/data-models.md)
+상세: [space-feature.md](./architecture/space-feature.md), [data-models.md](./architecture/data-models.md)
 
 ---
 

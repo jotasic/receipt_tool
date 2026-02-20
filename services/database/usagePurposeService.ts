@@ -63,15 +63,21 @@ export async function getAllUsagePurposes(): Promise<UsagePurpose[]> {
  * Returns only usage purposes where is_active = 1, ordered by display_order.
  * This is the main method for populating UI dropdowns and selection lists.
  *
+ * @param spaceId - Optional space ID to filter by; omit for all active purposes
  * @returns Promise<UsagePurpose[]> - Array of active usage purposes
  * @throws Error with [Database] prefix if database operation fails
  */
-export async function getActiveUsagePurposes(): Promise<UsagePurpose[]> {
+export async function getActiveUsagePurposes(spaceId?: string): Promise<UsagePurpose[]> {
   try {
     const db = await getDatabase();
-    const rows = await db.getAllAsync<UsagePurposeRow>(
-      'SELECT * FROM usage_purposes WHERE is_active = 1 ORDER BY display_order ASC, name ASC'
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<UsagePurposeRow>(
+          'SELECT * FROM usage_purposes WHERE is_active = 1 AND space_id = ? ORDER BY display_order ASC, name ASC',
+          [spaceId]
+        )
+      : await db.getAllAsync<UsagePurposeRow>(
+          'SELECT * FROM usage_purposes WHERE is_active = 1 ORDER BY display_order ASC, name ASC'
+        );
 
     return rows.map(rowToUsagePurpose);
   } catch (error) {

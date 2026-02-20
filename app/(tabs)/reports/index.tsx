@@ -151,7 +151,7 @@ export default function ReportsScreen() {
 
   return (
     <>
-      <Header title="정산" />
+      <Header title="정산" showSpaceIcon />
       <TabScreenContent>
         <FlatList
           className="flex-1 bg-white dark:bg-gray-900"

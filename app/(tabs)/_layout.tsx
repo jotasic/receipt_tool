@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+import { SpaceDrawer } from '@/components/space/SpaceDrawer';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -33,7 +34,9 @@ export default function TabLayout() {
     pathname.includes('/settings/tags') ||
     pathname.includes('/settings/backup') ||
     pathname.includes('/settings/custom-fields') ||
-    pathname.includes('/settings/usage-purposes');
+    pathname.includes('/settings/usage-purposes') ||
+    pathname.includes('/settings/spaces') ||
+    pathname.includes('/settings/classifications');
 
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1 bg-white dark:bg-gray-900">
@@ -101,6 +104,8 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
+      {/* 공간 드로어 - 전역으로 한 번만 렌더링 */}
+      <SpaceDrawer />
     </SafeAreaView>
   );
 }

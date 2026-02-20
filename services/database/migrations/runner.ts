@@ -8,6 +8,7 @@
 import * as SQLite from 'expo-sqlite';
 import { migrateToUnifiedModel } from './unifyModels';
 import { migrateDocumentTypes } from './migrateDocumentTypes';
+import { migrateSpaceFeature } from './spaceFeature';
 
 export interface MigrationProgress {
   message: string;
@@ -124,10 +125,19 @@ async function migrateV3(
   await migrateDocumentTypes(db);
 }
 
+// v4: space_feature - spaces + classifications tables, migrate existing items
+async function migrateV4(
+  db: SQLite.SQLiteDatabase,
+  onProgress?: MigrationProgressCallback
+): Promise<void> {
+  await migrateSpaceFeature(db, onProgress);
+}
+
 export const ALL_MIGRATIONS: Migration[] = [
   { version: 1, name: 'initial_schema', run: migrateV1 },
   { version: 2, name: 'unified_model', run: migrateV2 },
   { version: 3, name: 'document_types', run: migrateV3 },
+  { version: 4, name: 'space_feature', run: migrateV4 },
 ];
 
 /**

@@ -16,6 +16,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSpaceStore } from '@/store/spaceStore';
 // 날짜 유효성 검사 (YYYY-MM-DD 형식 + 실제 존재하는 날짜)
 function isValidDateFormat(dateStr: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
@@ -108,6 +109,12 @@ export function ItemForm({
   onCancel,
 }: ItemFormProps) {
   const modalTitle = initialData ? '항목 수정' : '항목 추가';
+  const { currentSpace } = useSpaceStore();
+
+  // classificationId (DB 기반 Classification ID)
+  const [classificationId, setClassificationId] = useState<string | undefined>(
+    initialData?.classificationId
+  );
   // Form state
   const [classification, setClassification] = useState<ItemClassification>(
     initialData?.classification || 'corporate_card'
@@ -484,6 +491,8 @@ export function ItemForm({
         fileType: imageUri ? 'image/jpeg' : undefined,
         memo: memo.trim() || undefined,
         ocrText: ocrText || undefined,
+        spaceId: currentSpace?.id,
+        classificationId: classificationId,
       };
 
       // Add amount for expense items
@@ -549,10 +558,17 @@ export function ItemForm({
           <Text className="text-gray-700 dark:text-gray-200 text-base font-medium mb-3">
             분류 (필수)
           </Text>
-          <ClassificationSelector
-            selectedClassification={classification}
-            onSelect={setClassification}
-          />
+          {currentSpace ? (
+            <ClassificationSelector
+              spaceId={currentSpace.id}
+              value={classificationId}
+              onChange={setClassificationId}
+            />
+          ) : (
+            <Text className="text-gray-500 dark:text-gray-400 text-sm py-2">
+              공간을 먼저 선택해주세요
+            </Text>
+          )}
         </View>
 
         {/* Usage Purpose Selector */}

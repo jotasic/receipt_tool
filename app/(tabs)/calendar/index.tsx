@@ -82,6 +82,7 @@ export default function CalendarScreen() {
     <>
       <Header
         title={viewMode === 'month' ? formatMonthTitle(currentVisibleMonth) : '달력'}
+        showSpaceIcon
         rightElement={
           <View className="flex-row items-center gap-2">
             <TouchableOpacity

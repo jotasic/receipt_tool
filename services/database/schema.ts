@@ -229,6 +229,14 @@ export const SCHEMA = {
       FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
     )
   `,
+
+  db_migrations: `
+    CREATE TABLE IF NOT EXISTS db_migrations (
+      version INTEGER PRIMARY KEY,
+      name TEXT NOT NULL,
+      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `,
 };
 
 /**

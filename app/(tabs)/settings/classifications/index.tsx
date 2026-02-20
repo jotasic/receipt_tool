@@ -251,11 +251,15 @@ export default function ClassificationsScreen() {
                             className="w-10 h-10 rounded-full items-center justify-center mr-3"
                             style={{ backgroundColor: `${color}20` }}
                           >
-                            <Ionicons
-                              name={iconName as React.ComponentProps<typeof Ionicons>['name']}
-                              size={20}
-                              color={color}
-                            />
+                            {/^[a-z0-9-]+$/.test(iconName) ? (
+                              <Ionicons
+                                name={iconName as React.ComponentProps<typeof Ionicons>['name']}
+                                size={20}
+                                color={color}
+                              />
+                            ) : (
+                              <Text style={{ fontSize: 18 }}>{iconName}</Text>
+                            )}
                           </View>
                           <View className="flex-1 mr-3">
                             <Text

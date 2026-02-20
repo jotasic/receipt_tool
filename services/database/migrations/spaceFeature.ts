@@ -102,15 +102,15 @@ export async function migrateSpaceFeature(
   // Step 4: Seed default classifications for 회사 공간
   await db.runAsync(
     `INSERT OR IGNORE INTO classifications (id, space_id, name, icon, color, display_order) VALUES (?, ?, ?, ?, ?, ?)`,
-    [CLASS_PERSONAL_CARD_ID, COMPANY_SPACE_ID, '개인카드', '💳', '#6366F1', 0]
+    [CLASS_PERSONAL_CARD_ID, COMPANY_SPACE_ID, '개인카드', 'card-outline', '#6366F1', 0]
   );
   await db.runAsync(
     `INSERT OR IGNORE INTO classifications (id, space_id, name, icon, color, display_order) VALUES (?, ?, ?, ?, ?, ?)`,
-    [CLASS_CORPORATE_CARD_ID, COMPANY_SPACE_ID, '법인카드', '🏢', '#F59E0B', 1]
+    [CLASS_CORPORATE_CARD_ID, COMPANY_SPACE_ID, '법인카드', 'business-outline', '#F59E0B', 1]
   );
   await db.runAsync(
     `INSERT OR IGNORE INTO classifications (id, space_id, name, icon, color, display_order) VALUES (?, ?, ?, ?, ?, ?)`,
-    [CLASS_PROOF_DOC_ID, COMPANY_SPACE_ID, '증빙서류', '📄', '#64748B', 2]
+    [CLASS_PROOF_DOC_ID, COMPANY_SPACE_ID, '증빙서류', 'document-text-outline', '#64748B', 2]
   );
 
   // Step 5: Assign 회사 공간 to existing usage_purposes

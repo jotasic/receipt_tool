@@ -97,12 +97,16 @@ export function ClassificationSelector({
               accessibilityLabel={`${classification.name} 분류 선택`}
               accessibilityState={{ selected: isSelected }}
             >
-              <Ionicons
-                name={iconName as keyof typeof Ionicons.glyphMap}
-                size={28}
-                color={color}
-                style={{ marginBottom: 8 }}
-              />
+              {/^[a-z0-9-]+$/.test(iconName) ? (
+                <Ionicons
+                  name={iconName as keyof typeof Ionicons.glyphMap}
+                  size={28}
+                  color={color}
+                  style={{ marginBottom: 8 }}
+                />
+              ) : (
+                <Text style={{ fontSize: 24, marginBottom: 8 }}>{iconName}</Text>
+              )}
               <Text
                 className={`text-base font-semibold ${
                   isSelected

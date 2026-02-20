@@ -187,15 +187,15 @@ export default function HomeScreen() {
                               className="rounded-full p-3 mr-3"
                               style={{ backgroundColor: `${color}20` }}
                             >
-                              <Ionicons
-                                name={
-                                  iconName as React.ComponentProps<
-                                    typeof Ionicons
-                                  >['name']
-                                }
-                                size={24}
-                                color={color}
-                              />
+                              {/^[a-z0-9-]+$/.test(iconName) ? (
+                                <Ionicons
+                                  name={iconName as React.ComponentProps<typeof Ionicons>['name']}
+                                  size={24}
+                                  color={color}
+                                />
+                              ) : (
+                                <Text style={{ fontSize: 22 }}>{iconName}</Text>
+                              )}
                             </View>
                             <View className="flex-1">
                               <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">

@@ -6,11 +6,16 @@ import {
   Pressable,
   Alert,
   ActivityIndicator,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Header, SegmentedControl } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { getAllSpaces } from '@/services/database/spaceService';
 import {
   getClassificationsBySpace,
@@ -21,11 +26,31 @@ import {
 } from '@/services/database/classificationService';
 import type { Space, Classification } from '@/types/space';
 
+interface EditModal {
+  visible: boolean;
+  mode: 'add' | 'edit';
+  classification?: Classification;
+  text: string;
+}
+
 export default function ClassificationsScreen() {
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [classifications, setClassifications] = useState<Classification[]>([]);
   const [selectedSpaceIndex, setSelectedSpaceIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [editModal, setEditModal] = useState<EditModal>({
+    visible: false,
+    mode: 'add',
+    text: '',
+  });
+  const [isSaving, setIsSaving] = useState(false);
+
+  const inputBg = useThemeColor('#F9FAFB', '#1F2937');
+  const inputBorder = useThemeColor('#D1D5DB', '#374151');
+  const inputText = useThemeColor('#111827', '#F9FAFB');
+  const modalBg = useThemeColor('#FFFFFF', '#1F2937');
+  const titleColor = useThemeColor('#111827', '#F9FAFB');
+  const cancelTextColor = useThemeColor('#6B7280', '#9CA3AF');
 
   useFocusEffect(
     useCallback(() => {
@@ -49,7 +74,8 @@ export default function ClassificationsScreen() {
       const list = await getAllSpaces();
       setSpaces(list);
       if (list.length > 0) {
-        await loadClassifications(list[selectedSpaceIndex < list.length ? selectedSpaceIndex : 0].id);
+        const idx = selectedSpaceIndex < list.length ? selectedSpaceIndex : 0;
+        await loadClassifications(list[idx].id);
       }
     } catch (error) {
       console.error('Failed to load spaces:', error);
@@ -74,52 +100,41 @@ export default function ClassificationsScreen() {
       Alert.alert('알림', '먼저 공간을 생성해주세요.');
       return;
     }
-    Alert.prompt(
-      '분류 추가',
-      `'${currentSpace.name}' 공간에 추가할 분류 이름을 입력해주세요`,
-      async (name) => {
-        if (!name || !name.trim()) return;
-        try {
-          await createClassification({
-            spaceId: currentSpace.id,
-            name: name.trim(),
-          });
-          await loadClassifications(currentSpace.id);
-          Alert.alert('성공', '분류가 추가되었습니다.');
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : '알 수 없는 오류';
-          Alert.alert('오류', `분류 추가에 실패했습니다.\n${message}`);
-        }
-      },
-      'plain-text',
-      '',
-      'default'
-    );
+    setEditModal({ visible: true, mode: 'add', text: '' });
   };
 
   const handleEditClassification = (classification: Classification) => {
-    Alert.prompt(
-      '분류 수정',
-      '새 이름을 입력해주세요',
-      async (name) => {
-        if (!name || !name.trim()) return;
-        try {
-          await updateClassification(classification.id, { name: name.trim() });
-          if (currentSpace) {
-            await loadClassifications(currentSpace.id);
-          }
-          Alert.alert('성공', '분류 이름이 수정되었습니다.');
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : '알 수 없는 오류';
-          Alert.alert('오류', `분류 수정에 실패했습니다.\n${message}`);
-        }
-      },
-      'plain-text',
-      classification.name,
-      'default'
-    );
+    setEditModal({ visible: true, mode: 'edit', classification, text: classification.name });
+  };
+
+  const handleModalConfirm = async () => {
+    const name = editModal.text.trim();
+    if (!name || !currentSpace) return;
+
+    setIsSaving(true);
+    try {
+      if (editModal.mode === 'add') {
+        await createClassification({ spaceId: currentSpace.id, name });
+        await loadClassifications(currentSpace.id);
+        setEditModal({ visible: false, mode: 'add', text: '' });
+        Alert.alert('성공', '분류가 추가되었습니다.');
+      } else if (editModal.mode === 'edit' && editModal.classification) {
+        await updateClassification(editModal.classification.id, { name });
+        await loadClassifications(currentSpace.id);
+        setEditModal({ visible: false, mode: 'add', text: '' });
+        Alert.alert('성공', '분류 이름이 수정되었습니다.');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '알 수 없는 오류';
+      const action = editModal.mode === 'add' ? '추가' : '수정';
+      Alert.alert('오류', `분류 ${action}에 실패했습니다.\n${message}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleModalCancel = () => {
+    setEditModal({ visible: false, mode: 'add', text: '' });
   };
 
   const handleToggleActive = async (classification: Classification) => {
@@ -131,8 +146,7 @@ export default function ClassificationsScreen() {
         await loadClassifications(currentSpace.id);
       }
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : '알 수 없는 오류';
+      const message = error instanceof Error ? error.message : '알 수 없는 오류';
       Alert.alert('오류', `상태 변경에 실패했습니다.\n${message}`);
     }
   };
@@ -175,6 +189,10 @@ export default function ClassificationsScreen() {
       console.error('Failed to check classification usage:', error);
     }
   };
+
+  const modalTitle = editModal.mode === 'add' ? '분류 추가' : '분류 수정';
+  const modalPlaceholder =
+    editModal.mode === 'add' ? '새 분류 이름을 입력해주세요' : '분류 이름을 수정해주세요';
 
   return (
     <>
@@ -335,6 +353,79 @@ export default function ClassificationsScreen() {
           </ScrollView>
         )}
       </TabScreenContent>
+
+      {/* 분류 추가/수정 모달 */}
+      <Modal
+        visible={editModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleModalCancel}
+        statusBarTranslucent
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1 items-center justify-center"
+        >
+          <Pressable
+            className="absolute inset-0 bg-black/50"
+            onPress={handleModalCancel}
+          />
+          <View
+            className="w-80 rounded-2xl p-6 shadow-xl"
+            style={{ backgroundColor: modalBg }}
+          >
+            <Text
+              className="text-base font-bold mb-1"
+              style={{ color: titleColor }}
+            >
+              {modalTitle}
+            </Text>
+            {currentSpace && (
+              <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                공간: {currentSpace.name}
+              </Text>
+            )}
+            <TextInput
+              value={editModal.text}
+              onChangeText={(text) =>
+                setEditModal((prev) => ({ ...prev, text }))
+              }
+              placeholder={modalPlaceholder}
+              placeholderTextColor={cancelTextColor}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleModalConfirm}
+              className="rounded-xl px-4 py-3 mb-5 text-base"
+              style={{
+                backgroundColor: inputBg,
+                borderColor: inputBorder,
+                borderWidth: 1,
+                color: inputText,
+              }}
+            />
+            <View className="flex-row gap-3">
+              <Pressable
+                onPress={handleModalCancel}
+                className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 items-center"
+              >
+                <Text className="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                  취소
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={handleModalConfirm}
+                disabled={isSaving || !editModal.text.trim()}
+                className="flex-1 py-3 rounded-xl bg-blue-500 items-center"
+                style={{ opacity: isSaving || !editModal.text.trim() ? 0.5 : 1 }}
+              >
+                <Text className="text-sm font-semibold text-white">
+                  {isSaving ? '저장 중...' : '확인'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </>
   );
 }

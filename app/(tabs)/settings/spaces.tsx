@@ -6,14 +6,11 @@ import {
   Pressable,
   Alert,
   ActivityIndicator,
-  Modal,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Header } from '@/components/common';
+import { Header, FullScreenModal, FloatingActionBar } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useSpaceStore } from '@/store/spaceStore';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
@@ -44,12 +41,7 @@ export default function SpacesScreen() {
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  const inputBg = useThemeColor('#F9FAFB', '#1F2937');
-  const inputBorder = useThemeColor('#D1D5DB', '#374151');
-  const inputText = useThemeColor('#111827', '#F9FAFB');
-  const modalBg = useThemeColor('#FFFFFF', '#1F2937');
-  const titleColor = useThemeColor('#111827', '#F9FAFB');
-  const cancelTextColor = useThemeColor('#6B7280', '#9CA3AF');
+  const placeholderColor = useThemeColor('#9CA3AF', '#6B7280');
 
   useFocusEffect(
     useCallback(() => {
@@ -154,20 +146,7 @@ export default function SpacesScreen() {
 
   return (
     <>
-      <Header
-        title="공간 관리"
-        showBack
-        rightElement={
-          <Pressable
-            onPress={handleAddSpace}
-            className="p-2"
-            accessibilityLabel="공간 추가"
-            accessibilityRole="button"
-          >
-            <Ionicons name="add" size={24} color="#3B82F6" />
-          </Pressable>
-        }
-      />
+      <Header title="공간 관리" showBack />
       <TabScreenContent>
         {isLoading ? (
           <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
@@ -175,7 +154,7 @@ export default function SpacesScreen() {
           </View>
         ) : (
           <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-900">
-            <View className="px-4 pt-4 pb-8">
+            <View className="px-4 pt-4 pb-28">
               {spaces.length === 0 ? (
                 <View className="items-center py-16">
                   <View className="bg-gray-100 dark:bg-gray-700 rounded-full p-6 mb-4">
@@ -185,7 +164,7 @@ export default function SpacesScreen() {
                     등록된 공간이 없습니다
                   </Text>
                   <Text className="text-gray-500 dark:text-gray-400 text-base text-center mb-6">
-                    우측 상단 + 버튼으로{'\n'}첫 공간을 추가해보세요
+                    하단 + 버튼으로{'\n'}첫 공간을 추가해보세요
                   </Text>
                 </View>
               ) : (
@@ -255,72 +234,42 @@ export default function SpacesScreen() {
       </TabScreenContent>
 
       {/* 공간 추가/수정 모달 */}
-      <Modal
+      <FullScreenModal
         visible={editModal.visible}
-        transparent
-        animationType="fade"
-        onRequestClose={handleModalCancel}
-        statusBarTranslucent
+        onClose={handleModalCancel}
+        title={modalTitle}
+        rightButton={{
+          icon: 'checkmark',
+          onPress: handleModalConfirm,
+          disabled: !editModal.text.trim(),
+          loading: isSaving,
+        }}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="flex-1 items-center justify-center"
-        >
-          <Pressable
-            className="absolute inset-0 bg-black/50"
-            onPress={handleModalCancel}
+        <View className="p-4">
+          <TextInput
+            value={editModal.text}
+            onChangeText={(text) =>
+              setEditModal((prev) => ({ ...prev, text }))
+            }
+            placeholder={modalPlaceholder}
+            placeholderTextColor={placeholderColor}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={handleModalConfirm}
+            className="rounded-xl px-4 py-3 text-base bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
           />
-          <View
-            className="w-80 rounded-2xl p-6 shadow-xl"
-            style={{ backgroundColor: modalBg }}
-          >
-            <Text
-              className="text-base font-bold mb-4"
-              style={{ color: titleColor }}
-            >
-              {modalTitle}
-            </Text>
-            <TextInput
-              value={editModal.text}
-              onChangeText={(text) =>
-                setEditModal((prev) => ({ ...prev, text }))
-              }
-              placeholder={modalPlaceholder}
-              placeholderTextColor={cancelTextColor}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={handleModalConfirm}
-              className="rounded-xl px-4 py-3 mb-5 text-base"
-              style={{
-                backgroundColor: inputBg,
-                borderColor: inputBorder,
-                borderWidth: 1,
-                color: inputText,
-              }}
-            />
-            <View className="flex-row gap-3">
-              <Pressable
-                onPress={handleModalCancel}
-                className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 items-center"
-              >
-                <Text className="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                  취소
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={handleModalConfirm}
-                disabled={isSaving || !editModal.text.trim()}
-                className="flex-1 py-3 rounded-xl bg-blue-500 items-center"
-                style={{ opacity: isSaving || !editModal.text.trim() ? 0.5 : 1 }}
-              >
-                <Text className="text-sm font-semibold text-white">
-                  {isSaving ? '저장 중...' : '확인'}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        </View>
+      </FullScreenModal>
+
+      <FloatingActionBar
+        actions={[
+          {
+            icon: 'add',
+            onPress: handleAddSpace,
+            variant: 'primary',
+          },
+        ]}
+      />
     </>
   );
 }

@@ -6,14 +6,11 @@ import {
   Pressable,
   Alert,
   ActivityIndicator,
-  Modal,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Header, SegmentedControl } from '@/components/common';
+import { Header, SegmentedControl, FullScreenModal, FloatingActionBar } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { getAllSpaces } from '@/services/database/spaceService';
@@ -45,12 +42,7 @@ export default function ClassificationsScreen() {
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  const inputBg = useThemeColor('#F9FAFB', '#1F2937');
-  const inputBorder = useThemeColor('#D1D5DB', '#374151');
-  const inputText = useThemeColor('#111827', '#F9FAFB');
-  const modalBg = useThemeColor('#FFFFFF', '#1F2937');
-  const titleColor = useThemeColor('#111827', '#F9FAFB');
-  const cancelTextColor = useThemeColor('#6B7280', '#9CA3AF');
+  const placeholderColor = useThemeColor('#9CA3AF', '#6B7280');
 
   useFocusEffect(
     useCallback(() => {
@@ -196,20 +188,7 @@ export default function ClassificationsScreen() {
 
   return (
     <>
-      <Header
-        title="분류 관리"
-        showBack
-        rightElement={
-          <Pressable
-            onPress={handleAddClassification}
-            className="p-2"
-            accessibilityLabel="분류 추가"
-            accessibilityRole="button"
-          >
-            <Ionicons name="add" size={24} color="#3B82F6" />
-          </Pressable>
-        }
-      />
+      <Header title="분류 관리" showBack />
       <TabScreenContent>
         {isLoading ? (
           <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
@@ -239,7 +218,7 @@ export default function ClassificationsScreen() {
             </View>
 
             {/* 분류 목록 */}
-            <View className="px-4 pt-2 pb-8">
+            <View className="px-4 pt-2 pb-28">
               {classifications.length === 0 ? (
                 <View className="items-center py-12">
                   <View className="bg-gray-100 dark:bg-gray-700 rounded-full p-6 mb-4">
@@ -249,7 +228,7 @@ export default function ClassificationsScreen() {
                     등록된 분류가 없습니다
                   </Text>
                   <Text className="text-gray-500 dark:text-gray-400 text-base text-center">
-                    우측 상단 + 버튼으로{'\n'}첫 분류를 추가해보세요
+                    하단 + 버튼으로{'\n'}첫 분류를 추가해보세요
                   </Text>
                 </View>
               ) : (
@@ -355,77 +334,47 @@ export default function ClassificationsScreen() {
       </TabScreenContent>
 
       {/* 분류 추가/수정 모달 */}
-      <Modal
+      <FullScreenModal
         visible={editModal.visible}
-        transparent
-        animationType="fade"
-        onRequestClose={handleModalCancel}
-        statusBarTranslucent
+        onClose={handleModalCancel}
+        title={modalTitle}
+        rightButton={{
+          icon: 'checkmark',
+          onPress: handleModalConfirm,
+          disabled: !editModal.text.trim(),
+          loading: isSaving,
+        }}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="flex-1 items-center justify-center"
-        >
-          <Pressable
-            className="absolute inset-0 bg-black/50"
-            onPress={handleModalCancel}
-          />
-          <View
-            className="w-80 rounded-2xl p-6 shadow-xl"
-            style={{ backgroundColor: modalBg }}
-          >
-            <Text
-              className="text-base font-bold mb-1"
-              style={{ color: titleColor }}
-            >
-              {modalTitle}
+        <View className="p-4">
+          {currentSpace ? (
+            <Text className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+              공간: {currentSpace.name}
             </Text>
-            {currentSpace && (
-              <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                공간: {currentSpace.name}
-              </Text>
-            )}
-            <TextInput
-              value={editModal.text}
-              onChangeText={(text) =>
-                setEditModal((prev) => ({ ...prev, text }))
-              }
-              placeholder={modalPlaceholder}
-              placeholderTextColor={cancelTextColor}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={handleModalConfirm}
-              className="rounded-xl px-4 py-3 mb-5 text-base"
-              style={{
-                backgroundColor: inputBg,
-                borderColor: inputBorder,
-                borderWidth: 1,
-                color: inputText,
-              }}
-            />
-            <View className="flex-row gap-3">
-              <Pressable
-                onPress={handleModalCancel}
-                className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 items-center"
-              >
-                <Text className="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                  취소
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={handleModalConfirm}
-                disabled={isSaving || !editModal.text.trim()}
-                className="flex-1 py-3 rounded-xl bg-blue-500 items-center"
-                style={{ opacity: isSaving || !editModal.text.trim() ? 0.5 : 1 }}
-              >
-                <Text className="text-sm font-semibold text-white">
-                  {isSaving ? '저장 중...' : '확인'}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+          ) : null}
+          <TextInput
+            value={editModal.text}
+            onChangeText={(text) =>
+              setEditModal((prev) => ({ ...prev, text }))
+            }
+            placeholder={modalPlaceholder}
+            placeholderTextColor={placeholderColor}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={handleModalConfirm}
+            className="rounded-xl px-4 py-3 text-base bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+          />
+        </View>
+      </FullScreenModal>
+
+      <FloatingActionBar
+        actions={[
+          {
+            icon: 'add',
+            onPress: handleAddClassification,
+            variant: 'primary',
+          },
+        ]}
+      />
     </>
   );
 }

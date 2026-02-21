@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common';
@@ -161,7 +162,7 @@ export default function SpacesManagementScreen() {
     editModal.mode === 'add' ? '새 공간 이름을 입력해주세요' : '공간 이름을 수정해주세요';
 
   return (
-    <>
+    <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1 bg-white dark:bg-gray-900">
       <Header
         title="공간 관리"
         showBack
@@ -329,6 +330,6 @@ export default function SpacesManagementScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </>
+    </SafeAreaView>
   );
 }

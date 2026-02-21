@@ -101,7 +101,8 @@ export function SpaceDrawer() {
 
   const handleManageSpaces = () => {
     closeDrawer();
-    router.navigate('/(tabs)/settings/spaces');
+    // 루트 스택으로 이동 → 뒤로가면 원래 탭으로 복귀 (settings 탭 진입 안 함)
+    router.push('/spaces-management');
   };
 
   return (

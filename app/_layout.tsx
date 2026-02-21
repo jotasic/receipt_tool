@@ -131,6 +131,8 @@ function RootLayoutNav() {
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          {/* 공간 관리 - SpaceDrawer에서 진입. 뒤로가면 원래 탭으로 복귀 */}
+          <Stack.Screen name="spaces-management" options={{ headerShown: false }} />
         </Stack>
       </ThemeProvider>
     </SafeAreaProvider>

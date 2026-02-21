@@ -107,10 +107,10 @@ export async function getItems(spaceId?: string): Promise<Item[]> {
     const db = await getDatabase();
     const rows = spaceId
       ? await db.getAllAsync<ItemRow>(
-          'SELECT * FROM items WHERE space_id = ? ORDER BY date DESC',
+          'SELECT * FROM items WHERE space_id = ? ORDER BY date DESC, created_at DESC',
           [spaceId]
         )
-      : await db.getAllAsync<ItemRow>('SELECT * FROM items ORDER BY date DESC');
+      : await db.getAllAsync<ItemRow>('SELECT * FROM items ORDER BY date DESC, created_at DESC');
 
     return rows.map(rowToItem);
   } catch (error) {
@@ -132,10 +132,10 @@ export async function getItemsWithTags(spaceId?: string): Promise<Item[]> {
     // Query 1: fetch all items (optionally filtered by space)
     const itemRows = spaceId
       ? await db.getAllAsync<ItemRow>(
-          'SELECT * FROM items WHERE space_id = ? ORDER BY date DESC',
+          'SELECT * FROM items WHERE space_id = ? ORDER BY date DESC, created_at DESC',
           [spaceId]
         )
-      : await db.getAllAsync<ItemRow>('SELECT * FROM items ORDER BY date DESC');
+      : await db.getAllAsync<ItemRow>('SELECT * FROM items ORDER BY date DESC, created_at DESC');
 
     if (itemRows.length === 0) return [];
 
@@ -319,7 +319,7 @@ export async function getItemsByClassification(
   try {
     const db = await getDatabase();
     const rows = await db.getAllAsync<ItemRow>(
-      'SELECT * FROM items WHERE classification = ? ORDER BY date DESC',
+      'SELECT * FROM items WHERE classification = ? ORDER BY date DESC, created_at DESC',
       [classification]
     );
 
@@ -342,7 +342,7 @@ export async function getItemsByUsagePurpose(
   try {
     const db = await getDatabase();
     const rows = await db.getAllAsync<ItemRow>(
-      'SELECT * FROM items WHERE usage_purpose = ? ORDER BY date DESC',
+      'SELECT * FROM items WHERE usage_purpose = ? ORDER BY date DESC, created_at DESC',
       [usagePurpose]
     );
 
@@ -367,7 +367,7 @@ export async function getItemsByDateRange(
   try {
     const db = await getDatabase();
     const rows = await db.getAllAsync<ItemRow>(
-      'SELECT * FROM items WHERE date >= ? AND date <= ? ORDER BY date DESC',
+      'SELECT * FROM items WHERE date >= ? AND date <= ? ORDER BY date DESC, created_at DESC',
       [startDate, endDate]
     );
 
@@ -391,7 +391,7 @@ export async function searchItems(query: string): Promise<Item[]> {
     const rows = await db.getAllAsync<ItemRow>(
       `SELECT * FROM items
        WHERE title LIKE ? OR store_name LIKE ? OR memo LIKE ?
-       ORDER BY date DESC`,
+       ORDER BY date DESC, created_at DESC`,
       [searchPattern, searchPattern, searchPattern]
     );
 
@@ -468,7 +468,7 @@ export async function getItemsByClassificationAndPurpose(
   try {
     const db = await getDatabase();
     const rows = await db.getAllAsync<ItemRow>(
-      'SELECT * FROM items WHERE classification = ? AND usage_purpose = ? ORDER BY date DESC',
+      'SELECT * FROM items WHERE classification = ? AND usage_purpose = ? ORDER BY date DESC, created_at DESC',
       [classification, usagePurpose]
     );
 
@@ -517,7 +517,7 @@ export async function getItemsRequiringSubmission(): Promise<Item[]> {
   try {
     const db = await getDatabase();
     const rows = await db.getAllAsync<ItemRow>(
-      "SELECT * FROM items WHERE classification = 'personal_card' ORDER BY date DESC"
+      "SELECT * FROM items WHERE classification = 'personal_card' ORDER BY date DESC, created_at DESC"
     );
 
     return rows.map(rowToItem);
@@ -538,7 +538,7 @@ export async function getExpenseItems(): Promise<Item[]> {
   try {
     const db = await getDatabase();
     const rows = await db.getAllAsync<ItemRow>(
-      "SELECT * FROM items WHERE classification IN ('personal_card', 'corporate_card') ORDER BY date DESC"
+      "SELECT * FROM items WHERE classification IN ('personal_card', 'corporate_card') ORDER BY date DESC, created_at DESC"
     );
 
     return rows.map(rowToItem);
@@ -559,7 +559,7 @@ export async function getProofDocuments(): Promise<Item[]> {
   try {
     const db = await getDatabase();
     const rows = await db.getAllAsync<ItemRow>(
-      "SELECT * FROM items WHERE classification = 'proof_document' ORDER BY date DESC"
+      "SELECT * FROM items WHERE classification = 'proof_document' ORDER BY date DESC, created_at DESC"
     );
 
     return rows.map(rowToItem);
@@ -579,7 +579,7 @@ export async function getItemsByClassificationId(classificationId: string): Prom
   try {
     const db = await getDatabase();
     const rows = await db.getAllAsync<ItemRow>(
-      'SELECT * FROM items WHERE classification_id = ? ORDER BY date DESC',
+      'SELECT * FROM items WHERE classification_id = ? ORDER BY date DESC, created_at DESC',
       [classificationId]
     );
     return rows.map(rowToItem);

@@ -38,6 +38,7 @@ import {
 } from '@/services/database/usagePurposeService';
 import { isDefaultUsagePurpose } from '@/types/usagePurpose';
 import type { UsagePurpose } from '@/types/usagePurpose';
+import { useSpaceStore } from '@/store/spaceStore';
 
 interface UsagePurposeWithCount extends UsagePurpose {
   usageCount: number;
@@ -45,6 +46,7 @@ interface UsagePurposeWithCount extends UsagePurpose {
 
 export default function UsagePurposeManagementScreen() {
   const router = useRouter();
+  const { currentSpace } = useSpaceStore();
   const [purposes, setPurposes] = useState<UsagePurposeWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,17 +61,17 @@ export default function UsagePurposeManagementScreen() {
   const [purposeActive, setPurposeActive] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load usage purposes when screen is focused
+  // Load usage purposes when screen is focused or current space changes
   useFocusEffect(
     useCallback(() => {
       loadUsagePurposes();
-    }, [])
+    }, [currentSpace?.id])
   );
 
   const loadUsagePurposes = async () => {
     setIsLoading(true);
     try {
-      const loadedPurposes = await getUsagePurposeStatistics();
+      const loadedPurposes = await getUsagePurposeStatistics(currentSpace?.id);
       setPurposes(loadedPurposes);
     } catch (error) {
       console.error('Failed to load usage purposes:', error);
@@ -131,6 +133,7 @@ export default function UsagePurposeManagementScreen() {
         nameEn: purposeNameEn.trim() || undefined,
         icon: purposeIcon,
         color: purposeColor,
+        spaceId: currentSpace?.id,
       });
 
       // Reload to get updated statistics
@@ -461,6 +464,24 @@ export default function UsagePurposeManagementScreen() {
       />
     </>
   );
+
+  if (!currentSpace) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <Header title="사용처 관리" showBack={true} />
+        <View className="flex-1 bg-white dark:bg-gray-900 items-center justify-center p-6">
+          <Ionicons name="business-outline" size={64} color="#D1D5DB" />
+          <Text className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+            공간을 먼저 선택해주세요
+          </Text>
+          <Text className="mt-2 text-gray-500 dark:text-gray-400 text-center">
+            사용처는 공간별로 관리됩니다. 먼저 공간을 선택한 후 사용처를 관리하세요.
+          </Text>
+        </View>
+      </>
+    );
+  }
 
   return (
     <>

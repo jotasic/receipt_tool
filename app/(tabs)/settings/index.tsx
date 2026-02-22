@@ -322,30 +322,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* 설정 그룹 2: 공간 관리 */}
-        <View className="mt-6">
-          <Text className="px-4 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase">
-            공간 관리
-          </Text>
-          <View className="mt-1">
-            <SettingItem
-              icon="layers-outline"
-              title="공간 관리"
-              hasArrow
-              onPress={() => router.push('/(tabs)/settings/spaces')}
-              disabled={isClearing}
-            />
-            <SettingItem
-              icon="grid-outline"
-              title="분류 관리"
-              hasArrow
-              onPress={() => router.push('/(tabs)/settings/classifications')}
-              disabled={isClearing}
-            />
-          </View>
-        </View>
-
-        {/* 설정 그룹 3: 관리 */}
+        {/* 설정 그룹 2: 관리 */}
         <View className="mt-6">
           <Text className="px-4 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase">
             관리

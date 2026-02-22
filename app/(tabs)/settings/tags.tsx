@@ -33,6 +33,7 @@ import {
   getItemsByTag,
 } from '@/services/database/tagService';
 import type { Tag } from '@/types/tag';
+import { useSpaceStore } from '@/store/spaceStore';
 
 // Predefined color palette
 const TAG_COLORS = [
@@ -50,6 +51,7 @@ const TAG_COLORS = [
 
 export default function TagManagementScreen() {
   const router = useRouter();
+  const { currentSpace } = useSpaceStore();
   const [tags, setTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,13 +69,13 @@ export default function TagManagementScreen() {
   useFocusEffect(
     useCallback(() => {
       loadTags();
-    }, [])
+    }, [currentSpace?.id])
   );
 
   const loadTags = async () => {
     setIsLoading(true);
     try {
-      const loadedTags = await getTags();
+      const loadedTags = await getTags(currentSpace?.id);
       setTags(loadedTags);
 
       // Load usage counts for each tag
@@ -133,6 +135,7 @@ export default function TagManagementScreen() {
       const newTag = await createTag({
         name: tagName.trim(),
         color: tagColor,
+        spaceId: currentSpace?.id,
       });
 
       setTags([...tags, newTag]);
@@ -377,10 +380,20 @@ export default function TagManagementScreen() {
       </View>
 
       {/* Tags list */}
-      {isLoading ? (
+      {!currentSpace ? (
+        <View className="flex-1 items-center justify-center p-6">
+          <Ionicons name="pricetags-outline" size={64} color="#D1D5DB" />
+          <Text className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+            공간을 선택해주세요
+          </Text>
+          <Text className="mt-2 text-gray-500 dark:text-gray-400 text-center">
+            태그는 공간별로 관리됩니다{'\n'}드로어에서 공간을 먼저 선택해주세요
+          </Text>
+        </View>
+      ) : isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#3B82F6" />
-          <Text className="mt-2 text-gray-600">로딩 중...</Text>
+          <Text className="mt-2 text-gray-600 dark:text-gray-400">로딩 중...</Text>
         </View>
       ) : filteredTags.length === 0 ? (
         <View className="flex-1 items-center justify-center p-6">

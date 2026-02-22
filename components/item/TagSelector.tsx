@@ -32,6 +32,8 @@ interface TagSelectorProps {
   onTagsChange: (tags: Tag[]) => void;
   /** Optional label */
   label?: string;
+  /** Space ID to scope tags */
+  spaceId?: string;
 }
 
 // Predefined color palette (using design tokens)
@@ -52,6 +54,7 @@ export function TagSelector({
   selectedTags,
   onTagsChange,
   label = '태그',
+  spaceId,
 }: TagSelectorProps) {
   const addIconColor = useThemeColor(colors.light.text.secondary, colors.dark.text.muted);
   const borderColorForCheckmark = useThemeColor(colors.light.text.primary, colors.dark.text.primary);
@@ -70,12 +73,12 @@ export function TagSelector({
     if (showModal) {
       loadTags();
     }
-  }, [showModal]);
+  }, [showModal, spaceId]);
 
   const loadTags = async () => {
     setIsLoading(true);
     try {
-      const tags = await getTags();
+      const tags = await getTags(spaceId);
       setAllTags(tags);
     } catch (error) {
       console.error('Failed to load tags:', error);
@@ -121,6 +124,7 @@ export function TagSelector({
       const newTag = await createTag({
         name: newTagName.trim(),
         color: newTagColor,
+        spaceId,
       });
 
       // Add to all tags

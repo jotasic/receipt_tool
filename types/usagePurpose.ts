@@ -73,6 +73,9 @@ export interface CreateUsagePurposeInput {
   /** Color hex code (optional) */
   color?: string;
 
+  /** Space ID this usage purpose belongs to (optional) */
+  spaceId?: string;
+
   /** Display order (auto-assigned if not provided) */
   displayOrder?: number;
 }

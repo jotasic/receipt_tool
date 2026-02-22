@@ -57,10 +57,10 @@ export default function ItemsScreen() {
     }, [loadItemsIfStale, currentSpace])
   );
 
-  // 태그 로드 (마운트 시 1회)
+  // 태그 로드 (currentSpace 변경 시 재로드)
   useEffect(() => {
     loadAllTags();
-  }, []);
+  }, [currentSpace?.id]);
 
   // URL 파라미터로 필터 초기 설정
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function ItemsScreen() {
 
   const loadAllTags = async () => {
     try {
-      const allTags = await getTags();
+      const allTags = await getTags(currentSpace?.id);
       setTags(allTags);
     } catch (error) {
       console.error('Failed to load tags:', error);

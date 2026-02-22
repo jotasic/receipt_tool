@@ -43,8 +43,8 @@ export async function createTag(input: CreateTagInput): Promise<Tag> {
   const now = new Date().toISOString();
 
   await db.runAsync(
-    `INSERT INTO tags (id, name, color, created_at) VALUES (?, ?, ?, ?)`,
-    [id, input.name, input.color || '#6B7280', now]
+    `INSERT INTO tags (id, name, color, space_id, created_at) VALUES (?, ?, ?, ?, ?)`,
+    [id, input.name, input.color || '#6B7280', input.spaceId ?? null, now]
   );
 
   return {

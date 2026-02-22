@@ -166,8 +166,8 @@ export async function createUsagePurpose(
 
     // Insert the new usage purpose
     await db.runAsync(
-      `INSERT INTO usage_purposes (id, name, name_en, icon, color, is_active, display_order)
-       VALUES (?, ?, ?, ?, ?, 1, ?)`,
+      `INSERT INTO usage_purposes (id, name, name_en, icon, color, is_active, display_order, space_id)
+       VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
       [
         id,
         input.name.trim(),
@@ -175,6 +175,7 @@ export async function createUsagePurpose(
         input.icon ?? null,
         input.color ?? null,
         displayOrder,
+        input.spaceId ?? null,
       ]
     );
 
@@ -490,24 +491,33 @@ export async function getUsagePurposeUsageCount(id: string): Promise<number> {
  *
  * Returns an array of usage purposes with their usage counts.
  *
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Array<UsagePurpose & { usageCount: number }>>
  * @throws Error with [Database] prefix if database operation fails
  */
-export async function getUsagePurposeStatistics(): Promise<
-  Array<UsagePurpose & { usageCount: number }>
-> {
+export async function getUsagePurposeStatistics(
+  spaceId?: string
+): Promise<Array<UsagePurpose & { usageCount: number }>> {
   try {
     const db = await getDatabase();
 
-    const rows = await db.getAllAsync<
-      UsagePurposeRow & { usage_count: number }
-    >(
-      `SELECT up.*, COUNT(i.id) as usage_count
-       FROM usage_purposes up
-       LEFT JOIN items i ON up.id = i.usage_purpose
-       GROUP BY up.id
-       ORDER BY up.display_order ASC, up.name ASC`
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<UsagePurposeRow & { usage_count: number }>(
+          `SELECT up.*, COUNT(i.id) as usage_count
+           FROM usage_purposes up
+           LEFT JOIN items i ON up.id = i.usage_purpose
+           WHERE up.space_id = ?
+           GROUP BY up.id
+           ORDER BY up.display_order ASC, up.name ASC`,
+          [spaceId]
+        )
+      : await db.getAllAsync<UsagePurposeRow & { usage_count: number }>(
+          `SELECT up.*, COUNT(i.id) as usage_count
+           FROM usage_purposes up
+           LEFT JOIN items i ON up.id = i.usage_purpose
+           GROUP BY up.id
+           ORDER BY up.display_order ASC, up.name ASC`
+        );
 
     return rows.map((row) => ({
       ...rowToUsagePurpose(row),

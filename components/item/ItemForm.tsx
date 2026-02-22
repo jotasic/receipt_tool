@@ -579,6 +579,7 @@ export function ItemForm({
           <UsagePurposeSelector
             selectedPurpose={usagePurpose}
             onSelect={setUsagePurpose}
+            spaceId={currentSpace?.id}
           />
         </View>
 
@@ -812,6 +813,7 @@ export function ItemForm({
             selectedTags={selectedTags}
             onTagsChange={setSelectedTags}
             label="태그 (선택)"
+            spaceId={currentSpace?.id}
           />
         </View>
 

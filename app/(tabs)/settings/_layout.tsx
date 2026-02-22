@@ -51,10 +51,6 @@ export default function SettingsLayout() {
         }}
       />
       <Stack.Screen
-        name="spaces"
-        options={{ title: '공간 관리' }}
-      />
-      <Stack.Screen
         name="classifications"
         options={{ title: '분류 관리' }}
       />

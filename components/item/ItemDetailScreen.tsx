@@ -13,13 +13,15 @@ import { router, useLocalSearchParams, Stack, useNavigation } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ClassificationBadge, UsagePurposeBadge, TagBadge, FloatingActionBar, Header, ImageZoomModal } from '@/components/common';
-import { ItemForm } from '@/components/item';
+import { ItemForm, SpaceMoveSheet } from '@/components/item';
 import { useItemStore } from '@/store/itemStore';
-import { getItemById, updateItem, deleteItem } from '@/services/database/itemService';
+import { useSpaceStore } from '@/store/spaceStore';
+import { getItemById, updateItem, deleteItem, moveItemToSpace } from '@/services/database/itemService';
 import { getTagsForItem, setTagsForItem } from '@/services/database/tagService';
 import { getItemCustomValues, setItemCustomValues } from '@/services/database/customFieldService';
 import { getClassificationConfig } from '@/constants/items';
 import type { Item, CreateItemInput } from '@/types/item';
+import type { Space } from '@/types/space';
 
 const ITEMS_IMAGES_DIR = FileSystem.documentDirectory + 'items/';
 
@@ -35,6 +37,9 @@ export default function ItemDetailScreen() {
   const deleteItemFromStore = useItemStore((state) => state.deleteItem);
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
+  const [showMoveSheet, setShowMoveSheet] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
+  const { spaces, currentSpace } = useSpaceStore();
 
   // Hide tab bar when this screen is focused.
   // Walk up the navigator tree to find the Tabs navigator, which is the
@@ -154,6 +159,24 @@ export default function ItemDetailScreen() {
 
   const handleEdit = () => {
     setShowEditModal(true);
+  };
+
+  const handleMoveToSpace = async (targetSpace: Space) => {
+    if (!id || !item) return;
+    setIsMoving(true);
+    try {
+      await moveItemToSpace(id, targetSpace.id);
+      deleteItemFromStore(id);
+      setShowMoveSheet(false);
+      Alert.alert('이동 완료', `'${targetSpace.name}' 워크스페이스로 이동되었습니다.`, [
+        { text: '확인', onPress: () => router.back() },
+      ]);
+    } catch (error) {
+      console.error('Item move error:', error);
+      Alert.alert('오류', '항목 이동에 실패했습니다.');
+    } finally {
+      setIsMoving(false);
+    }
   };
 
   const handleUpdateItem = async (data: CreateItemInput) => {
@@ -461,14 +484,20 @@ export default function ItemDetailScreen() {
             {
               icon: 'trash-outline',
               onPress: handleDelete,
-              disabled: isDeleting,
+              disabled: isDeleting || isMoving,
               loading: isDeleting,
               variant: 'danger',
             },
+            ...(spaces.length >= 2 ? [{
+              icon: 'swap-horizontal-outline' as const,
+              onPress: () => setShowMoveSheet(true),
+              disabled: isDeleting || isMoving,
+              variant: 'default' as const,
+            }] : []),
             {
               icon: 'create-outline',
               onPress: handleEdit,
-              disabled: isDeleting,
+              disabled: isDeleting || isMoving,
               variant: 'primary',
             },
           ]}
@@ -506,6 +535,15 @@ export default function ItemDetailScreen() {
           onClose={() => setShowImageModal(false)}
         />
       )}
+
+      <SpaceMoveSheet
+        visible={showMoveSheet}
+        onClose={() => setShowMoveSheet(false)}
+        onMove={handleMoveToSpace}
+        currentSpaceId={currentSpace?.id ?? item?.spaceId}
+        spaces={spaces}
+        isMoving={isMoving}
+      />
     </>
   );
 }

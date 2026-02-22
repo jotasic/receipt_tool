@@ -291,6 +291,31 @@ export async function updateItem(
 }
 
 /**
+ * Move an item to a different space
+ *
+ * Resets classificationId to null since the target space may have
+ * a different classification schema.
+ *
+ * @param id - Item ID
+ * @param targetSpaceId - Target space ID
+ * @returns Promise<void>
+ * @throws Error with [Database] prefix if database operation fails
+ */
+export async function moveItemToSpace(id: string, targetSpaceId: string): Promise<void> {
+  try {
+    const db = await getDatabase();
+    const now = new Date().toISOString();
+    await db.runAsync(
+      'UPDATE items SET space_id = ?, classification_id = NULL, updated_at = ? WHERE id = ?',
+      [targetSpaceId, now, id]
+    );
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    throw new Error(`[Database] Failed to move item: ${errorMessage}`);
+  }
+}
+
+/**
  * Delete an item
  *
  * @param id - Item ID

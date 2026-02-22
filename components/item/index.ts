@@ -6,5 +6,6 @@ export { TagSelector } from './TagSelector';
 export { OcrOverlay } from './OcrOverlay';
 export { CustomFieldInput } from './CustomFieldInput';
 export { ItemsFilterSheet } from './ItemsFilterSheet';
+export { SpaceMoveSheet } from './SpaceMoveSheet';
 export type { SelectionMode, SelectedItem } from './OcrOverlay';
 export type { DateFilter, DateFilterType, FilterState } from './ItemsFilterSheet';

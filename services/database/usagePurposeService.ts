@@ -142,11 +142,16 @@ export async function createUsagePurpose(
       throw new Error('Usage purpose name is required');
     }
 
-    // Check for duplicate name
-    const existing = await db.getFirstAsync<UsagePurposeRow>(
-      'SELECT * FROM usage_purposes WHERE name = ?',
-      [input.name.trim()]
-    );
+    // Check for duplicate name within the same space
+    const existing = input.spaceId
+      ? await db.getFirstAsync<UsagePurposeRow>(
+          'SELECT * FROM usage_purposes WHERE name = ? AND space_id = ?',
+          [input.name.trim(), input.spaceId]
+        )
+      : await db.getFirstAsync<UsagePurposeRow>(
+          'SELECT * FROM usage_purposes WHERE name = ? AND space_id IS NULL',
+          [input.name.trim()]
+        );
 
     if (existing) {
       throw new Error(`Usage purpose with name "${input.name}" already exists`);
@@ -232,12 +237,17 @@ export async function updateUsagePurpose(
       throw new Error(`Usage purpose with ID "${id}" not found`);
     }
 
-    // If updating name, check for duplicates (excluding current record)
+    // If updating name, check for duplicates within the same space (excluding current record)
     if (updates.name && updates.name.trim().length > 0) {
-      const duplicate = await db.getFirstAsync<UsagePurposeRow>(
-        'SELECT * FROM usage_purposes WHERE name = ? AND id != ?',
-        [updates.name.trim(), id]
-      );
+      const duplicate = existing.space_id
+        ? await db.getFirstAsync<UsagePurposeRow>(
+            'SELECT * FROM usage_purposes WHERE name = ? AND space_id = ? AND id != ?',
+            [updates.name.trim(), existing.space_id, id]
+          )
+        : await db.getFirstAsync<UsagePurposeRow>(
+            'SELECT * FROM usage_purposes WHERE name = ? AND space_id IS NULL AND id != ?',
+            [updates.name.trim(), id]
+          );
 
       if (duplicate) {
         throw new Error(`Usage purpose with name "${updates.name}" already exists`);
@@ -246,7 +256,7 @@ export async function updateUsagePurpose(
 
     // Build dynamic UPDATE query
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: Array<string | number | null> = [];
 
     if (updates.name !== undefined && updates.name.trim().length > 0) {
       fields.push('name = ?');

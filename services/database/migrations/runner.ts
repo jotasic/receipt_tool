@@ -9,6 +9,7 @@ import * as SQLite from 'expo-sqlite';
 import { migrateToUnifiedModel } from './unifyModels';
 import { migrateDocumentTypes } from './migrateDocumentTypes';
 import { migrateSpaceFeature } from './spaceFeature';
+import { migrateUsagePurposeUniqueConstraint } from './usagePurposeUniqueConstraint';
 
 export interface MigrationProgress {
   message: string;
@@ -133,11 +134,21 @@ async function migrateV4(
   await migrateSpaceFeature(db, onProgress);
 }
 
+// v5: usage_purpose_unique_constraint - UNIQUE(name) → UNIQUE(name, space_id)
+async function migrateV5(
+  db: SQLite.SQLiteDatabase,
+  onProgress?: MigrationProgressCallback
+): Promise<void> {
+  onProgress?.({ message: '사용처 제약 조건 업데이트 중...' });
+  await migrateUsagePurposeUniqueConstraint(db);
+}
+
 export const ALL_MIGRATIONS: Migration[] = [
   { version: 1, name: 'initial_schema', run: migrateV1 },
   { version: 2, name: 'unified_model', run: migrateV2 },
   { version: 3, name: 'document_types', run: migrateV3 },
   { version: 4, name: 'space_feature', run: migrateV4 },
+  { version: 5, name: 'usage_purpose_unique_constraint', run: migrateV5 },
 ];
 
 /**

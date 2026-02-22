@@ -20,3 +20,5 @@ export {
   DEFAULT_SPACE_IDS,
   DEFAULT_CLASSIFICATION_IDS,
 } from './spaceFeature';
+
+export { migrateUsagePurposeUniqueConstraint } from './usagePurposeUniqueConstraint';

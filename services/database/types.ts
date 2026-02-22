@@ -250,6 +250,7 @@ export interface UsagePurposeRow {
   color: string | null;
   is_active: number;
   display_order: number;
+  space_id: string | null;
 }
 
 /**

@@ -59,6 +59,7 @@ export function TagSelector({
   const addIconColor = useThemeColor(colors.light.text.secondary, colors.dark.text.muted);
   const borderColorForCheckmark = useThemeColor(colors.light.text.primary, colors.dark.text.primary);
   const emptyStateIconColor = useThemeColor(colors.light.text.muted, colors.dark.text.secondary);
+  const checkIconColor = useThemeColor(colors.light.surface, colors.dark.surface);
 
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -240,7 +241,7 @@ export function TagSelector({
                       activeOpacity={0.7}
                     >
                       {newTagColor === color && (
-                        <Ionicons name="checkmark" size={20} color={colors.light.surface} />
+                        <Ionicons name="checkmark" size={20} color={checkIconColor} />
                       )}
                     </TouchableOpacity>
                   ))}

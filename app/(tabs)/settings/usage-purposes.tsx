@@ -21,12 +21,13 @@ import {
   ActivityIndicator,
   TextInput,
   Switch,
+  useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { Header, Input, Button, FullScreenModal, FloatingActionBar } from '@/components/common';
+import { Header, Input, FullScreenModal, FloatingActionBar } from '@/components/common';
 import { IconPicker } from '@/components/common/IconPicker';
 import { ColorPicker, COLORS } from '@/components/common/ColorPicker';
 import {
@@ -39,6 +40,7 @@ import {
 import { isDefaultUsagePurpose } from '@/types/usagePurpose';
 import type { UsagePurpose } from '@/types/usagePurpose';
 import { useSpaceStore } from '@/store/spaceStore';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
 interface UsagePurposeWithCount extends UsagePurpose {
   usageCount: number;
@@ -47,8 +49,12 @@ interface UsagePurposeWithCount extends UsagePurpose {
 export default function UsagePurposeManagementScreen() {
   const router = useRouter();
   const { currentSpace } = useSpaceStore();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const [purposes, setPurposes] = useState<UsagePurposeWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -60,6 +66,12 @@ export default function UsagePurposeManagementScreen() {
   const [purposeColor, setPurposeColor] = useState(COLORS[0].value);
   const [purposeActive, setPurposeActive] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+
+  const editIconColor = useThemeColor('#3B82F6', '#60A5FA');
+  const deleteIconColor = useThemeColor('#EF4444', '#F87171');
+  const deleteIconDisabledColor = useThemeColor('#D1D5DB', '#4B5563');
+  const searchIconColor = useThemeColor('#6B7280', '#9CA3AF');
+  const chevronIconColor = useThemeColor('#9CA3AF', '#6B7280');
 
   // Load usage purposes when screen is focused or current space changes
   useFocusEffect(
@@ -128,7 +140,7 @@ export default function UsagePurposeManagementScreen() {
 
     setIsSaving(true);
     try {
-      const newPurpose = await createUsagePurpose({
+      await createUsagePurpose({
         name: purposeName.trim(),
         nameEn: purposeNameEn.trim() || undefined,
         icon: purposeIcon,
@@ -226,7 +238,7 @@ export default function UsagePurposeManagementScreen() {
   };
 
   const confirmDeletePurpose = async (purpose: UsagePurposeWithCount) => {
-    setIsLoading(true);
+    setIsDeleting(true);
     try {
       await deleteUsagePurpose(purpose.id);
       await loadUsagePurposes();
@@ -238,7 +250,7 @@ export default function UsagePurposeManagementScreen() {
         error instanceof Error ? error.message : '사용처를 삭제할 수 없습니다.'
       );
     } finally {
-      setIsLoading(false);
+      setIsDeleting(false);
     }
   };
 
@@ -316,8 +328,9 @@ export default function UsagePurposeManagementScreen() {
           onPress={() => handleOpenEditModal(purpose)}
           className="w-9 h-9 items-center justify-center mr-2"
           activeOpacity={0.7}
+          disabled={isDeleting}
         >
-          <Ionicons name="create-outline" size={22} color="#3B82F6" />
+          <Ionicons name="create-outline" size={22} color={editIconColor} />
         </TouchableOpacity>
 
         {/* Delete button (disabled for defaults) */}
@@ -325,12 +338,12 @@ export default function UsagePurposeManagementScreen() {
           onPress={() => handleDeletePurpose(purpose)}
           className="w-9 h-9 items-center justify-center"
           activeOpacity={0.7}
-          disabled={isDefault}
+          disabled={isDefault || isDeleting}
         >
           <Ionicons
             name="trash-outline"
             size={22}
-            color={isDefault ? '#D1D5DB' : '#EF4444'}
+            color={isDefault ? deleteIconDisabledColor : deleteIconColor}
           />
         </TouchableOpacity>
       </View>
@@ -394,7 +407,7 @@ export default function UsagePurposeManagementScreen() {
                 />
               </View>
               <Text className="flex-1 text-gray-700 dark:text-gray-300">{purposeIcon}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+              <Ionicons name="chevron-forward" size={20} color={chevronIconColor} />
             </TouchableOpacity>
           </View>
 
@@ -420,8 +433,8 @@ export default function UsagePurposeManagementScreen() {
               <Switch
                 value={purposeActive}
                 onValueChange={setPurposeActive}
-                trackColor={{ false: '#D1D5DB', true: '#3B82F6' }}
-                thumbColor={purposeActive ? '#FFFFFF' : '#F3F4F6'}
+                trackColor={{ false: isDark ? '#374151' : '#D1D5DB', true: '#3B82F6' }}
+                thumbColor={purposeActive ? '#FFFFFF' : (isDark ? '#6B7280' : '#F3F4F6')}
               />
             </View>
           )}
@@ -491,7 +504,7 @@ export default function UsagePurposeManagementScreen() {
         {/* Search bar */}
         <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <View className="flex-row items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
-          <Ionicons name="search" size={20} color="#6B7280" />
+          <Ionicons name="search" size={20} color={searchIconColor} />
           <TextInput
             className="flex-1 ml-2 text-base text-gray-900 dark:text-gray-100"
             placeholder="사용처 검색"
@@ -502,7 +515,7 @@ export default function UsagePurposeManagementScreen() {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#6B7280" />
+              <Ionicons name="close-circle" size={20} color={searchIconColor} />
             </TouchableOpacity>
           )}
         </View>
@@ -512,7 +525,7 @@ export default function UsagePurposeManagementScreen() {
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#3B82F6" />
-          <Text className="mt-2 text-gray-600">로딩 중...</Text>
+          <Text className="mt-2 text-gray-600 dark:text-gray-400">로딩 중...</Text>
         </View>
       ) : filteredPurposes.length === 0 ? (
         <View className="flex-1 items-center justify-center p-6">

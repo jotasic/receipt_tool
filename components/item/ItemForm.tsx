@@ -94,6 +94,10 @@ import type { CustomField } from '@/types';
 interface ItemFormProps {
   /** Initial form data for edit mode (optional) */
   initialData?: Partial<CreateItemInput>;
+  /** Pre-populated tags for edit mode (Tag objects, not IDs) */
+  initialTags?: Tag[];
+  /** Pre-populated custom field values for edit mode */
+  initialCustomValues?: Record<string, string | null>;
   /** Pre-captured image URI for OCR processing */
   imageUri?: string;
   /** Callback when form is submitted successfully */
@@ -104,6 +108,8 @@ interface ItemFormProps {
 
 export function ItemForm({
   initialData,
+  initialTags,
+  initialCustomValues,
   imageUri: initialImageUri,
   onSubmit,
   onCancel,
@@ -120,7 +126,7 @@ export function ItemForm({
     initialData?.classification || 'corporate_card'
   );
   const [usagePurpose, setUsagePurpose] = useState<UsagePurpose>(
-    initialData?.usagePurpose || 'meal'
+    initialData?.usagePurpose ?? ''
   );
   const [imageUri, setImageUri] = useState<string | null>(
     initialImageUri || initialData?.filePath || null
@@ -135,9 +141,7 @@ export function ItemForm({
   );
   const [memo, setMemo] = useState(initialData?.memo || '');
   const [ocrText, setOcrText] = useState(initialData?.ocrText || '');
-  const [selectedTags, setSelectedTags] = useState<Tag[]>(
-    (initialData as any)?.tagObjects || []
-  );
+  const [selectedTags, setSelectedTags] = useState<Tag[]>(initialTags ?? []);
 
   // Custom fields state
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
@@ -186,21 +190,9 @@ export function ItemForm({
       const fields = await getCustomFields();
       setCustomFields(fields);
 
-      // Initialize custom values from initialData if editing
-      if ((initialData as any)?.customValues) {
-        const values: Record<string, string | null> = {};
-        const customValueArray = (initialData as any).customValues;
-
-        // Handle both array format (CustomFieldValue[]) and object format
-        if (Array.isArray(customValueArray)) {
-          customValueArray.forEach((cv: any) => {
-            values[cv.fieldId] = cv.value;
-          });
-        } else if (typeof customValueArray === 'object') {
-          Object.assign(values, customValueArray);
-        }
-
-        setCustomValues(values);
+      // Initialize custom values from initialCustomValues prop if editing
+      if (initialCustomValues) {
+        setCustomValues(initialCustomValues);
       }
     } catch (error) {
       console.error('Failed to load custom fields:', error);

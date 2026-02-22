@@ -517,12 +517,12 @@ export default function ItemDetailScreen() {
             fileType: item.fileType,
             ocrText: item.ocrText,
             memo: item.memo,
-            tagObjects: item.tags,
-            customValues: item.customValues?.reduce((acc, cv) => {
-              acc[cv.fieldId] = cv.value;
-              return acc;
-            }, {} as Record<string, string | null>),
-          } as any}
+          }}
+          initialTags={item.tags}
+          initialCustomValues={item.customValues?.reduce((acc, cv) => {
+            acc[cv.fieldId] = cv.value;
+            return acc;
+          }, {} as Record<string, string | null>)}
           onSubmit={handleUpdateItem}
           onCancel={() => setShowEditModal(false)}
         />

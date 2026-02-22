@@ -116,7 +116,7 @@ export async function updateTag(id: string, updates: UpdateTagInput): Promise<vo
   const db = await getDatabase();
 
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: Array<string | number | null> = [];
 
   if (updates.name !== undefined) {
     fields.push('name = ?');
@@ -399,6 +399,40 @@ export async function getItemsByTag(tagId: string): Promise<string[]> {
   );
 
   return rows.map((row) => row.item_id);
+}
+
+/**
+ * Get all tags with item usage count (single aggregation query, no N+1)
+ *
+ * @param spaceId - Optional space ID to filter by
+ * @returns Promise<Array<Tag & { itemCount: number }>>
+ */
+export async function getTagsWithItemCount(
+  spaceId?: string
+): Promise<Array<Tag & { itemCount: number }>> {
+  const db = await getDatabase();
+  const rows = spaceId
+    ? await db.getAllAsync<TagRow & { item_count: number }>(
+        `SELECT t.*, COUNT(it.item_id) as item_count
+         FROM tags t
+         LEFT JOIN item_tags it ON t.id = it.tag_id
+         WHERE t.space_id = ?
+         GROUP BY t.id
+         ORDER BY t.name ASC`,
+        [spaceId]
+      )
+    : await db.getAllAsync<TagRow & { item_count: number }>(
+        `SELECT t.*, COUNT(it.item_id) as item_count
+         FROM tags t
+         LEFT JOIN item_tags it ON t.id = it.tag_id
+         GROUP BY t.id
+         ORDER BY t.name ASC`
+      );
+
+  return rows.map((row) => ({
+    ...rowToTag(row),
+    itemCount: row.item_count,
+  }));
 }
 
 /**

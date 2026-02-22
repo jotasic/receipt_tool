@@ -211,12 +211,14 @@ export const SCHEMA = {
   usage_purposes: `
     CREATE TABLE IF NOT EXISTS usage_purposes (
       id TEXT PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
       name_en TEXT,
       icon TEXT,
       color TEXT,
       is_active INTEGER DEFAULT 1,
-      display_order INTEGER DEFAULT 0
+      display_order INTEGER DEFAULT 0,
+      space_id TEXT REFERENCES spaces(id),
+      UNIQUE(name, space_id)
     )
   `,
 
@@ -473,6 +475,7 @@ export interface UsagePurposeRow {
   color: string | null;
   is_active: number;
   display_order: number;
+  space_id: string | null;
 }
 
 export interface ReportItemRow {

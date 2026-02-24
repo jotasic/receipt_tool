@@ -273,7 +273,13 @@ export async function deleteSpace(id: string): Promise<void> {
       );
     }
 
-    await db.runAsync('DELETE FROM spaces WHERE id = ?', [id]);
+    // Explicitly delete all associated data before removing the space
+    await db.withTransactionAsync(async () => {
+      await db.runAsync('DELETE FROM classifications WHERE space_id = ?', [id]);
+      await db.runAsync('DELETE FROM usage_purposes WHERE space_id = ?', [id]);
+      await db.runAsync('DELETE FROM tags WHERE space_id = ?', [id]);
+      await db.runAsync('DELETE FROM spaces WHERE id = ?', [id]);
+    });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
     throw new Error(`[Database] Failed to delete space: ${errorMessage}`);

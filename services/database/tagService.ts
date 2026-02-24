@@ -93,14 +93,20 @@ export async function getTagById(id: string): Promise<Tag | null> {
  * Get a tag by name
  *
  * @param name - Tag name
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Tag | null> - Tag object or null if not found
  */
-export async function getTagByName(name: string): Promise<Tag | null> {
+export async function getTagByName(name: string, spaceId?: string): Promise<Tag | null> {
   const db = await getDatabase();
-  const row = await db.getFirstAsync<TagRow>(
-    'SELECT * FROM tags WHERE name = ?',
-    [name]
-  );
+  const row = spaceId
+    ? await db.getFirstAsync<TagRow>(
+        'SELECT * FROM tags WHERE name = ? AND space_id = ?',
+        [name, spaceId]
+      )
+    : await db.getFirstAsync<TagRow>(
+        'SELECT * FROM tags WHERE name = ?',
+        [name]
+      );
 
   return row ? rowToTag(row) : null;
 }
@@ -151,15 +157,21 @@ export async function deleteTag(id: string): Promise<void> {
  * Search tags by name
  *
  * @param query - Search query
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Tag[]> - Array of matching tags
  */
-export async function searchTags(query: string): Promise<Tag[]> {
+export async function searchTags(query: string, spaceId?: string): Promise<Tag[]> {
   const db = await getDatabase();
   const searchPattern = `%${query}%`;
-  const rows = await db.getAllAsync<TagRow>(
-    'SELECT * FROM tags WHERE name LIKE ? ORDER BY name ASC',
-    [searchPattern]
-  );
+  const rows = spaceId
+    ? await db.getAllAsync<TagRow>(
+        'SELECT * FROM tags WHERE name LIKE ? AND space_id = ? ORDER BY name ASC',
+        [searchPattern, spaceId]
+      )
+    : await db.getAllAsync<TagRow>(
+        'SELECT * FROM tags WHERE name LIKE ? ORDER BY name ASC',
+        [searchPattern]
+      );
 
   return rows.map(rowToTag);
 }

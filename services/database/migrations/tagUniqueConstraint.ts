@@ -36,10 +36,10 @@ export async function migrateTagUniqueConstraint(
       );
     `);
 
-    // Step 3: Copy all data from the old table
+    // Step 3: Copy all data from the old table (including space_id)
     await db.execAsync(`
-      INSERT INTO tags (id, name, color, created_at)
-      SELECT id, name, color, created_at
+      INSERT INTO tags (id, name, color, created_at, space_id)
+      SELECT id, name, color, created_at, space_id
       FROM tags_old;
     `);
 

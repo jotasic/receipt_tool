@@ -7,6 +7,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import * as Sharing from 'expo-sharing';
 import { FloatingActionBar } from '@/components/common';
 import { ItemCard } from '@/components/item/ItemCard';
@@ -101,9 +102,11 @@ function SummaryCard({ summary }: { summary: MonthlySummary }) {
 }
 
 function EmptyState({ year, month }: { year: string; month: string }) {
+  const emptyIconColor = useThemeColor('#9CA3AF', '#6B7280');
+
   return (
     <View className="flex-1 items-center justify-center px-6">
-      <Ionicons name="receipt-outline" size={64} color="#9CA3AF" />
+      <Ionicons name="receipt-outline" size={64} color={emptyIconColor} />
       <Text className="text-lg font-semibold mt-4 text-gray-900 dark:text-gray-100">
         {year}년 {month}월에 항목이 없습니다
       </Text>
@@ -124,6 +127,7 @@ export function MonthlyReportScreen({ year, month }: Props) {
   const [summary, setSummary] = useState<MonthlySummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const refreshTintColor = useThemeColor('#3B82F6', '#60A5FA');
 
   const handleExport = useCallback(async () => {
     if (!year || !month) return;
@@ -200,7 +204,7 @@ export function MonthlyReportScreen({ year, month }: Props) {
           <RefreshControl
             refreshing={isLoading}
             onRefresh={loadMonthlyData}
-            tintColor="#3B82F6"
+            tintColor={refreshTintColor}
           />
         }
       />

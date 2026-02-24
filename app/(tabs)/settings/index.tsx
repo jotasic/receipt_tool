@@ -292,7 +292,7 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <Header title="설정" />
+      <Header title="설정" showSpaceIcon />
       <TabScreenContent>
         <ScrollView className="flex-1 bg-white dark:bg-gray-900">
         {/* Loading overlay */}
@@ -355,6 +355,13 @@ export default function SettingsScreen() {
               title="사용처 관리"
               hasArrow
               onPress={() => router.push('/(tabs)/settings/usage-purposes')}
+              disabled={isClearing}
+            />
+            <SettingItem
+              icon="grid-outline"
+              title="분류 관리"
+              hasArrow
+              onPress={() => router.push('/(tabs)/settings/classifications')}
               disabled={isClearing}
             />
             <SettingItem

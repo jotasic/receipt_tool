@@ -4,12 +4,12 @@
  * Provides UI for backing up and restoring app data
  */
 
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, useColorScheme } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { Header } from '@/components/common';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import {
   createBackup,
   shareBackup,
@@ -77,7 +77,6 @@ function Button({ title, onPress, variant = 'primary', loading = false, disabled
 }
 
 export default function BackupScreen() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState<BackupStats>({
     items: 0,
@@ -86,7 +85,10 @@ export default function BackupScreen() {
     customFields: 0,
     usagePurposes: 0,
   });
-  const colorScheme = useColorScheme();
+
+  const primaryColor = useThemeColor('#3B82F6', '#60A5FA');
+  const grayIconColor = useThemeColor('#6B7280', '#9CA3AF');
+  const dangerColor = useThemeColor('#EF4444', '#F87171');
 
   useEffect(() => {
     loadStats();
@@ -172,7 +174,7 @@ export default function BackupScreen() {
         {isLoading && (
           <View className="absolute inset-0 bg-black/30 items-center justify-center z-50">
             <View className="bg-white dark:bg-gray-800 rounded-lg p-6 items-center">
-              <ActivityIndicator size="large" color="#3B82F6" />
+              <ActivityIndicator size="large" color={primaryColor} />
               <Text className="mt-4 text-gray-700 dark:text-gray-300">처리 중...</Text>
             </View>
           </View>
@@ -182,7 +184,7 @@ export default function BackupScreen() {
           {/* Info Banner */}
           <Card className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
             <View className="flex-row items-start">
-              <Ionicons name="information-circle" size={24} color="#3B82F6" style={{ marginRight: 12 }} />
+              <Ionicons name="information-circle" size={24} color={primaryColor} style={{ marginRight: 12 }} />
               <View className="flex-1">
                 <Text className="text-sm text-blue-900 dark:text-blue-100 leading-5">
                   백업 파일은 모든 데이터베이스 데이터를 포함합니다.{'\n'}
@@ -200,7 +202,7 @@ export default function BackupScreen() {
             <View className="space-y-2">
               <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                 <View className="flex-row items-center">
-                  <Ionicons name="receipt" size={20} color="#6B7280" style={{ marginRight: 8 }} />
+                  <Ionicons name="receipt" size={20} color={grayIconColor} style={{ marginRight: 8 }} />
                   <Text className="text-gray-700 dark:text-gray-300">항목</Text>
                 </View>
                 <Text className="text-gray-900 dark:text-gray-100 font-semibold">
@@ -210,7 +212,7 @@ export default function BackupScreen() {
 
               <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                 <View className="flex-row items-center">
-                  <Ionicons name="pricetags" size={20} color="#6B7280" style={{ marginRight: 8 }} />
+                  <Ionicons name="pricetags" size={20} color={grayIconColor} style={{ marginRight: 8 }} />
                   <Text className="text-gray-700 dark:text-gray-300">태그</Text>
                 </View>
                 <Text className="text-gray-900 dark:text-gray-100 font-semibold">
@@ -220,7 +222,7 @@ export default function BackupScreen() {
 
               <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                 <View className="flex-row items-center">
-                  <Ionicons name="document-text" size={20} color="#6B7280" style={{ marginRight: 8 }} />
+                  <Ionicons name="document-text" size={20} color={grayIconColor} style={{ marginRight: 8 }} />
                   <Text className="text-gray-700 dark:text-gray-300">리포트</Text>
                 </View>
                 <Text className="text-gray-900 dark:text-gray-100 font-semibold">
@@ -230,7 +232,7 @@ export default function BackupScreen() {
 
               <View className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                 <View className="flex-row items-center">
-                  <Ionicons name="cube" size={20} color="#6B7280" style={{ marginRight: 8 }} />
+                  <Ionicons name="cube" size={20} color={grayIconColor} style={{ marginRight: 8 }} />
                   <Text className="text-gray-700 dark:text-gray-300">사용처</Text>
                 </View>
                 <Text className="text-gray-900 dark:text-gray-100 font-semibold">
@@ -240,7 +242,7 @@ export default function BackupScreen() {
 
               <View className="flex-row justify-between items-center py-2">
                 <View className="flex-row items-center">
-                  <Ionicons name="list" size={20} color="#6B7280" style={{ marginRight: 8 }} />
+                  <Ionicons name="list" size={20} color={grayIconColor} style={{ marginRight: 8 }} />
                   <Text className="text-gray-700 dark:text-gray-300">커스텀 필드</Text>
                 </View>
                 <Text className="text-gray-900 dark:text-gray-100 font-semibold">
@@ -274,7 +276,7 @@ export default function BackupScreen() {
             </Text>
             <View className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 mb-4">
               <View className="flex-row items-start">
-                <Ionicons name="warning" size={20} color="#EF4444" style={{ marginRight: 8 }} />
+                <Ionicons name="warning" size={20} color={dangerColor} style={{ marginRight: 8 }} />
                 <Text className="text-sm text-red-800 dark:text-red-200 flex-1">
                   복원 시 현재 데이터가 모두 삭제됩니다.{'\n'}
                   이 작업은 되돌릴 수 없습니다.

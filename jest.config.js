@@ -7,6 +7,10 @@ module.exports = {
     'node_modules/(?!(expo-sqlite|expo-modules-core|@expo|react-native|@react-native)/)',
   ],
   testEnvironment: 'node',
+  globals: {
+    // React Native / Expo require __DEV__ to be defined globally
+    __DEV__: true,
+  },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
@@ -15,7 +19,7 @@ module.exports = {
   testPathIgnorePatterns: [
     '/node_modules/',
     'services/database/__tests__/',          // require native expo-sqlite
-    'services/database/migrations/__tests__/migrateDocumentTypes\\.test\\.ts',
+    'services/database/migrations/__tests__/migrateDocumentTypes\\.test\\.ts', // requires native expo-sqlite
     'components/__tests__/StyledText-test\\.js', // requires react-test-renderer + native
   ],
 };

@@ -11,6 +11,7 @@ import { migrateDocumentTypes } from './migrateDocumentTypes';
 import { migrateSpaceFeature } from './spaceFeature';
 import { migrateUsagePurposeUniqueConstraint } from './usagePurposeUniqueConstraint';
 import { migrateTagUniqueConstraint } from './tagUniqueConstraint';
+import { restoreTagSpaceId } from './restoreTagSpaceId';
 
 export interface MigrationProgress {
   message: string;
@@ -153,6 +154,15 @@ async function migrateV6(
   await migrateTagUniqueConstraint(db);
 }
 
+// v7: restore_tag_space_id - recover NULL space_id tags caused by the v6 bug
+async function migrateV7(
+  db: SQLite.SQLiteDatabase,
+  onProgress?: MigrationProgressCallback
+): Promise<void> {
+  onProgress?.({ message: '태그 공간 정보 복구 중...' });
+  await restoreTagSpaceId(db);
+}
+
 export const ALL_MIGRATIONS: Migration[] = [
   { version: 1, name: 'initial_schema', run: migrateV1 },
   { version: 2, name: 'unified_model', run: migrateV2 },
@@ -160,6 +170,7 @@ export const ALL_MIGRATIONS: Migration[] = [
   { version: 4, name: 'space_feature', run: migrateV4 },
   { version: 5, name: 'usage_purpose_unique_constraint', run: migrateV5 },
   { version: 6, name: 'tag_unique_constraint', run: migrateV6 },
+  { version: 7, name: 'restore_tag_space_id', run: migrateV7 },
 ];
 
 /**

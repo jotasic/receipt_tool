@@ -193,7 +193,7 @@ export default function ItemsScreen() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await loadItems();
+    await loadItems(currentSpace?.id ?? null);
     setIsRefreshing(false);
   };
 
@@ -212,7 +212,7 @@ export default function ItemsScreen() {
         await setItemCustomValues(item.id, customValues);
       }
 
-      await loadItems();
+      await loadItems(currentSpace?.id ?? null);
       setShowAddModal(false);
       Alert.alert('성공', '항목이 추가되었습니다.');
     } catch (error) {

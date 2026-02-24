@@ -29,7 +29,7 @@ export default function HomeScreen() {
   // 포커스마다 항목 + 분류 재로드
   useFocusEffect(
     useCallback(() => {
-      loadItemsIfStale();
+      loadItemsIfStale(currentSpace?.id ?? null);
       if (currentSpace) {
         loadClassifications(currentSpace.id);
       }
@@ -60,7 +60,7 @@ export default function HomeScreen() {
         await setItemCustomValues(item.id, customValues);
       }
 
-      await loadItems();
+      await loadItems(currentSpace?.id ?? null);
       setShowAddModal(false);
       Alert.alert('성공', '항목이 추가되었습니다.');
     } catch (error) {
@@ -118,7 +118,10 @@ export default function HomeScreen() {
         <ScrollView
           className="flex-1 bg-white dark:bg-gray-900"
           refreshControl={
-            <RefreshControl refreshing={isLoading} onRefresh={loadItems} />
+            <RefreshControl
+              refreshing={isLoading}
+              onRefresh={() => loadItems(currentSpace?.id ?? null)}
+            />
           }
         >
           {/* Monthly Expense Summary Card */}

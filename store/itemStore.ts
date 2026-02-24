@@ -21,7 +21,7 @@ interface ItemStore {
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   /** 항상 강제 로드 (생성/수정/삭제 후 호출) */
-  loadItems: () => Promise<void>;
+  loadItems: (spaceId?: string | null) => Promise<void>;
   /** 30초 이내 로드된 경우 스킵, Space 변경 시 무조건 재로드 (탭 전환 시 호출) */
   loadItemsIfStale: (currentSpaceId?: string | null) => Promise<void>;
 
@@ -57,14 +57,15 @@ export const useItemStore = create<ItemStore>((set, get) => ({
   setError: (error) => set({ error }),
 
   // Load items from database (항상 강제 로드)
-  loadItems: async () => {
+  loadItems: async (spaceId?: string | null) => {
+    if (get().isLoading) return; // race condition 방지
     set({ isLoading: true, error: null });
     try {
-      const items = await getItemsWithTags();
+      const items = await getItemsWithTags(spaceId ?? undefined);
       set({ items, isLoading: false, lastLoadedAt: Date.now() });
     } catch (error) {
       set({
-        error: error instanceof Error ? error.message : 'Failed to load items',
+        error: error instanceof Error ? error.message : '로딩 실패',
         isLoading: false,
       });
     }
@@ -80,7 +81,7 @@ export const useItemStore = create<ItemStore>((set, get) => ({
     if (currentSpaceId !== undefined) {
       set({ lastLoadedSpaceId: currentSpaceId });
     }
-    await loadItems();
+    await loadItems(currentSpaceId); // spaceId 전달
   },
 
   // Selectors

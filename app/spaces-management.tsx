@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Header, FullScreenModal, FloatingActionBar } from '@/components/common';
@@ -50,6 +50,7 @@ export default function SpacesManagementScreen() {
   });
   const [isSaving, setIsSaving] = useState(false);
 
+  const insets = useSafeAreaInsets();
   const placeholderColor = useThemeColor('#9CA3AF', '#6B7280');
   const loadingColor = useThemeColor('#3B82F6', '#60A5FA');
   const emptyIconColor = useThemeColor('#9CA3AF', '#6B7280');
@@ -273,13 +274,8 @@ export default function SpacesManagementScreen() {
       </FullScreenModal>
 
       <FloatingActionBar
-        actions={[
-          {
-            icon: 'add',
-            onPress: handleAddSpace,
-            variant: 'primary',
-          },
-        ]}
+        bottomInset={insets.bottom}
+        actions={[{ icon: 'add', onPress: handleAddSpace, variant: 'primary' }]}
       />
     </SafeAreaView>
   );

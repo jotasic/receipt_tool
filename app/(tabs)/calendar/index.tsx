@@ -14,6 +14,7 @@ import { AgendaCalendar } from '@/components/calendar/AgendaCalendar';
 import { MonthViewCalendar, type MonthViewCalendarRef } from '@/components/calendar/MonthViewCalendar';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
+import { useSpaceStore } from '@/store/spaceStore';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
 type ViewMode = 'agenda' | 'month';
@@ -29,15 +30,17 @@ export default function CalendarScreen() {
   const focusKeyRef = useRef(0);
   const [focusKey, setFocusKey] = useState(0);
   const monthCalendarRef = useRef<MonthViewCalendarRef>(null);
-  const { items, loadItemsIfStale } = useItemStore();
+  const { items, loadItemsIfStale, error } = useItemStore();
+  const { currentSpace } = useSpaceStore();
   const todayButtonColor = useThemeColor('#2563EB', '#60A5FA');
+  const errorTextColor = useThemeColor('#EF4444', '#F87171');
 
   useFocusEffect(
     useCallback(() => {
       focusKeyRef.current += 1;
       setFocusKey(focusKeyRef.current);
-      loadItemsIfStale();
-    }, [loadItemsIfStale])
+      loadItemsIfStale(currentSpace?.id ?? null);
+    }, [loadItemsIfStale, currentSpace?.id])
   );
 
   // Create markers for dates with items (agenda mode)
@@ -103,7 +106,13 @@ export default function CalendarScreen() {
         }
       />
       <TabScreenContent>
-        {viewMode === 'month' ? (
+        {error ? (
+          <View className="flex-1 items-center justify-center px-6">
+            <Text className="text-base text-center" style={{ color: errorTextColor }}>
+              데이터를 불러오지 못했습니다.
+            </Text>
+          </View>
+        ) : viewMode === 'month' ? (
           <MonthViewCalendar
             ref={monthCalendarRef}
             items={items}

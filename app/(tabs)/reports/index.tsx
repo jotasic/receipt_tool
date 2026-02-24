@@ -6,11 +6,14 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
+import { useSpaceStore } from '@/store/spaceStore';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import {
   getMonthlyItems,
   calculateMonthlySummary,
@@ -39,6 +42,8 @@ function getRecentMonths(count: number = 6) {
 
 function MonthCard({ data }: { data: MonthData }) {
   const { year, month, summary, isLoading } = data;
+  const loadingColor = useThemeColor('#3B82F6', '#60A5FA');
+  const chevronColor = useThemeColor('#9CA3AF', '#6B7280');
 
   const handlePress = () => {
     router.push(`/(tabs)/reports/monthly/${year}/${month}` as any);
@@ -47,7 +52,7 @@ function MonthCard({ data }: { data: MonthData }) {
   if (isLoading) {
     return (
       <View className="bg-white dark:bg-gray-800 rounded-xl p-6 mb-3 border border-gray-100 dark:border-gray-700">
-        <ActivityIndicator size="small" color="#3B82F6" />
+        <ActivityIndicator size="small" color={loadingColor} />
       </View>
     );
   }
@@ -73,7 +78,7 @@ function MonthCard({ data }: { data: MonthData }) {
           </Text>
         </View>
         {hasItems && (
-          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          <Ionicons name="chevron-forward" size={20} color={chevronColor} />
         )}
       </View>
 
@@ -91,8 +96,10 @@ function MonthCard({ data }: { data: MonthData }) {
 export default function ReportsScreen() {
   const [monthsData, setMonthsData] = useState<MonthData[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { currentSpace } = useSpaceStore();
+  const refreshTintColor = useThemeColor('#3B82F6', '#60A5FA');
 
-  const loadAllMonths = async () => {
+  const loadAllMonths = useCallback(async () => {
     const months = getRecentMonths(6);
 
     // Initialize with loading state
@@ -114,11 +121,15 @@ export default function ReportsScreen() {
     const results = await Promise.all(
       months.map(async ({ year, month }) => {
         try {
-          const items = await getMonthlyItems(year, month);
+          const allItems = await getMonthlyItems(year, month);
+          // 현재 공간 기준 필터링
+          const items = currentSpace
+            ? allItems.filter((item) => item.spaceId === currentSpace.id)
+            : allItems;
           const summary = calculateMonthlySummary(items);
           return { year, month, summary, isLoading: false };
         } catch (error) {
-          console.error(`Failed to load ${year}-${month}:`, error);
+          Alert.alert('오류', '데이터를 불러오지 못했습니다.');
           return {
             year,
             month,
@@ -135,12 +146,12 @@ export default function ReportsScreen() {
     );
 
     setMonthsData(results);
-  };
+  }, [currentSpace]);
 
   useFocusEffect(
     useCallback(() => {
       loadAllMonths();
-    }, [])
+    }, [loadAllMonths])
   );
 
   const handleRefresh = async () => {
@@ -163,7 +174,7 @@ export default function ReportsScreen() {
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={handleRefresh}
-              tintColor="#3B82F6"
+              tintColor={refreshTintColor}
             />
           }
           ListHeaderComponent={

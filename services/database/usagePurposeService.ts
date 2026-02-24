@@ -160,11 +160,16 @@ export async function createUsagePurpose(
     // Generate ID if not provided
     const id = input.id || generateUniqueId();
 
-    // Auto-assign display_order if not provided
+    // Auto-assign display_order if not provided (scoped to the same space)
     let displayOrder = input.displayOrder;
     if (displayOrder === undefined) {
+      const orderQuery = input.spaceId
+        ? 'SELECT MAX(display_order) as max_order FROM usage_purposes WHERE space_id = ?'
+        : 'SELECT MAX(display_order) as max_order FROM usage_purposes WHERE space_id IS NULL';
+      const orderParams = input.spaceId ? [input.spaceId] : [];
       const maxOrderRow = await db.getFirstAsync<{ max_order: number | null }>(
-        'SELECT MAX(display_order) as max_order FROM usage_purposes'
+        orderQuery,
+        orderParams
       );
       displayOrder = (maxOrderRow?.max_order ?? 0) + 1;
     }
@@ -444,6 +449,7 @@ export async function deleteUsagePurpose(id: string): Promise<void> {
  * Queries the items table to see if any records reference this usage purpose.
  *
  * @param id - Usage purpose ID
+ * @param spaceId - Optional space ID to scope the check; omit for all spaces
  * @returns Promise<boolean> - true if in use, false otherwise
  * @throws Error with [Database] prefix if database operation fails
  *
@@ -453,14 +459,16 @@ export async function deleteUsagePurpose(id: string): Promise<void> {
  *   console.log('This purpose is being used by items');
  * }
  */
-export async function isUsagePurposeInUse(id: string): Promise<boolean> {
+export async function isUsagePurposeInUse(id: string, spaceId?: string): Promise<boolean> {
   try {
     const db = await getDatabase();
 
-    const result = await db.getFirstAsync<{ count: number }>(
-      'SELECT COUNT(*) as count FROM items WHERE usage_purpose = ?',
-      [id]
-    );
+    const query = spaceId
+      ? 'SELECT COUNT(*) as count FROM items WHERE usage_purpose = ? AND space_id = ?'
+      : 'SELECT COUNT(*) as count FROM items WHERE usage_purpose = ?';
+    const params = spaceId ? [id, spaceId] : [id];
+
+    const result = await db.getFirstAsync<{ count: number }>(query, params);
 
     return (result?.count ?? 0) > 0;
   } catch (error) {
@@ -475,17 +483,20 @@ export async function isUsagePurposeInUse(id: string): Promise<boolean> {
  * Returns the number of items using this usage purpose.
  *
  * @param id - Usage purpose ID
+ * @param spaceId - Optional space ID to scope the count; omit for all spaces
  * @returns Promise<number> - Number of items using this purpose
  * @throws Error with [Database] prefix if database operation fails
  */
-export async function getUsagePurposeUsageCount(id: string): Promise<number> {
+export async function getUsagePurposeUsageCount(id: string, spaceId?: string): Promise<number> {
   try {
     const db = await getDatabase();
 
-    const result = await db.getFirstAsync<{ count: number }>(
-      'SELECT COUNT(*) as count FROM items WHERE usage_purpose = ?',
-      [id]
-    );
+    const query = spaceId
+      ? 'SELECT COUNT(*) as count FROM items WHERE usage_purpose = ? AND space_id = ?'
+      : 'SELECT COUNT(*) as count FROM items WHERE usage_purpose = ?';
+    const params = spaceId ? [id, spaceId] : [id];
+
+    const result = await db.getFirstAsync<{ count: number }>(query, params);
 
     return result?.count ?? 0;
   } catch (error) {

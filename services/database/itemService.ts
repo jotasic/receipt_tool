@@ -336,17 +336,24 @@ export async function deleteItem(id: string): Promise<void> {
  * Get items by classification
  *
  * @param classification - Item classification to filter by
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Item[]> - Array of items with the specified classification
  */
 export async function getItemsByClassification(
-  classification: ItemClassification
+  classification: ItemClassification,
+  spaceId?: string
 ): Promise<Item[]> {
   try {
     const db = await getDatabase();
-    const rows = await db.getAllAsync<ItemRow>(
-      'SELECT * FROM items WHERE classification = ? ORDER BY date DESC, created_at DESC',
-      [classification]
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<ItemRow>(
+          'SELECT * FROM items WHERE classification = ? AND space_id = ? ORDER BY date DESC, created_at DESC',
+          [classification, spaceId]
+        )
+      : await db.getAllAsync<ItemRow>(
+          'SELECT * FROM items WHERE classification = ? ORDER BY date DESC, created_at DESC',
+          [classification]
+        );
 
     return rows.map(rowToItem);
   } catch (error) {
@@ -359,17 +366,24 @@ export async function getItemsByClassification(
  * Get items by usage purpose
  *
  * @param usagePurpose - Usage purpose to filter by
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Item[]> - Array of items with the specified usage purpose
  */
 export async function getItemsByUsagePurpose(
-  usagePurpose: UsagePurpose
+  usagePurpose: UsagePurpose,
+  spaceId?: string
 ): Promise<Item[]> {
   try {
     const db = await getDatabase();
-    const rows = await db.getAllAsync<ItemRow>(
-      'SELECT * FROM items WHERE usage_purpose = ? ORDER BY date DESC, created_at DESC',
-      [usagePurpose]
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<ItemRow>(
+          'SELECT * FROM items WHERE usage_purpose = ? AND space_id = ? ORDER BY date DESC, created_at DESC',
+          [usagePurpose, spaceId]
+        )
+      : await db.getAllAsync<ItemRow>(
+          'SELECT * FROM items WHERE usage_purpose = ? ORDER BY date DESC, created_at DESC',
+          [usagePurpose]
+        );
 
     return rows.map(rowToItem);
   } catch (error) {
@@ -383,18 +397,25 @@ export async function getItemsByUsagePurpose(
  *
  * @param startDate - Start date (ISO string: YYYY-MM-DD)
  * @param endDate - End date (ISO string: YYYY-MM-DD)
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Item[]> - Array of items within date range
  */
 export async function getItemsByDateRange(
   startDate: string,
-  endDate: string
+  endDate: string,
+  spaceId?: string
 ): Promise<Item[]> {
   try {
     const db = await getDatabase();
-    const rows = await db.getAllAsync<ItemRow>(
-      'SELECT * FROM items WHERE date >= ? AND date <= ? ORDER BY date DESC, created_at DESC',
-      [startDate, endDate]
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<ItemRow>(
+          'SELECT * FROM items WHERE date >= ? AND date <= ? AND space_id = ? ORDER BY date DESC, created_at DESC',
+          [startDate, endDate, spaceId]
+        )
+      : await db.getAllAsync<ItemRow>(
+          'SELECT * FROM items WHERE date >= ? AND date <= ? ORDER BY date DESC, created_at DESC',
+          [startDate, endDate]
+        );
 
     return rows.map(rowToItem);
   } catch (error) {
@@ -407,18 +428,26 @@ export async function getItemsByDateRange(
  * Search items by title, store name, or memo
  *
  * @param query - Search query
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Item[]> - Array of matching items
  */
-export async function searchItems(query: string): Promise<Item[]> {
+export async function searchItems(query: string, spaceId?: string): Promise<Item[]> {
   try {
     const db = await getDatabase();
     const searchPattern = `%${query}%`;
-    const rows = await db.getAllAsync<ItemRow>(
-      `SELECT * FROM items
-       WHERE title LIKE ? OR store_name LIKE ? OR memo LIKE ?
-       ORDER BY date DESC, created_at DESC`,
-      [searchPattern, searchPattern, searchPattern]
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<ItemRow>(
+          `SELECT * FROM items
+           WHERE (title LIKE ? OR store_name LIKE ? OR memo LIKE ?) AND space_id = ?
+           ORDER BY date DESC, created_at DESC`,
+          [searchPattern, searchPattern, searchPattern, spaceId]
+        )
+      : await db.getAllAsync<ItemRow>(
+          `SELECT * FROM items
+           WHERE title LIKE ? OR store_name LIKE ? OR memo LIKE ?
+           ORDER BY date DESC, created_at DESC`,
+          [searchPattern, searchPattern, searchPattern]
+        );
 
     return rows.map(rowToItem);
   } catch (error) {
@@ -433,17 +462,24 @@ export async function searchItems(query: string): Promise<Item[]> {
  * Only counts items that have an amount value (excludes proof documents without amounts).
  *
  * @param usagePurpose - Usage purpose to filter by
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<number> - Total amount for the specified usage purpose
  */
 export async function getTotalByUsagePurpose(
-  usagePurpose: UsagePurpose
+  usagePurpose: UsagePurpose,
+  spaceId?: string
 ): Promise<number> {
   try {
     const db = await getDatabase();
-    const result = await db.getFirstAsync<{ total: number | null }>(
-      'SELECT SUM(amount) as total FROM items WHERE usage_purpose = ? AND amount IS NOT NULL',
-      [usagePurpose]
-    );
+    const result = spaceId
+      ? await db.getFirstAsync<{ total: number | null }>(
+          'SELECT SUM(amount) as total FROM items WHERE usage_purpose = ? AND space_id = ? AND amount IS NOT NULL',
+          [usagePurpose, spaceId]
+        )
+      : await db.getFirstAsync<{ total: number | null }>(
+          'SELECT SUM(amount) as total FROM items WHERE usage_purpose = ? AND amount IS NOT NULL',
+          [usagePurpose]
+        );
 
     return result?.total ?? 0;
   } catch (error) {
@@ -458,17 +494,24 @@ export async function getTotalByUsagePurpose(
  * Only counts items that have an amount value.
  *
  * @param classification - Classification to filter by
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<number> - Total amount for the specified classification
  */
 export async function getTotalByClassification(
-  classification: ItemClassification
+  classification: ItemClassification,
+  spaceId?: string
 ): Promise<number> {
   try {
     const db = await getDatabase();
-    const result = await db.getFirstAsync<{ total: number | null }>(
-      'SELECT SUM(amount) as total FROM items WHERE classification = ? AND amount IS NOT NULL',
-      [classification]
-    );
+    const result = spaceId
+      ? await db.getFirstAsync<{ total: number | null }>(
+          'SELECT SUM(amount) as total FROM items WHERE classification = ? AND space_id = ? AND amount IS NOT NULL',
+          [classification, spaceId]
+        )
+      : await db.getFirstAsync<{ total: number | null }>(
+          'SELECT SUM(amount) as total FROM items WHERE classification = ? AND amount IS NOT NULL',
+          [classification]
+        );
 
     return result?.total ?? 0;
   } catch (error) {
@@ -484,18 +527,25 @@ export async function getTotalByClassification(
  *
  * @param classification - Classification to filter by
  * @param usagePurpose - Usage purpose to filter by
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Item[]> - Array of items matching both criteria
  */
 export async function getItemsByClassificationAndPurpose(
   classification: ItemClassification,
-  usagePurpose: UsagePurpose
+  usagePurpose: UsagePurpose,
+  spaceId?: string
 ): Promise<Item[]> {
   try {
     const db = await getDatabase();
-    const rows = await db.getAllAsync<ItemRow>(
-      'SELECT * FROM items WHERE classification = ? AND usage_purpose = ? ORDER BY date DESC, created_at DESC',
-      [classification, usagePurpose]
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<ItemRow>(
+          'SELECT * FROM items WHERE classification = ? AND usage_purpose = ? AND space_id = ? ORDER BY date DESC, created_at DESC',
+          [classification, usagePurpose, spaceId]
+        )
+      : await db.getAllAsync<ItemRow>(
+          'SELECT * FROM items WHERE classification = ? AND usage_purpose = ? ORDER BY date DESC, created_at DESC',
+          [classification, usagePurpose]
+        );
 
     return rows.map(rowToItem);
   } catch (error) {
@@ -509,20 +559,29 @@ export async function getItemsByClassificationAndPurpose(
  *
  * @param classification - Classification to filter by
  * @param usagePurpose - Usage purpose to filter by
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<number> - Total amount for the specified criteria
  */
 export async function getTotalByClassificationAndPurpose(
   classification: ItemClassification,
-  usagePurpose: UsagePurpose
+  usagePurpose: UsagePurpose,
+  spaceId?: string
 ): Promise<number> {
   try {
     const db = await getDatabase();
-    const result = await db.getFirstAsync<{ total: number | null }>(
-      `SELECT SUM(amount) as total
-       FROM items
-       WHERE classification = ? AND usage_purpose = ? AND amount IS NOT NULL`,
-      [classification, usagePurpose]
-    );
+    const result = spaceId
+      ? await db.getFirstAsync<{ total: number | null }>(
+          `SELECT SUM(amount) as total
+           FROM items
+           WHERE classification = ? AND usage_purpose = ? AND space_id = ? AND amount IS NOT NULL`,
+          [classification, usagePurpose, spaceId]
+        )
+      : await db.getFirstAsync<{ total: number | null }>(
+          `SELECT SUM(amount) as total
+           FROM items
+           WHERE classification = ? AND usage_purpose = ? AND amount IS NOT NULL`,
+          [classification, usagePurpose]
+        );
 
     return result?.total ?? 0;
   } catch (error) {
@@ -536,14 +595,20 @@ export async function getTotalByClassificationAndPurpose(
  *
  * Returns only personal card items that need to be submitted for reimbursement.
  *
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Item[]> - Array of items requiring submission
  */
-export async function getItemsRequiringSubmission(): Promise<Item[]> {
+export async function getItemsRequiringSubmission(spaceId?: string): Promise<Item[]> {
   try {
     const db = await getDatabase();
-    const rows = await db.getAllAsync<ItemRow>(
-      "SELECT * FROM items WHERE classification = 'personal_card' ORDER BY date DESC, created_at DESC"
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<ItemRow>(
+          "SELECT * FROM items WHERE classification = 'personal_card' AND space_id = ? ORDER BY date DESC, created_at DESC",
+          [spaceId]
+        )
+      : await db.getAllAsync<ItemRow>(
+          "SELECT * FROM items WHERE classification = 'personal_card' ORDER BY date DESC, created_at DESC"
+        );
 
     return rows.map(rowToItem);
   } catch (error) {
@@ -557,14 +622,20 @@ export async function getItemsRequiringSubmission(): Promise<Item[]> {
  *
  * Returns items with financial data (personal_card or corporate_card).
  *
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Item[]> - Array of expense items
  */
-export async function getExpenseItems(): Promise<Item[]> {
+export async function getExpenseItems(spaceId?: string): Promise<Item[]> {
   try {
     const db = await getDatabase();
-    const rows = await db.getAllAsync<ItemRow>(
-      "SELECT * FROM items WHERE classification IN ('personal_card', 'corporate_card') ORDER BY date DESC, created_at DESC"
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<ItemRow>(
+          "SELECT * FROM items WHERE classification IN ('personal_card', 'corporate_card') AND space_id = ? ORDER BY date DESC, created_at DESC",
+          [spaceId]
+        )
+      : await db.getAllAsync<ItemRow>(
+          "SELECT * FROM items WHERE classification IN ('personal_card', 'corporate_card') ORDER BY date DESC, created_at DESC"
+        );
 
     return rows.map(rowToItem);
   } catch (error) {
@@ -578,14 +649,20 @@ export async function getExpenseItems(): Promise<Item[]> {
  *
  * Returns items classified as proof documents (medical statements, certificates, etc.).
  *
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Item[]> - Array of proof document items
  */
-export async function getProofDocuments(): Promise<Item[]> {
+export async function getProofDocuments(spaceId?: string): Promise<Item[]> {
   try {
     const db = await getDatabase();
-    const rows = await db.getAllAsync<ItemRow>(
-      "SELECT * FROM items WHERE classification = 'proof_document' ORDER BY date DESC, created_at DESC"
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<ItemRow>(
+          "SELECT * FROM items WHERE classification = 'proof_document' AND space_id = ? ORDER BY date DESC, created_at DESC",
+          [spaceId]
+        )
+      : await db.getAllAsync<ItemRow>(
+          "SELECT * FROM items WHERE classification = 'proof_document' ORDER BY date DESC, created_at DESC"
+        );
 
     return rows.map(rowToItem);
   } catch (error) {
@@ -598,15 +675,24 @@ export async function getProofDocuments(): Promise<Item[]> {
  * Get items by classification ID (Phase 2 - DB-backed classification)
  *
  * @param classificationId - Classification ID from the classifications table
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Item[]> - Array of items with the specified classificationId
  */
-export async function getItemsByClassificationId(classificationId: string): Promise<Item[]> {
+export async function getItemsByClassificationId(
+  classificationId: string,
+  spaceId?: string
+): Promise<Item[]> {
   try {
     const db = await getDatabase();
-    const rows = await db.getAllAsync<ItemRow>(
-      'SELECT * FROM items WHERE classification_id = ? ORDER BY date DESC, created_at DESC',
-      [classificationId]
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<ItemRow>(
+          'SELECT * FROM items WHERE classification_id = ? AND space_id = ? ORDER BY date DESC, created_at DESC',
+          [classificationId, spaceId]
+        )
+      : await db.getAllAsync<ItemRow>(
+          'SELECT * FROM items WHERE classification_id = ? ORDER BY date DESC, created_at DESC',
+          [classificationId]
+        );
     return rows.map(rowToItem);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown database error';

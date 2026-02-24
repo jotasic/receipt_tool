@@ -29,6 +29,7 @@ import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Header, Input, Button, FullScreenModal, FloatingActionBar } from '@/components/common';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   getCustomFields,
   createCustomField,
@@ -59,6 +60,7 @@ const FILTER_OPTIONS: { value: string; label: string }[] = [
 
 export default function CustomFieldsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [fields, setFields] = useState<CustomFieldWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -734,6 +736,7 @@ export default function CustomFieldsScreen() {
       </View>
 
       <FloatingActionBar
+        bottomInset={insets.bottom}
         actions={[
           {
             icon: 'add',

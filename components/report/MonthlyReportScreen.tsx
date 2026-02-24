@@ -19,6 +19,7 @@ import {
   exportMonthlySettlement,
 } from '@/services/export';
 import type { MonthlySummary } from '@/services/export/types';
+import { useSpaceStore } from '@/store/spaceStore';
 
 function SummaryCard({ summary }: { summary: MonthlySummary }) {
   const corporateCardConfig = getClassificationConfig('corporate_card');
@@ -128,13 +129,14 @@ export function MonthlyReportScreen({ year, month }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const refreshTintColor = useThemeColor('#3B82F6', '#60A5FA');
+  const { currentSpace } = useSpaceStore();
 
   const handleExport = useCallback(async () => {
     if (!year || !month) return;
 
     setIsExporting(true);
     try {
-      const result = await exportMonthlySettlement(parseInt(year), parseInt(month));
+      const result = await exportMonthlySettlement(parseInt(year), parseInt(month), currentSpace?.id);
 
       if (result.success && result.filePath) {
         const canShare = await Sharing.isAvailableAsync();
@@ -162,7 +164,7 @@ export function MonthlyReportScreen({ year, month }: Props) {
 
     setIsLoading(true);
     try {
-      const monthlyItems = await getMonthlyItems(parseInt(year), parseInt(month));
+      const monthlyItems = await getMonthlyItems(parseInt(year), parseInt(month), currentSpace?.id);
       setItems(monthlyItems);
 
       const monthlySummary = calculateMonthlySummary(monthlyItems);
@@ -173,7 +175,7 @@ export function MonthlyReportScreen({ year, month }: Props) {
     } finally {
       setIsLoading(false);
     }
-  }, [year, month]);
+  }, [year, month, currentSpace?.id]);
 
   useEffect(() => {
     loadMonthlyData();

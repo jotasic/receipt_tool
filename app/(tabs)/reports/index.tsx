@@ -121,11 +121,7 @@ export default function ReportsScreen() {
     const results = await Promise.all(
       months.map(async ({ year, month }) => {
         try {
-          const allItems = await getMonthlyItems(year, month);
-          // 현재 공간 기준 필터링
-          const items = currentSpace
-            ? allItems.filter((item) => item.spaceId === currentSpace.id)
-            : allItems;
+          const items = await getMonthlyItems(year, month, currentSpace?.id);
           const summary = calculateMonthlySummary(items);
           return { year, month, summary, isLoading: false };
         } catch (error) {

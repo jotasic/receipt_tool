@@ -58,9 +58,9 @@ export function calculateMonthlySummary(items: Item[]): MonthlySummary {
 /**
  * Get items for a specific month
  */
-export async function getMonthlyItems(year: number, month: number): Promise<Item[]> {
+export async function getMonthlyItems(year: number, month: number, spaceId?: string): Promise<Item[]> {
   const { startDate, endDate } = getMonthDateRange(year, month);
-  return await getItemsByDateRange(startDate, endDate);
+  return await getItemsByDateRange(startDate, endDate, spaceId);
 }
 
 /**
@@ -72,23 +72,25 @@ export async function getMonthlyItems(year: number, month: number): Promise<Item
  *
  * @param year - Year to export
  * @param month - Month to export (1-12)
+ * @param spaceId - Optional space ID to filter items by space
  * @returns Promise<ExportResult> - Export result with file path or error
  *
  * @example
- * const result = await exportMonthlySettlement(2024, 2);
+ * const result = await exportMonthlySettlement(2024, 2, spaceId);
  * if (result.success && result.filePath) {
  *   await Sharing.shareAsync(result.filePath);
  * }
  */
 export async function exportMonthlySettlement(
   year: number,
-  month: number
+  month: number,
+  spaceId?: string
 ): Promise<ExportResult> {
   try {
     console.log(`[Export] Starting export for ${year}-${month}`);
 
     // 1. Get items for the month
-    const items = await getMonthlyItems(year, month);
+    const items = await getMonthlyItems(year, month, spaceId);
 
     if (items.length === 0) {
       return {

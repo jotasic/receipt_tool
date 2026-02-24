@@ -19,6 +19,7 @@ import {
 import type { BackupStats } from '@/types/backup';
 import { useItemStore } from '@/store/itemStore';
 import { useReportStore } from '@/store/reportStore';
+import { useSpaceStore } from '@/store/spaceStore';
 
 interface CardProps {
   children: React.ReactNode;
@@ -85,6 +86,7 @@ export default function BackupScreen() {
     customFields: 0,
     usagePurposes: 0,
   });
+  const { currentSpace } = useSpaceStore();
 
   const primaryColor = useThemeColor('#3B82F6', '#60A5FA');
   const grayIconColor = useThemeColor('#6B7280', '#9CA3AF');
@@ -136,7 +138,7 @@ export default function BackupScreen() {
               await restoreFromBackup();
 
               // Reload stores
-              await useItemStore.getState().loadItems();
+              await useItemStore.getState().loadItems(currentSpace?.id ?? null);
               await useReportStore.getState().loadReports();
 
               // Reload stats

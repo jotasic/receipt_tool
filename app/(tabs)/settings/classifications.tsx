@@ -14,6 +14,7 @@ import { Header, FullScreenModal, FloatingActionBar } from '@/components/common'
 import { TabScreenContent } from '@/design-system/layouts';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { useSpaceStore } from '@/store/spaceStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   getClassificationsBySpace,
   createClassification,
@@ -31,6 +32,7 @@ interface EditModal {
 }
 
 export default function ClassificationsScreen() {
+  const insets = useSafeAreaInsets();
   const { currentSpace } = useSpaceStore();
   const [classifications, setClassifications] = useState<Classification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -339,6 +341,7 @@ export default function ClassificationsScreen() {
       </FullScreenModal>
 
       <FloatingActionBar
+        bottomInset={insets.bottom}
         actions={[
           {
             icon: 'add',

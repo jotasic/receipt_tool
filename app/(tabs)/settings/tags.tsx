@@ -34,6 +34,7 @@ import {
 import type { Tag } from '@/types/tag';
 import { useSpaceStore } from '@/store/spaceStore';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Predefined color palette
 const TAG_COLORS = [
@@ -53,6 +54,7 @@ type TagWithCount = Tag & { itemCount: number };
 
 export default function TagManagementScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { currentSpace } = useSpaceStore();
   const [tags, setTags] = useState<TagWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -446,6 +448,7 @@ export default function TagManagementScreen() {
       </View>
 
       <FloatingActionBar
+        bottomInset={insets.bottom}
         actions={[
           {
             icon: 'add',

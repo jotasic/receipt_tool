@@ -41,6 +41,7 @@ import { isDefaultUsagePurpose } from '@/types/usagePurpose';
 import type { UsagePurpose } from '@/types/usagePurpose';
 import { useSpaceStore } from '@/store/spaceStore';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface UsagePurposeWithCount extends UsagePurpose {
   usageCount: number;
@@ -48,6 +49,7 @@ interface UsagePurposeWithCount extends UsagePurpose {
 
 export default function UsagePurposeManagementScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { currentSpace } = useSpaceStore();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -586,6 +588,7 @@ export default function UsagePurposeManagementScreen() {
       </View>
 
       <FloatingActionBar
+        bottomInset={insets.bottom}
         actions={[
           {
             icon: 'add',

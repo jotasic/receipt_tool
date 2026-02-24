@@ -30,7 +30,6 @@ export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [item, setItem] = useState<Item | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
@@ -186,7 +185,6 @@ export default function ItemDetailScreen() {
       return;
     }
 
-    setIsSubmitting(true);
     const oldImagePath = item.filePath;
     const imageChanged = data.filePath !== oldImagePath;
     let newImagePath: string | null = null;
@@ -267,8 +265,6 @@ export default function ItemDetailScreen() {
       }
 
       Alert.alert('오류', '항목 수정에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 

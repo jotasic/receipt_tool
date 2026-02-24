@@ -21,15 +21,14 @@ interface AgendaCalendarProps {
   items: Item[];  // 전체 items
 }
 
-interface Section {
-  title: string;  // YYYY-MM-DD
-  data: Item[];
-}
-
 export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items }: AgendaCalendarProps) {
   const colorScheme = useColorScheme();
   const theme = getCalendarTheme(colorScheme || 'light');
   const iconColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
+  const borderBottomColor = useThemeColor('#E5E7EB', '#374151');
+  const sectionBgColor = useThemeColor('#F9FAFB', '#1F2937');
+  const agendaTextColor = useThemeColor('#111827', '#F3F4F6');
+  const contentBgColor = useThemeColor('#F9FAFB', '#111827');
 
   // 선택 가능 날짜 범위 (매 렌더마다 재계산 방지)
   const { minDate, maxDate } = useMemo(() => getCalendarDateRange(), []);
@@ -84,18 +83,6 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
     return <ItemCard item={item} showDate={false} />;
   }, []);
 
-  // Render empty section (for dates with no items)
-  const renderEmptyDate = () => {
-    return (
-      <View className="items-center justify-center py-12 px-4">
-        <Ionicons name="receipt-outline" size={64} color={iconColor} />
-        <Text className="text-gray-500 dark:text-gray-400 mt-4 text-base">
-          이 날짜에 등록된 증빙이 없습니다
-        </Text>
-      </View>
-    );
-  };
-
   // Render empty entire list (when no data at all)
   const renderEmptyData = () => {
     return (
@@ -131,7 +118,7 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
         // 주말 색상 설정을 위한 추가 테마
         style={{
           borderBottomWidth: 1,
-          borderBottomColor: colorScheme === 'dark' ? '#374151' : '#E5E7EB',
+          borderBottomColor,
         }}
       />
       {sections.length === 0 ? (
@@ -144,19 +131,19 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
           sectionStyle={{
             paddingHorizontal: 16,
             paddingVertical: 12,
-            backgroundColor: colorScheme === 'dark' ? '#1F2937' : '#F9FAFB',
+            backgroundColor: sectionBgColor,
           }}
           theme={{
             ...theme,
-            agendaDayTextColor: colorScheme === 'dark' ? '#F3F4F6' : '#111827',
-            agendaDayNumColor: colorScheme === 'dark' ? '#F3F4F6' : '#111827',
+            agendaDayTextColor: agendaTextColor,
+            agendaDayNumColor: agendaTextColor,
             agendaTodayColor: theme.todayTextColor,
           }}
           markToday={true}
           contentContainerStyle={{
             paddingHorizontal: 16,
             paddingTop: 8,
-            backgroundColor: colorScheme === 'dark' ? '#111827' : '#F9FAFB',
+            backgroundColor: contentBgColor,
           }}
         />
       )}

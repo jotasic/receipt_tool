@@ -258,7 +258,7 @@ export interface CreateItemInput extends Omit<Item, 'id' | 'createdAt' | 'update
  *   memo: '회의 중 간식 구매',
  * };
  */
-export interface UpdateItemInput extends Partial<Omit<Item, 'id' | 'createdAt' | 'updatedAt'>> {}
+export type UpdateItemInput = Partial<Omit<Item, 'id' | 'createdAt' | 'updatedAt'>>;
 
 // ============================================
 // Type Guards

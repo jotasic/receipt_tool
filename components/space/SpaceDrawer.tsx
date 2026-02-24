@@ -63,6 +63,7 @@ export function SpaceDrawer() {
 
   const iconColor = useThemeColor('#374151', '#D1D5DB');
   const chevronColor = useThemeColor('#9CA3AF', '#6B7280');
+  const checkmarkColor = useThemeColor('#2563EB', '#60A5FA');
 
   useEffect(() => {
     if (isOpen) {
@@ -178,7 +179,7 @@ export function SpaceDrawer() {
                       {space.name}
                     </Text>
                     {isSelected ? (
-                      <Ionicons name="checkmark" size={20} color="#2563EB" />
+                      <Ionicons name="checkmark" size={20} color={checkmarkColor} />
                     ) : null}
                   </Pressable>
                 );

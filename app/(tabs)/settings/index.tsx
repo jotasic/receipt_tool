@@ -10,6 +10,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { useItemStore } from '@/store/itemStore';
 import { getDatabase } from '@/services/database';
 import { DEFAULT_USAGE_PURPOSES } from '@/services/database/schema';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
 interface SettingItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -36,6 +37,10 @@ function SettingItem({
   onPress,
   disabled = false,
 }: SettingItemProps) {
+  const defaultIconColor = useThemeColor('#6B7280', '#9CA3AF');
+  const redIconColor = useThemeColor('#EF4444', '#F87171');
+  const arrowColor = useThemeColor('#9CA3AF', '#6B7280');
+
   const handlePress = () => {
     if (!disabled && !hasToggle && onPress) {
       onPress();
@@ -54,7 +59,7 @@ function SettingItem({
         <Ionicons
           name={icon}
           size={24}
-          color={textColor === 'red' ? '#EF4444' : '#6B7280'}
+          color={textColor === 'red' ? redIconColor : defaultIconColor}
         />
       </View>
 
@@ -85,7 +90,7 @@ function SettingItem({
 
       {/* Arrow */}
       {hasArrow && (
-        <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+        <Ionicons name="chevron-forward" size={20} color={arrowColor} />
       )}
     </TouchableOpacity>
   );
@@ -96,6 +101,7 @@ export default function SettingsScreen() {
   const [isClearing, setIsClearing] = useState(false);
   const { theme, setTheme } = useSettingsStore();
   const { loadItems } = useItemStore();
+  const loadingColor = useThemeColor('#3B82F6', '#60A5FA');
 
   // Get app version from expo config
   const appVersion = Constants.expoConfig?.version || '1.0.0';
@@ -160,16 +166,20 @@ export default function SettingsScreen() {
     try {
       const db = await getDatabase();
 
-      // Clear all items
-      await db.runAsync('DELETE FROM items');
+      await db.withTransactionAsync(async () => {
+        // Clear all items (cascades item_tags, item_custom_values)
+        await db.runAsync('DELETE FROM items');
 
-      // Clear report-item links
-      await db.runAsync('DELETE FROM report_items');
+        // Clear report-item links
+        await db.runAsync('DELETE FROM report_items');
 
-      // Clear custom usage purposes (keep defaults: meal, other)
-      await db.runAsync(
-        "DELETE FROM usage_purposes WHERE id NOT IN ('meal', 'other')"
-      );
+        // Clear tags (no cascade from items)
+        await db.runAsync('DELETE FROM tags');
+
+        // Clear custom usage purposes (keep defaults)
+        const defaultIds = DEFAULT_USAGE_PURPOSES.map(p => `'${p.id}'`).join(', ');
+        await db.runAsync(`DELETE FROM usage_purposes WHERE id NOT IN (${defaultIds})`);
+      });
 
       // Clear item store
       useItemStore.getState().setItems([]);
@@ -208,31 +218,36 @@ export default function SettingsScreen() {
     try {
       const db = await getDatabase();
 
-      // Clear all items
-      await db.runAsync('DELETE FROM items');
+      await db.withTransactionAsync(async () => {
+        // Clear all items (cascades item_tags, item_custom_values)
+        await db.runAsync('DELETE FROM items');
 
-      // Clear report-item links
-      await db.runAsync('DELETE FROM report_items');
+        // Clear report-item links
+        await db.runAsync('DELETE FROM report_items');
 
-      // Clear ALL usage purposes
-      await db.runAsync('DELETE FROM usage_purposes');
+        // Clear tags (no cascade from items)
+        await db.runAsync('DELETE FROM tags');
 
-      // Re-seed default usage purposes
-      const insertStatement = `
-        INSERT OR IGNORE INTO usage_purposes (id, name, name_en, icon, color, is_active, display_order)
-        VALUES (?, ?, ?, ?, ?, 1, ?)
-      `;
+        // Clear ALL usage purposes
+        await db.runAsync('DELETE FROM usage_purposes');
 
-      for (const purpose of DEFAULT_USAGE_PURPOSES) {
-        await db.runAsync(insertStatement, [
-          purpose.id,
-          purpose.name,
-          purpose.name_en,
-          purpose.icon,
-          purpose.color,
-          purpose.display_order,
-        ]);
-      }
+        // Re-seed default usage purposes
+        const insertStatement = `
+          INSERT OR IGNORE INTO usage_purposes (id, name, name_en, icon, color, is_active, display_order)
+          VALUES (?, ?, ?, ?, ?, 1, ?)
+        `;
+
+        for (const purpose of DEFAULT_USAGE_PURPOSES) {
+          await db.runAsync(insertStatement, [
+            purpose.id,
+            purpose.name,
+            purpose.name_en,
+            purpose.icon,
+            purpose.color,
+            purpose.display_order,
+          ]);
+        }
+      });
 
       // Clear item store
       useItemStore.getState().setItems([]);
@@ -284,7 +299,7 @@ export default function SettingsScreen() {
         {isClearing && (
           <View className="absolute inset-0 bg-black/30 items-center justify-center z-50">
             <View className="bg-white dark:bg-gray-800 rounded-lg p-6 items-center">
-              <ActivityIndicator size="large" color="#3B82F6" />
+              <ActivityIndicator size="large" color={loadingColor} />
               <Text className="mt-4 text-gray-700 dark:text-gray-300">처리 중...</Text>
             </View>
           </View>

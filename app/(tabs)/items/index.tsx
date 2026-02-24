@@ -43,6 +43,10 @@ export default function ItemsScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const iconColor = useThemeColor('#374151', '#D1D5DB');
+  const filterChipCloseColor = useThemeColor('#1D4ED8', '#93C5FD');
+  const tagCloseColor = useThemeColor('#6B7280', '#9CA3AF');
+  const emptyIconColor = useThemeColor('#9CA3AF', '#6B7280');
+  const loadingColor = useThemeColor('#2563EB', '#60A5FA');
 
   // URL 파라미터
   const params = useLocalSearchParams<{ classificationId?: string }>();
@@ -50,7 +54,7 @@ export default function ItemsScreen() {
   // 포커스마다 항목 + 분류 재로드
   useFocusEffect(
     useCallback(() => {
-      loadItemsIfStale();
+      loadItemsIfStale(currentSpace?.id ?? null);
       if (currentSpace) {
         loadClassifications(currentSpace.id);
       }
@@ -316,7 +320,7 @@ export default function ItemsScreen() {
               <Text className="text-xs text-blue-700 dark:text-blue-300 mr-1">
                 {getDateFilterLabel()}
               </Text>
-              <Ionicons name="close" size={12} color="#1D4ED8" />
+              <Ionicons name="close" size={12} color={filterChipCloseColor} />
             </Pressable>
           )}
           {selectedTags.map((tagId) => {
@@ -333,7 +337,7 @@ export default function ItemsScreen() {
                 <Text className="text-xs text-gray-700 dark:text-gray-300 mr-1">
                   #{tag.name}
                 </Text>
-                <Ionicons name="close" size={12} color="#6B7280" />
+                <Ionicons name="close" size={12} color={tagCloseColor} />
               </Pressable>
             );
           })}
@@ -350,7 +354,7 @@ export default function ItemsScreen() {
     return (
       <View className="items-center justify-center py-16">
         <View className="bg-gray-100 dark:bg-gray-700 rounded-full p-6 mb-4">
-          <Ionicons name="receipt-outline" size={64} color="#9CA3AF" />
+          <Ionicons name="receipt-outline" size={64} color={emptyIconColor} />
         </View>
         <Text className="text-gray-900 dark:text-gray-100 text-lg font-semibold mb-2">
           {hasActiveFilters ? '필터 조건에 맞는 항목이 없습니다' : '등록된 항목이 없습니다'}
@@ -382,7 +386,7 @@ export default function ItemsScreen() {
   if (isLoading && !isRefreshing) {
     return (
       <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color={loadingColor} />
         <Text className="mt-4 text-gray-500 dark:text-gray-400">항목 불러오는 중...</Text>
       </View>
     );
@@ -412,8 +416,8 @@ export default function ItemsScreen() {
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={handleRefresh}
-              colors={['#2563EB']}
-              tintColor="#2563EB"
+              colors={[loadingColor]}
+              tintColor={loadingColor}
             />
           }
           showsVerticalScrollIndicator={false}

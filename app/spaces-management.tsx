@@ -51,6 +51,8 @@ export default function SpacesManagementScreen() {
   const [isSaving, setIsSaving] = useState(false);
 
   const placeholderColor = useThemeColor('#9CA3AF', '#6B7280');
+  const loadingColor = useThemeColor('#3B82F6', '#60A5FA');
+  const emptyIconColor = useThemeColor('#9CA3AF', '#6B7280');
 
   useFocusEffect(
     useCallback(() => {
@@ -159,7 +161,7 @@ export default function SpacesManagementScreen() {
       <TabScreenContent>
         {isLoading ? (
           <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
-            <ActivityIndicator size="large" color="#3B82F6" />
+            <ActivityIndicator size="large" color={loadingColor} />
           </View>
         ) : (
           <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-900">
@@ -167,7 +169,7 @@ export default function SpacesManagementScreen() {
               {spaces.length === 0 ? (
                 <View className="items-center py-16">
                   <View className="bg-gray-100 dark:bg-gray-700 rounded-full p-6 mb-4">
-                    <Ionicons name="layers-outline" size={48} color="#9CA3AF" />
+                    <Ionicons name="layers-outline" size={48} color={emptyIconColor} />
                   </View>
                   <Text className="text-gray-900 dark:text-gray-100 text-lg font-semibold mb-2">
                     등록된 공간이 없습니다

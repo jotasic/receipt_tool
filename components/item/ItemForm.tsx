@@ -15,7 +15,7 @@
  * - Loading states
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSpaceStore } from '@/store/spaceStore';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 // 날짜 유효성 검사 (YYYY-MM-DD 형식 + 실제 존재하는 날짜)
@@ -172,22 +172,13 @@ export function ItemForm({
   // BottomSheet state
   const [showImagePicker, setShowImagePicker] = useState(false);
 
+  // handleOcrErrorAlert를 runOCR에서 순환 참조 없이 호출하기 위한 ref
+  const handleOcrErrorAlertRef = useRef<(error: OcrError) => void>(() => {});
+
   // Dynamic field visibility based on classification
   const showAmount = classification !== 'proof_document';
   const showStoreName =
     classification === 'personal_card' || classification === 'corporate_card';
-
-  // Load custom fields on mount
-  useEffect(() => {
-    loadCustomFields();
-  }, []);
-
-  // Run OCR when initialImageUri is provided
-  useEffect(() => {
-    if (initialImageUri && !initialData?.title) {
-      runOCR(initialImageUri);
-    }
-  }, [initialImageUri]);
 
   /**
    * Load custom fields for items
@@ -209,7 +200,7 @@ export function ItemForm({
   /**
    * Run OCR on the provided image
    */
-  const runOCR = async (uri: string) => {
+  const runOCR = useCallback(async (uri: string) => {
     setIsOcrLoading(true);
     setOcrError(null);
 
@@ -240,7 +231,7 @@ export function ItemForm({
       // Apply OCR results to form
       if (result.storeName) {
         setStoreName(result.storeName);
-        if (!title) setTitle(result.storeName);
+        setTitle((prev) => prev || result.storeName!);
       }
       if (result.amount) setAmount(result.amount.toString());
       if (result.date) setDate(result.date);
@@ -261,7 +252,7 @@ export function ItemForm({
       if (error && typeof error === 'object' && 'type' in error) {
         const ocrErr = error as OcrError;
         setOcrError(ocrErr);
-        handleOcrErrorAlert(ocrErr);
+        handleOcrErrorAlertRef.current(ocrErr);
       } else {
         Alert.alert(
           'OCR 오류',
@@ -272,12 +263,13 @@ export function ItemForm({
     } finally {
       setIsOcrLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Show user-friendly OCR error alert
    */
-  const handleOcrErrorAlert = (error: OcrError) => {
+  const handleOcrErrorAlert = useCallback((error: OcrError) => {
     const buttons: Array<{
       text: string;
       onPress?: () => void;
@@ -319,7 +311,23 @@ export function ItemForm({
       recoverable: error.recoverable,
       retryable: error.retryable,
     });
-  };
+  }, [imageUri, runOCR]);
+
+  // handleOcrErrorAlertRef를 항상 최신 함수로 유지
+  handleOcrErrorAlertRef.current = handleOcrErrorAlert;
+
+  // Load custom fields on mount
+  useEffect(() => {
+    loadCustomFields();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Run OCR when initialImageUri is provided
+  useEffect(() => {
+    if (initialImageUri && !initialData?.title) {
+      runOCR(initialImageUri);
+    }
+  }, [initialImageUri, runOCR]);
 
   // OCR overlay item selection handler
   const handleSelectItem = (item: SelectedItem) => {
@@ -475,6 +483,11 @@ export function ItemForm({
 
   // Handle form submission
   const handleSubmit = async () => {
+    if (!currentSpace) {
+      Alert.alert('오류', '공간을 먼저 선택해주세요.');
+      return;
+    }
+
     if (!validate()) {
       return;
     }

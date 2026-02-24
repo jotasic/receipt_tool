@@ -16,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 4;
@@ -35,6 +36,8 @@ function clamp(value: number, min: number, max: number): number {
 
 export function ImageZoomModal({ visible, imageUri, onClose }: Props) {
   const insets = useSafeAreaInsets();
+  // 모달은 항상 검정 배경 위에 표시되므로 라이트/다크 모두 흰색 사용
+  const closeIconColor = useThemeColor('#FFFFFF', '#FFFFFF');
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
   // Animated values
@@ -268,7 +271,7 @@ export function ImageZoomModal({ visible, imageUri, onClose }: Props) {
           accessibilityLabel="닫기"
           accessibilityRole="button"
         >
-          <Ionicons name="close" size={22} color="#FFFFFF" />
+          <Ionicons name="close" size={22} color={closeIconColor} />
         </TouchableOpacity>
       </View>
     </Modal>

@@ -242,17 +242,18 @@ export async function getReceiptsByTag(tagId: string): Promise<string[]> {
  */
 export async function setTagsForReceipt(receiptId: string, tagIds: string[]): Promise<void> {
   const db = await getDatabase();
+  await db.withTransactionAsync(async () => {
+    // Remove all existing tags
+    await db.runAsync('DELETE FROM receipt_tags WHERE receipt_id = ?', [receiptId]);
 
-  // Remove all existing tags
-  await db.runAsync('DELETE FROM receipt_tags WHERE receipt_id = ?', [receiptId]);
-
-  // Add new tags
-  for (const tagId of tagIds) {
-    await db.runAsync(
-      'INSERT INTO receipt_tags (receipt_id, tag_id) VALUES (?, ?)',
-      [receiptId, tagId]
-    );
-  }
+    // Add new tags
+    for (const tagId of tagIds) {
+      await db.runAsync(
+        'INSERT INTO receipt_tags (receipt_id, tag_id) VALUES (?, ?)',
+        [receiptId, tagId]
+      );
+    }
+  });
 }
 
 // ============================================================================
@@ -333,17 +334,18 @@ export async function getDocumentsByTag(tagId: string): Promise<string[]> {
  */
 export async function setTagsForDocument(documentId: string, tagIds: string[]): Promise<void> {
   const db = await getDatabase();
+  await db.withTransactionAsync(async () => {
+    // Remove all existing tags
+    await db.runAsync('DELETE FROM document_tags WHERE document_id = ?', [documentId]);
 
-  // Remove all existing tags
-  await db.runAsync('DELETE FROM document_tags WHERE document_id = ?', [documentId]);
-
-  // Add new tags
-  for (const tagId of tagIds) {
-    await db.runAsync(
-      'INSERT INTO document_tags (document_id, tag_id) VALUES (?, ?)',
-      [documentId, tagId]
-    );
-  }
+    // Add new tags
+    for (const tagId of tagIds) {
+      await db.runAsync(
+        'INSERT INTO document_tags (document_id, tag_id) VALUES (?, ?)',
+        [documentId, tagId]
+      );
+    }
+  });
 }
 
 // ============================================================================
@@ -440,15 +442,16 @@ export async function getTagsWithItemCount(
  */
 export async function setTagsForItem(itemId: string, tagIds: string[]): Promise<void> {
   const db = await getDatabase();
+  await db.withTransactionAsync(async () => {
+    // Remove all existing tags
+    await db.runAsync('DELETE FROM item_tags WHERE item_id = ?', [itemId]);
 
-  // Remove all existing tags
-  await db.runAsync('DELETE FROM item_tags WHERE item_id = ?', [itemId]);
-
-  // Add new tags
-  for (const tagId of tagIds) {
-    await db.runAsync(
-      'INSERT INTO item_tags (item_id, tag_id) VALUES (?, ?)',
-      [itemId, tagId]
-    );
-  }
+    // Add new tags
+    for (const tagId of tagIds) {
+      await db.runAsync(
+        'INSERT INTO item_tags (item_id, tag_id) VALUES (?, ?)',
+        [itemId, tagId]
+      );
+    }
+  });
 }

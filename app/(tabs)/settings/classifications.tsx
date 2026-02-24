@@ -42,6 +42,8 @@ export default function ClassificationsScreen() {
   const [isSaving, setIsSaving] = useState(false);
 
   const placeholderColor = useThemeColor('#9CA3AF', '#6B7280');
+  const emptyIconColor = useThemeColor('#9CA3AF', '#6B7280');
+  const loadingColor = useThemeColor('#3B82F6', '#60A5FA');
 
   useFocusEffect(
     useCallback(() => {
@@ -165,7 +167,7 @@ export default function ClassificationsScreen() {
         <TabScreenContent>
           <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900 px-6">
             <View className="bg-gray-100 dark:bg-gray-700 rounded-full p-6 mb-4">
-              <Ionicons name="grid-outline" size={48} color="#9CA3AF" />
+              <Ionicons name="grid-outline" size={48} color={emptyIconColor} />
             </View>
             <Text className="text-gray-900 dark:text-gray-100 text-lg font-semibold mb-2 text-center">
               선택된 공간이 없습니다
@@ -185,7 +187,7 @@ export default function ClassificationsScreen() {
       <TabScreenContent>
         {isLoading ? (
           <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
-            <ActivityIndicator size="large" color="#3B82F6" />
+            <ActivityIndicator size="large" color={loadingColor} />
           </View>
         ) : (
           <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-900">
@@ -194,7 +196,7 @@ export default function ClassificationsScreen() {
               {classifications.length === 0 ? (
                 <View className="items-center py-12">
                   <View className="bg-gray-100 dark:bg-gray-700 rounded-full p-6 mb-4">
-                    <Ionicons name="grid-outline" size={48} color="#9CA3AF" />
+                    <Ionicons name="grid-outline" size={48} color={emptyIconColor} />
                   </View>
                   <Text className="text-gray-900 dark:text-gray-100 text-lg font-semibold mb-2">
                     등록된 분류가 없습니다

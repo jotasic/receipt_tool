@@ -85,7 +85,11 @@ export default function ItemDetailScreen() {
 
     try {
       setIsLoading(true);
-      const fetchedItem = await getItemById(id);
+      const [fetchedItem, tags, customValues] = await Promise.all([
+        getItemById(id),
+        getTagsForItem(id),
+        getItemCustomValues(id),
+      ]);
 
       if (!fetchedItem) {
         Alert.alert('오류', '항목을 찾을 수 없습니다.', [
@@ -93,12 +97,6 @@ export default function ItemDetailScreen() {
         ]);
         return;
       }
-
-      // Load tags for the item
-      const tags = await getTagsForItem(id);
-
-      // Load custom values for the item
-      const customValues = await getItemCustomValues(id);
 
       setItem({ ...fetchedItem, tags, customValues });
     } catch (error) {

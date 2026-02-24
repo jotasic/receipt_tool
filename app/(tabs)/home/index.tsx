@@ -14,10 +14,14 @@ import { getActiveClassificationsBySpace } from '@/services/database/classificat
 import { isExpense } from '@/types/item';
 import type { Classification } from '@/types/space';
 import type { CreateItemInput } from '@/types';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
 export default function HomeScreen() {
   const { items, isLoading, loadItems, loadItemsIfStale } = useItemStore();
   const { currentSpace } = useSpaceStore();
+  const loadingColor = useThemeColor('#2563EB', '#60A5FA');
+  const secondaryIconColor = useThemeColor('#6B7280', '#9CA3AF');
+  const emptyIconColor = useThemeColor('#9CA3AF', '#6B7280');
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [classifications, setClassifications] = useState<Classification[]>([]);
@@ -128,7 +132,7 @@ export default function HomeScreen() {
 
               <View className="mb-4">
                 {isLoading && items.length === 0 ? (
-                  <ActivityIndicator size="large" color="#2563eb" />
+                  <ActivityIndicator size="large" color={loadingColor} />
                 ) : (
                   <Text className="text-4xl font-bold text-blue-600 dark:text-blue-400">
                     {formatCurrency(stats.totalAmount)}
@@ -137,7 +141,7 @@ export default function HomeScreen() {
               </View>
 
               <View className="flex-row items-center">
-                <Ionicons name="list-outline" size={16} color="#6b7280" />
+                <Ionicons name="list-outline" size={16} color={secondaryIconColor} />
                 <Text className="text-gray-600 dark:text-gray-400 text-sm ml-2">
                   증빙 {stats.totalCount}건
                 </Text>
@@ -234,7 +238,7 @@ export default function HomeScreen() {
               <Card>
                 <View className="items-center py-8">
                   <View className="bg-gray-100 dark:bg-gray-700 rounded-full p-4 mb-4">
-                    <Ionicons name="list-outline" size={48} color="#9ca3af" />
+                    <Ionicons name="list-outline" size={48} color={emptyIconColor} />
                   </View>
                   <Text className="text-gray-500 dark:text-gray-400 text-base text-center">
                     아직 등록된 증빙이 없습니다

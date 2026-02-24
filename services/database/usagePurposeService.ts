@@ -261,7 +261,7 @@ export async function updateUsagePurpose(
 
     // Build dynamic UPDATE query
     const fields: string[] = [];
-    const values: Array<string | number | null> = [];
+    const values: (string | number | null)[] = [];
 
     if (updates.name !== undefined && updates.name.trim().length > 0) {
       fields.push('name = ?');
@@ -518,7 +518,7 @@ export async function getUsagePurposeUsageCount(id: string, spaceId?: string): P
  */
 export async function getUsagePurposeStatistics(
   spaceId?: string
-): Promise<Array<UsagePurpose & { usageCount: number }>> {
+): Promise<(UsagePurpose & { usageCount: number })[]> {
   try {
     const db = await getDatabase();
 

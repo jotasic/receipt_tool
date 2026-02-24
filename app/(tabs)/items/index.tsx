@@ -47,6 +47,8 @@ export default function ItemsScreen() {
   const tagCloseColor = useThemeColor('#6B7280', '#9CA3AF');
   const emptyIconColor = useThemeColor('#9CA3AF', '#6B7280');
   const loadingColor = useThemeColor('#2563EB', '#60A5FA');
+  const filterActiveBg = useThemeColor('#3B82F6', '#60A5FA');
+  const filterActiveIcon = useThemeColor('#FFFFFF', '#FFFFFF');
 
   // URL 파라미터
   const params = useLocalSearchParams<{ classificationId?: string }>();
@@ -276,7 +278,7 @@ export default function ItemsScreen() {
           onPress={() => setShowFilterSheet(true)}
           className="ml-2 p-2 rounded-full"
           style={{
-            backgroundColor: hasAdvancedFilters ? '#3B82F6' : undefined,
+            backgroundColor: hasAdvancedFilters ? filterActiveBg : undefined,
           }}
           accessibilityLabel="필터 열기"
           accessibilityRole="button"
@@ -289,7 +291,7 @@ export default function ItemsScreen() {
             <Ionicons
               name="options-outline"
               size={20}
-              color={hasAdvancedFilters ? '#FFFFFF' : iconColor}
+              color={hasAdvancedFilters ? filterActiveIcon : iconColor}
             />
           </View>
         </Pressable>

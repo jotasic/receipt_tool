@@ -222,7 +222,7 @@ export async function updateItem(
 
     // Build dynamic UPDATE query based on provided fields
     const fields: string[] = [];
-    const values: Array<string | number | null> = [];
+    const values: (string | number | null)[] = [];
 
     if (updates.title !== undefined) {
       fields.push('title = ?');

@@ -299,12 +299,6 @@ async function migrateDocuments(db: SQLite.SQLiteDatabase): Promise<number> {
 
   console.log(`[UnifyMigration] Found ${count} documents to migrate`);
 
-  // Check if document_type column exists
-  const columnInfo = await db.getAllAsync<{ name: string }>(
-    `PRAGMA table_info(documents)`
-  );
-  const hasDocumentTypeColumn = columnInfo.some(col => col.name === 'document_type');
-
   // All documents become 'other' usage purpose
   const usagePurposeExpr = `'other'`;
 

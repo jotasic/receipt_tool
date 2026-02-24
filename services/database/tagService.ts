@@ -5,7 +5,7 @@
  */
 
 import { getDatabase } from './getDatabase';
-import type { TagRow, ReceiptTagRow, DocumentTagRow } from './types';
+import type { TagRow } from './types';
 import type { Tag, CreateTagInput, UpdateTagInput } from '@/types';
 
 /**
@@ -122,7 +122,7 @@ export async function updateTag(id: string, updates: UpdateTagInput): Promise<vo
   const db = await getDatabase();
 
   const fields: string[] = [];
-  const values: Array<string | number | null> = [];
+  const values: (string | number | null)[] = [];
 
   if (updates.name !== undefined) {
     fields.push('name = ?');
@@ -423,7 +423,7 @@ export async function getItemsByTag(tagId: string): Promise<string[]> {
  */
 export async function getTagsWithItemCount(
   spaceId?: string
-): Promise<Array<Tag & { itemCount: number }>> {
+): Promise<(Tag & { itemCount: number })[]> {
   const db = await getDatabase();
   const rows = spaceId
     ? await db.getAllAsync<TagRow & { item_count: number }>(

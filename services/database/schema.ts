@@ -98,9 +98,11 @@ export const SCHEMA = {
   tags: `
     CREATE TABLE IF NOT EXISTS tags (
       id TEXT PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
       color TEXT DEFAULT '#6B7280',
-      created_at TEXT NOT NULL
+      created_at TEXT NOT NULL,
+      space_id TEXT REFERENCES spaces(id),
+      UNIQUE(name, space_id)
     )
   `,
 

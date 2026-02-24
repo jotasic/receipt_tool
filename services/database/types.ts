@@ -122,6 +122,7 @@ export interface TagRow {
   name: string;
   color: string;
   created_at: string;
+  space_id: string | null;
 }
 
 /**

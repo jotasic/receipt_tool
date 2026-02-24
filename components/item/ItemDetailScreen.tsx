@@ -20,6 +20,7 @@ import { getItemById, updateItem, deleteItem, moveItemToSpace } from '@/services
 import { getTagsForItem, setTagsForItem } from '@/services/database/tagService';
 import { getItemCustomValues, setItemCustomValues } from '@/services/database/customFieldService';
 import { getClassificationConfig } from '@/constants/items';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import type { Item, CreateItemInput } from '@/types/item';
 import type { Space } from '@/types/space';
 
@@ -40,6 +41,8 @@ export default function ItemDetailScreen() {
   const [showMoveSheet, setShowMoveSheet] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const { spaces, currentSpace } = useSpaceStore();
+
+  const loadingColor = useThemeColor('#2563EB', '#60A5FA');
 
   // Hide tab bar when this screen is focused.
   // Walk up the navigator tree to find the Tabs navigator, which is the
@@ -304,7 +307,7 @@ export default function ItemDetailScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <Header title="항목 상세" showBack />
         <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color={loadingColor} />
           <Text className="mt-4 text-gray-500 dark:text-gray-400">항목 불러오는 중...</Text>
         </View>
       </>

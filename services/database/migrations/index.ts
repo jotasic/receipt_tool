@@ -22,3 +22,4 @@ export {
 } from './spaceFeature';
 
 export { migrateUsagePurposeUniqueConstraint } from './usagePurposeUniqueConstraint';
+export { migrateTagUniqueConstraint } from './tagUniqueConstraint';

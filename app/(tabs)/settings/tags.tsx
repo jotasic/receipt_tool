@@ -68,6 +68,10 @@ export default function TagManagementScreen() {
   const editIconColor = useThemeColor('#3B82F6', '#60A5FA');
   const deleteIconColor = useThemeColor('#EF4444', '#F87171');
   const searchIconColor = useThemeColor('#6B7280', '#9CA3AF');
+  const indicatorColor = useThemeColor('#3B82F6', '#60A5FA');
+  const emptyIconColor = useThemeColor('#D1D5DB', '#4B5563');
+  const colorPickerBorderColor = useThemeColor('#111827', '#F9FAFB');
+  const checkmarkColor = useThemeColor('#FFFFFF', '#111827');
 
   // Load tags when screen is focused
   useFocusEffect(
@@ -314,12 +318,12 @@ export default function TagManagementScreen() {
               style={{
                 backgroundColor: color,
                 borderWidth: tagColor === color ? 3 : 0,
-                borderColor: '#111827',
+                borderColor: colorPickerBorderColor,
               }}
               activeOpacity={0.7}
             >
               {tagColor === color && (
-                <Ionicons name="checkmark" size={24} color="#FFFFFF" />
+                <Ionicons name="checkmark" size={24} color={checkmarkColor} />
               )}
             </TouchableOpacity>
           ))}
@@ -374,7 +378,7 @@ export default function TagManagementScreen() {
       {/* Tags list */}
       {!currentSpace ? (
         <View className="flex-1 items-center justify-center p-6">
-          <Ionicons name="pricetags-outline" size={64} color="#D1D5DB" />
+          <Ionicons name="pricetags-outline" size={64} color={emptyIconColor} />
           <Text className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
             공간을 선택해주세요
           </Text>
@@ -384,12 +388,12 @@ export default function TagManagementScreen() {
         </View>
       ) : isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#3B82F6" />
+          <ActivityIndicator size="large" color={indicatorColor} />
           <Text className="mt-2 text-gray-600 dark:text-gray-400">로딩 중...</Text>
         </View>
       ) : filteredTags.length === 0 ? (
         <View className="flex-1 items-center justify-center p-6">
-          <Ionicons name="pricetags-outline" size={64} color="#D1D5DB" />
+          <Ionicons name="pricetags-outline" size={64} color={emptyIconColor} />
           <Text className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
             {searchQuery ? '검색 결과가 없습니다' : '태그가 없습니다'}
           </Text>

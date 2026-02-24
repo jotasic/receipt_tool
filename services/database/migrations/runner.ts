@@ -10,6 +10,7 @@ import { migrateToUnifiedModel } from './unifyModels';
 import { migrateDocumentTypes } from './migrateDocumentTypes';
 import { migrateSpaceFeature } from './spaceFeature';
 import { migrateUsagePurposeUniqueConstraint } from './usagePurposeUniqueConstraint';
+import { migrateTagUniqueConstraint } from './tagUniqueConstraint';
 
 export interface MigrationProgress {
   message: string;
@@ -143,12 +144,22 @@ async function migrateV5(
   await migrateUsagePurposeUniqueConstraint(db);
 }
 
+// v6: tag_unique_constraint - UNIQUE(name) → UNIQUE(name, space_id)
+async function migrateV6(
+  db: SQLite.SQLiteDatabase,
+  onProgress?: MigrationProgressCallback
+): Promise<void> {
+  onProgress?.({ message: '태그 제약 조건 업데이트 중...' });
+  await migrateTagUniqueConstraint(db);
+}
+
 export const ALL_MIGRATIONS: Migration[] = [
   { version: 1, name: 'initial_schema', run: migrateV1 },
   { version: 2, name: 'unified_model', run: migrateV2 },
   { version: 3, name: 'document_types', run: migrateV3 },
   { version: 4, name: 'space_feature', run: migrateV4 },
   { version: 5, name: 'usage_purpose_unique_constraint', run: migrateV5 },
+  { version: 6, name: 'tag_unique_constraint', run: migrateV6 },
 ];
 
 /**

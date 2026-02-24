@@ -72,6 +72,8 @@ export default function UsagePurposeManagementScreen() {
   const deleteIconDisabledColor = useThemeColor('#D1D5DB', '#4B5563');
   const searchIconColor = useThemeColor('#6B7280', '#9CA3AF');
   const chevronIconColor = useThemeColor('#9CA3AF', '#6B7280');
+  const indicatorColor = useThemeColor('#3B82F6', '#60A5FA');
+  const emptyIconColor = useThemeColor('#D1D5DB', '#4B5563');
 
   // Load usage purposes when screen is focused or current space changes
   useFocusEffect(
@@ -484,7 +486,7 @@ export default function UsagePurposeManagementScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <Header title="사용처 관리" showBack={true} />
         <View className="flex-1 bg-white dark:bg-gray-900 items-center justify-center p-6">
-          <Ionicons name="business-outline" size={64} color="#D1D5DB" />
+          <Ionicons name="business-outline" size={64} color={emptyIconColor} />
           <Text className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
             공간을 먼저 선택해주세요
           </Text>
@@ -524,12 +526,12 @@ export default function UsagePurposeManagementScreen() {
       {/* Usage purposes list */}
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#3B82F6" />
+          <ActivityIndicator size="large" color={indicatorColor} />
           <Text className="mt-2 text-gray-600 dark:text-gray-400">로딩 중...</Text>
         </View>
       ) : filteredPurposes.length === 0 ? (
         <View className="flex-1 items-center justify-center p-6">
-          <Ionicons name="pricetag-outline" size={64} color="#D1D5DB" />
+          <Ionicons name="pricetag-outline" size={64} color={emptyIconColor} />
           <Text className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
             {searchQuery ? '검색 결과가 없습니다' : '사용처가 없습니다'}
           </Text>

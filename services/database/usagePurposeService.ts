@@ -139,7 +139,7 @@ export async function createUsagePurpose(
 
     // Validate required fields
     if (!input.name || input.name.trim().length === 0) {
-      throw new Error('Usage purpose name is required');
+      throw new Error('사용처 이름을 입력해주세요');
     }
 
     // Check for duplicate name within the same space
@@ -154,7 +154,7 @@ export async function createUsagePurpose(
         );
 
     if (existing) {
-      throw new Error(`Usage purpose with name "${input.name}" already exists`);
+      throw new Error(`'${input.name}' 사용처가 이미 존재합니다`);
     }
 
     // Generate ID if not provided
@@ -234,7 +234,7 @@ export async function updateUsagePurpose(
     );
 
     if (!existing) {
-      throw new Error(`Usage purpose with ID "${id}" not found`);
+      throw new Error(`ID "${id}"에 해당하는 사용처를 찾을 수 없습니다`);
     }
 
     // If updating name, check for duplicates within the same space (excluding current record)
@@ -250,7 +250,7 @@ export async function updateUsagePurpose(
           );
 
       if (duplicate) {
-        throw new Error(`Usage purpose with name "${updates.name}" already exists`);
+        throw new Error(`'${updates.name}' 사용처가 이미 존재합니다`);
       }
     }
 
@@ -298,7 +298,7 @@ export async function updateUsagePurpose(
     );
 
     if (!updated) {
-      throw new Error('Failed to retrieve updated usage purpose');
+      throw new Error('수정된 사용처를 불러오는 데 실패했습니다');
     }
 
     return rowToUsagePurpose(updated);
@@ -331,7 +331,7 @@ export async function toggleUsagePurposeActive(id: string): Promise<UsagePurpose
     );
 
     if (!current) {
-      throw new Error(`Usage purpose with ID "${id}" not found`);
+      throw new Error(`ID "${id}"에 해당하는 사용처를 찾을 수 없습니다`);
     }
 
     // Toggle the status
@@ -346,7 +346,7 @@ export async function toggleUsagePurposeActive(id: string): Promise<UsagePurpose
     );
 
     if (!updated) {
-      throw new Error('Failed to retrieve updated usage purpose');
+      throw new Error('수정된 사용처를 불러오는 데 실패했습니다');
     }
 
     return rowToUsagePurpose(updated);
@@ -414,7 +414,7 @@ export async function deleteUsagePurpose(id: string): Promise<void> {
     // Prevent deleting default usage purposes
     if (isDefaultUsagePurpose(id)) {
       throw new Error(
-        `Cannot delete default usage purpose "${id}". You can deactivate it instead.`
+        `기본 사용처 "${id}"는 삭제할 수 없습니다. 비활성화만 가능합니다.`
       );
     }
 
@@ -422,7 +422,7 @@ export async function deleteUsagePurpose(id: string): Promise<void> {
     const inUse = await isUsagePurposeInUse(id);
     if (inUse) {
       throw new Error(
-        'Cannot delete usage purpose that is in use by items. Please reassign or delete those items first.'
+        '항목에서 사용 중인 사용처는 삭제할 수 없습니다. 해당 항목을 먼저 수정하거나 삭제해주세요.'
       );
     }
 

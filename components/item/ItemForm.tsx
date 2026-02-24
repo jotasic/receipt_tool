@@ -17,6 +17,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSpaceStore } from '@/store/spaceStore';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 // 날짜 유효성 검사 (YYYY-MM-DD 형식 + 실제 존재하는 날짜)
 function isValidDateFormat(dateStr: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
@@ -116,6 +117,12 @@ export function ItemForm({
 }: ItemFormProps) {
   const modalTitle = initialData ? '항목 수정' : '항목 추가';
   const { currentSpace } = useSpaceStore();
+
+  // Theme colors for icons and indicators
+  const surfaceColor = useThemeColor(colors.light.surface, colors.dark.surface);
+  const primaryColor = useThemeColor(colors.primary, '#60A5FA');
+  const warningColor = useThemeColor(colors.warning, '#FCD34D');
+  const errorColor = useThemeColor(colors.error, '#F87171');
 
   // classificationId (DB 기반 Classification ID)
   const [classificationId, setClassificationId] = useState<string | undefined>(
@@ -607,13 +614,13 @@ export function ItemForm({
                 }}
                 accessibilityLabel="이미지 삭제"
               >
-                <Ionicons name="close" size={20} color="{colors.light.surface}" />
+                <Ionicons name="close" size={20} color={surfaceColor} />
               </TouchableOpacity>
 
               {/* OCR Loading indicator */}
               {isOcrLoading && (
                 <View className="absolute inset-0 bg-black/50 rounded-lg items-center justify-center">
-                  <ActivityIndicator size="large" color="{colors.light.surface}" />
+                  <ActivityIndicator size="large" color={surfaceColor} />
                   <Text className="text-white mt-2 font-medium">OCR 분석 중...</Text>
                 </View>
               )}
@@ -625,7 +632,7 @@ export function ItemForm({
                   className="mt-2 flex-row items-center justify-center py-2 bg-blue-50 border border-blue-200 rounded-lg"
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="scan-outline" size={18} color="{colors.primary}" />
+                  <Ionicons name="scan-outline" size={18} color={primaryColor} />
                   <Text className="ml-2 text-blue-600 font-medium">
                     텍스트 영역에서 직접 선택
                   </Text>
@@ -640,10 +647,10 @@ export function ItemForm({
               activeOpacity={0.7}
             >
               {isLoadingImage ? (
-                <ActivityIndicator size="small" color="{colors.primary}" />
+                <ActivityIndicator size="small" color={primaryColor} />
               ) : (
                 <>
-                  <Ionicons name="camera-outline" size={32} color="{colors.primary}" />
+                  <Ionicons name="camera-outline" size={32} color={primaryColor} />
                   <Text className="text-blue-600 dark:text-blue-400 font-medium mt-2">
                     사진 등록
                   </Text>
@@ -657,7 +664,7 @@ export function ItemForm({
         {isMockMode && (
           <View className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <View className="flex-row items-center mb-2">
-              <Ionicons name="flask" size={20} color="{colors.warning}" />
+              <Ionicons name="flask" size={20} color={warningColor} />
               <Text className="ml-2 text-amber-700 font-semibold">테스트 모드</Text>
             </View>
             <Text className="text-amber-600 text-sm">
@@ -671,7 +678,7 @@ export function ItemForm({
         {ocrError ? (
           <View className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
             <View className="flex-row items-center mb-2">
-              <Ionicons name="alert-circle" size={20} color="{colors.error}" />
+              <Ionicons name="alert-circle" size={20} color={errorColor} />
               <Text className="ml-2 text-red-700 font-semibold">OCR 처리 실패</Text>
             </View>
             <Text className="text-red-600 text-sm">{ocrError.userMessage}</Text>

@@ -362,7 +362,7 @@ export default function TagManagementScreen() {
           <TextInput
             className="flex-1 ml-2 text-base text-gray-900 dark:text-gray-100"
             placeholder="태그 검색"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={searchIconColor}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="none"

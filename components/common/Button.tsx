@@ -1,6 +1,7 @@
 import { TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
 import { ReactNode } from 'react';
 import { colors } from '@/design-system/tokens/colors';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
 interface ButtonProps {
   title: string;
@@ -60,6 +61,7 @@ export function Button({
   };
 
   const isDisabled = disabled || loading;
+  const outlinePrimaryColor = useThemeColor(colors.primary, '#60A5FA');
 
   return (
     <TouchableOpacity
@@ -77,7 +79,7 @@ export function Button({
         <View className="mr-2">
           <ActivityIndicator
             size="small"
-            color={variant === 'outline' ? colors.primary : '#ffffff'}
+            color={variant === 'outline' ? outlinePrimaryColor : '#ffffff'}
           />
         </View>
       )}

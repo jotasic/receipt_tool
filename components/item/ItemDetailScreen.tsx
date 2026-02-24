@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -72,11 +72,7 @@ export default function ItemDetailScreen() {
     };
   }, [navigation]);
 
-  useEffect(() => {
-    loadItem();
-  }, [id]);
-
-  const loadItem = async () => {
+  const loadItem = useCallback(async () => {
     if (!id) {
       router.back();
       return;
@@ -106,7 +102,11 @@ export default function ItemDetailScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadItem();
+  }, [loadItem]);
 
   const handleDelete = () => {
     if (!id || !item) return;

@@ -121,6 +121,7 @@ export function IconPicker({
   const unselectedIconColor = useThemeColor('#D1D5DB', '#4B5563');
   const unselectedBorderColor = useThemeColor(colors.light.border, '#374151');
   const unselectedBgColor = useThemeColor(colors.light.background, '#1F2937');
+  const primaryColor = useThemeColor(colors.primary, '#60A5FA');
 
   // Filter icons by search query
   const filteredIcons = searchQuery.trim()
@@ -172,7 +173,7 @@ export function IconPicker({
                 className="w-16 h-16 items-center justify-center rounded-lg border-2"
                 style={{
                   borderColor:
-                    selectedIcon === icon ? colors.primary : unselectedBorderColor,
+                    selectedIcon === icon ? primaryColor : unselectedBorderColor,
                   backgroundColor:
                     selectedIcon === icon ? '#EFF6FF' : unselectedBgColor,
                 }}
@@ -181,7 +182,7 @@ export function IconPicker({
                 <Ionicons
                   name={icon as React.ComponentProps<typeof Ionicons>['name']}
                   size={28}
-                  color={selectedIcon === icon ? colors.primary : unselectedIconColor}
+                  color={selectedIcon === icon ? primaryColor : unselectedIconColor}
                 />
               </TouchableOpacity>
             ))}
@@ -203,7 +204,7 @@ export function IconPicker({
             <Text className="text-sm text-gray-600 dark:text-gray-400 mb-2">선택된 아이콘</Text>
             <View className="flex-row items-center">
               <View className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-lg items-center justify-center mr-3">
-                <Ionicons name={selectedIcon as React.ComponentProps<typeof Ionicons>['name']} size={24} color={colors.primary} />
+                <Ionicons name={selectedIcon as React.ComponentProps<typeof Ionicons>['name']} size={24} color={primaryColor} />
               </View>
               <Text className="text-base text-gray-900 dark:text-gray-100">{selectedIcon}</Text>
             </View>

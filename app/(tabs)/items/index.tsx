@@ -61,10 +61,19 @@ export default function ItemsScreen() {
     }, [loadItemsIfStale, currentSpace])
   );
 
+  const loadAllTags = useCallback(async () => {
+    try {
+      const allTags = await getTags(currentSpace?.id);
+      setTags(allTags);
+    } catch (error) {
+      console.error('Failed to load tags:', error);
+    }
+  }, [currentSpace?.id]);
+
   // 태그 로드 (currentSpace 변경 시 재로드)
   useEffect(() => {
     loadAllTags();
-  }, [currentSpace?.id]);
+  }, [loadAllTags]);
 
   // URL 파라미터로 필터 초기 설정
   useEffect(() => {
@@ -85,15 +94,6 @@ export default function ItemsScreen() {
       setClassifications(list);
     } catch (error) {
       console.error('Failed to load classifications:', error);
-    }
-  };
-
-  const loadAllTags = async () => {
-    try {
-      const allTags = await getTags(currentSpace?.id);
-      setTags(allTags);
-    } catch (error) {
-      console.error('Failed to load tags:', error);
     }
   };
 

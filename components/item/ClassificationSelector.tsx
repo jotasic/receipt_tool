@@ -25,6 +25,7 @@ export function ClassificationSelector({
 
   const borderColor = useThemeColor(colors.light.border, colors.dark.border);
   const bgColor = useThemeColor(colors.light.surface, colors.dark.surface);
+  const primaryColor = useThemeColor(colors.primary, '#60A5FA');
 
   useEffect(() => {
     if (!spaceId) return;
@@ -52,7 +53,7 @@ export function ClassificationSelector({
   if (isLoading) {
     return (
       <View className="py-4 items-center">
-        <ActivityIndicator size="small" color={colors.primary} />
+        <ActivityIndicator size="small" color={primaryColor} />
       </View>
     );
   }

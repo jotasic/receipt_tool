@@ -22,6 +22,7 @@ import {
   ActivityIndicator,
   TextInput,
   Switch,
+  useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
@@ -58,6 +59,8 @@ const FILTER_OPTIONS: { value: string; label: string }[] = [
 
 export default function CustomFieldsScreen() {
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const [fields, setFields] = useState<CustomFieldWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -525,8 +528,8 @@ export default function CustomFieldsScreen() {
             <Switch
               value={isRequired}
               onValueChange={setIsRequired}
-              trackColor={{ false: '#D1D5DB', true: '#3B82F6' }}
-              thumbColor={isRequired ? '#FFFFFF' : '#F3F4F6'}
+              trackColor={{ false: isDark ? '#374151' : '#D1D5DB', true: '#3B82F6' }}
+              thumbColor={isRequired ? '#FFFFFF' : (isDark ? '#6B7280' : '#F3F4F6')}
             />
           </View>
 

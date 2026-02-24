@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import Constants from 'expo-constants';
@@ -37,6 +37,8 @@ function SettingItem({
   onPress,
   disabled = false,
 }: SettingItemProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const defaultIconColor = useThemeColor('#6B7280', '#9CA3AF');
   const redIconColor = useThemeColor('#EF4444', '#F87171');
   const arrowColor = useThemeColor('#9CA3AF', '#6B7280');
@@ -82,8 +84,8 @@ function SettingItem({
         <Switch
           value={toggleValue}
           onValueChange={onToggleChange}
-          trackColor={{ false: '#D1D5DB', true: '#3B82F6' }}
-          thumbColor={toggleValue ? '#FFFFFF' : '#F3F4F6'}
+          trackColor={{ false: isDark ? '#374151' : '#D1D5DB', true: '#3B82F6' }}
+          thumbColor={toggleValue ? '#FFFFFF' : (isDark ? '#6B7280' : '#F3F4F6')}
           disabled={disabled}
         />
       )}

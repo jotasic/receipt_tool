@@ -154,16 +154,6 @@ export {
   updateTag,
   deleteTag,
   searchTags,
-  addTagToReceipt,
-  removeTagFromReceipt,
-  getTagsForReceipt,
-  getReceiptsByTag,
-  setTagsForReceipt,
-  addTagToDocument,
-  removeTagFromDocument,
-  getTagsForDocument,
-  getDocumentsByTag,
-  setTagsForDocument,
 } from './tagService';
 
 // Custom field service operations

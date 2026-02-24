@@ -378,16 +378,18 @@ export async function reorderUsagePurposes(orderedIds: string[]): Promise<void> 
   try {
     const db = await getDatabase();
 
-    // Update each usage purpose with its new display_order
-    for (let i = 0; i < orderedIds.length; i++) {
-      const id = orderedIds[i];
-      const displayOrder = i + 1;
+    // Update each usage purpose with its new display_order inside a transaction
+    await db.withTransactionAsync(async () => {
+      for (let i = 0; i < orderedIds.length; i++) {
+        const id = orderedIds[i];
+        const displayOrder = i + 1;
 
-      await db.runAsync('UPDATE usage_purposes SET display_order = ? WHERE id = ?', [
-        displayOrder,
-        id,
-      ]);
-    }
+        await db.runAsync('UPDATE usage_purposes SET display_order = ? WHERE id = ?', [
+          displayOrder,
+          id,
+        ]);
+      }
+    });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
     throw new Error(`[Database] Failed to reorder usage purposes: ${errorMessage}`);

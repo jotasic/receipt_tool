@@ -122,8 +122,10 @@ export function ItemForm({
   // Theme colors for icons and indicators
   const surfaceColor = useThemeColor(colors.light.surface, colors.dark.surface);
   const primaryColor = useThemeColor(colors.primary, '#60A5FA');
+  const successColor = useThemeColor(colors.success, '#34D399');
   const warningColor = useThemeColor(colors.warning, '#FCD34D');
   const errorColor = useThemeColor(colors.error, '#F87171');
+  const orangeColor = useThemeColor('#EA580C', '#FB923C');
 
   // classificationId (DB 기반 Classification ID)
   const [classificationId, setClassificationId] = useState<string | undefined>(
@@ -737,10 +739,10 @@ export function ItemForm({
                     size={20}
                     color={
                       confidence >= 0.7
-                        ? colors.success
+                        ? successColor
                         : confidence >= 0.4
-                        ? colors.warning
-                        : '#EA580C'
+                        ? warningColor
+                        : orangeColor
                     }
                   />
                   <Text
@@ -923,10 +925,10 @@ export function ItemForm({
                     style={{
                       color:
                         item.mode === 'storeName'
-                          ? colors.primary
+                          ? primaryColor
                           : item.mode === 'amount'
-                          ? colors.success
-                          : colors.warning,
+                          ? successColor
+                          : warningColor,
                     }}
                   >
                     {item.mode === 'storeName'

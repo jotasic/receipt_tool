@@ -20,7 +20,7 @@ export function UsagePurposeSelector({
 }: UsagePurposeSelectorProps) {
   const borderColor = useThemeColor(colors.light.border, colors.dark.border);
   const bgColor = useThemeColor(colors.light.surface, colors.dark.surface);
-  const indicatorColor = useThemeColor(colors.primary, colors.primary);
+  const indicatorColor = useThemeColor(colors.primary, '#60A5FA');
 
   const [purposes, setPurposes] = useState<UsagePurpose[]>([]);
   const [isLoading, setIsLoading] = useState(true);

@@ -510,7 +510,7 @@ export default function UsagePurposeManagementScreen() {
           <TextInput
             className="flex-1 ml-2 text-base text-gray-900 dark:text-gray-100"
             placeholder="사용처 검색"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={searchIconColor}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="none"

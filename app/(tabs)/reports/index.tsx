@@ -159,6 +159,10 @@ export default function ReportsScreen() {
     setIsRefreshing(false);
   };
 
+  const renderMonthCard = useCallback(({ item }: { item: MonthData }) => (
+    <MonthCard data={item} />
+  ), []);
+
   return (
     <>
       <Header title="정산" showSpaceIcon />
@@ -167,7 +171,7 @@ export default function ReportsScreen() {
           className="flex-1 bg-white dark:bg-gray-900"
           data={monthsData}
           keyExtractor={(item) => `${item.year}-${item.month}`}
-          renderItem={({ item }) => <MonthCard data={item} />}
+          renderItem={renderMonthCard}
           contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
           refreshControl={
             <RefreshControl

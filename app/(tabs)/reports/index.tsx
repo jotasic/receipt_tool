@@ -46,7 +46,10 @@ function MonthCard({ data }: { data: MonthData }) {
   const chevronColor = useThemeColor('#9CA3AF', '#6B7280');
 
   const handlePress = () => {
-    router.push(`/(tabs)/reports/monthly/${year}/${month}` as any);
+    router.push({
+      pathname: '/(tabs)/reports/monthly/[year]/[month]',
+      params: { year, month },
+    });
   };
 
   if (isLoading) {

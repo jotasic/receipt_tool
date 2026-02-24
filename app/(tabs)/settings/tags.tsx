@@ -21,7 +21,6 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Header, Input, FullScreenModal, FloatingActionBar } from '@/components/common';
@@ -53,7 +52,6 @@ const TAG_COLORS = [
 type TagWithCount = Tag & { itemCount: number };
 
 export default function TagManagementScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { currentSpace } = useSpaceStore();
   const [tags, setTags] = useState<TagWithCount[]>([]);
@@ -75,14 +73,7 @@ export default function TagManagementScreen() {
   const colorPickerBorderColor = useThemeColor('#111827', '#F9FAFB');
   const checkmarkColor = useThemeColor('#FFFFFF', '#111827');
 
-  // Load tags when screen is focused
-  useFocusEffect(
-    useCallback(() => {
-      loadTags();
-    }, [currentSpace?.id])
-  );
-
-  const loadTags = async () => {
+  const loadTags = useCallback(async () => {
     setIsLoading(true);
     try {
       const loadedTags = await getTagsWithItemCount(currentSpace?.id);
@@ -93,7 +84,14 @@ export default function TagManagementScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentSpace?.id]);
+
+  // Load tags when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      loadTags();
+    }, [loadTags])
+  );
 
   // Filter tags by search query
   const filteredTags = tags.filter((tag) =>

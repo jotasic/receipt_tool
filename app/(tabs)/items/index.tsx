@@ -20,9 +20,8 @@ import { getActiveClassificationsBySpace } from '@/services/database/classificat
 import type { Classification } from '@/types/space';
 import type { Item, Tag, CreateItemInput } from '@/types';
 import { isExpense } from '@/types/item';
-import { getTags } from '@/services/database/tagService';
+import { getTags, setTagsForItem } from '@/services/database/tagService';
 import { createItem } from '@/services/database/itemService';
-import { setTagsForItem } from '@/services/database/tagService';
 import { setItemCustomValues } from '@/services/database/customFieldService';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
@@ -40,7 +39,6 @@ export default function ItemsScreen() {
   const [dateFilter, setDateFilter] = useState<DateFilter>({ type: 'this_month' });
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const iconColor = useThemeColor('#374151', '#D1D5DB');
   const filterChipCloseColor = useThemeColor('#1D4ED8', '#93C5FD');
@@ -200,7 +198,6 @@ export default function ItemsScreen() {
   };
 
   const handleCreateItem = async (data: CreateItemInput) => {
-    setIsSubmitting(true);
     try {
       const { tags: tagIds, customValues, ...itemData } = data;
 
@@ -220,8 +217,6 @@ export default function ItemsScreen() {
     } catch (error) {
       console.error('Failed to create item:', error);
       Alert.alert('오류', '항목 추가에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 

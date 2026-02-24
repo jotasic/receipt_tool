@@ -100,18 +100,10 @@ export default function SettingsScreen() {
   const router = useRouter();
   const [isClearing, setIsClearing] = useState(false);
   const { theme, setTheme } = useSettingsStore();
-  const { loadItems } = useItemStore();
   const loadingColor = useThemeColor('#3B82F6', '#60A5FA');
 
   // Get app version from expo config
   const appVersion = Constants.expoConfig?.version || '1.0.0';
-
-  // Dark mode toggle handler
-  const handleDarkModeToggle = async (value: boolean) => {
-    const newTheme = value ? 'dark' : 'light';
-    await setTheme(newTheme);
-    Appearance.setColorScheme(newTheme);
-  };
 
   // Theme selection handler
   const handleThemeSelection = () => {

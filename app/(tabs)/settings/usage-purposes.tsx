@@ -24,7 +24,6 @@ import {
   useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Header, Input, FullScreenModal, FloatingActionBar } from '@/components/common';
@@ -48,7 +47,6 @@ interface UsagePurposeWithCount extends UsagePurpose {
 }
 
 export default function UsagePurposeManagementScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { currentSpace } = useSpaceStore();
   const colorScheme = useColorScheme();
@@ -77,14 +75,7 @@ export default function UsagePurposeManagementScreen() {
   const indicatorColor = useThemeColor('#3B82F6', '#60A5FA');
   const emptyIconColor = useThemeColor('#D1D5DB', '#4B5563');
 
-  // Load usage purposes when screen is focused or current space changes
-  useFocusEffect(
-    useCallback(() => {
-      loadUsagePurposes();
-    }, [currentSpace?.id])
-  );
-
-  const loadUsagePurposes = async () => {
+  const loadUsagePurposes = useCallback(async () => {
     setIsLoading(true);
     try {
       const loadedPurposes = await getUsagePurposeStatistics(currentSpace?.id);
@@ -95,7 +86,14 @@ export default function UsagePurposeManagementScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentSpace?.id]);
+
+  // Load usage purposes when screen is focused or current space changes
+  useFocusEffect(
+    useCallback(() => {
+      loadUsagePurposes();
+    }, [loadUsagePurposes])
+  );
 
   // Filter purposes by search query
   const filteredPurposes = purposes.filter(

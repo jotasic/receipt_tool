@@ -23,7 +23,6 @@ export default function HomeScreen() {
   const secondaryIconColor = useThemeColor('#6B7280', '#9CA3AF');
   const emptyIconColor = useThemeColor('#9CA3AF', '#6B7280');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [classifications, setClassifications] = useState<Classification[]>([]);
 
   // 포커스마다 항목 + 분류 재로드
@@ -46,7 +45,6 @@ export default function HomeScreen() {
   };
 
   const handleCreateItem = async (data: CreateItemInput) => {
-    setIsSubmitting(true);
     try {
       const { tags: tagIds, customValues, ...itemData } = data;
 
@@ -66,8 +64,6 @@ export default function HomeScreen() {
     } catch (error) {
       console.error('Failed to create item:', error);
       Alert.alert('오류', '항목 추가에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 

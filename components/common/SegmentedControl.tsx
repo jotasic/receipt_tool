@@ -7,7 +7,6 @@
 
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { useRef, useEffect, useState } from 'react';
-import { useColorScheme } from 'react-native';
 
 interface SegmentedControlProps {
   values: string[];
@@ -16,8 +15,6 @@ interface SegmentedControlProps {
 }
 
 export function SegmentedControl({ values, selectedIndex, onChange }: SegmentedControlProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
   const slideAnim = useRef(new Animated.Value(selectedIndex)).current;
   const [segmentWidth, setSegmentWidth] = useState(0);
 

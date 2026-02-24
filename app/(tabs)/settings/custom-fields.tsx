@@ -24,10 +24,9 @@ import {
   Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { Header, Input, Button, FullScreenModal, FloatingActionBar } from '@/components/common';
+import { Header, Input, FullScreenModal, FloatingActionBar } from '@/components/common';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -36,7 +35,6 @@ import {
   updateCustomField,
   deleteCustomField,
   getCustomFieldUsageCount,
-  isCustomFieldInUse,
 } from '@/services/database/customFieldService';
 import type { CustomField, CustomFieldType } from '@/types/customField';
 
@@ -59,7 +57,6 @@ const FILTER_OPTIONS: { value: string; label: string }[] = [
 ];
 
 export default function CustomFieldsScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [fields, setFields] = useState<CustomFieldWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -189,7 +186,7 @@ export default function CustomFieldsScreen() {
       // Get max display order
       const maxOrder = fields.reduce((max, f) => Math.max(max, f.displayOrder), -1);
 
-      const newField = await createCustomField({
+      await createCustomField({
         name: fieldName.trim(),
         fieldType,
         options,

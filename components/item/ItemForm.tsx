@@ -18,6 +18,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSpaceStore } from '@/store/spaceStore';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { DEFAULT_CLASSIFICATION_IDS } from '@/services/database/migrations/spaceFeature';
 // 날짜 유효성 검사 (YYYY-MM-DD 형식 + 실제 존재하는 날짜)
 function isValidDateFormat(dateStr: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
@@ -179,6 +180,21 @@ export function ItemForm({
   const showAmount = classification !== 'proof_document';
   const showStoreName =
     classification === 'personal_card' || classification === 'corporate_card';
+
+  /**
+   * Handle classification ID change and sync the classification enum accordingly
+   */
+  const handleClassificationChange = (id: string) => {
+    setClassificationId(id);
+    if (id === DEFAULT_CLASSIFICATION_IDS.personalCard) {
+      setClassification('personal_card');
+    } else if (id === DEFAULT_CLASSIFICATION_IDS.proofDocument) {
+      setClassification('proof_document');
+    } else {
+      // 커스텀 분류 또는 법인카드 → corporate_card 기본값
+      setClassification('corporate_card');
+    }
+  };
 
   /**
    * Load custom fields for items
@@ -574,7 +590,7 @@ export function ItemForm({
             <ClassificationSelector
               spaceId={currentSpace.id}
               value={classificationId}
-              onChange={setClassificationId}
+              onChange={handleClassificationChange}
             />
           ) : (
             <Text className="text-gray-500 dark:text-gray-400 text-sm py-2">

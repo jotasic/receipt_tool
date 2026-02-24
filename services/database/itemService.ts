@@ -306,7 +306,7 @@ export async function moveItemToSpace(id: string, targetSpaceId: string): Promis
     const db = await getDatabase();
     const now = new Date().toISOString();
     await db.runAsync(
-      'UPDATE items SET space_id = ?, classification_id = NULL, updated_at = ? WHERE id = ?',
+      'UPDATE items SET space_id = ?, classification_id = NULL, usage_purpose = \'\', updated_at = ? WHERE id = ?',
       [targetSpaceId, now, id]
     );
   } catch (error) {

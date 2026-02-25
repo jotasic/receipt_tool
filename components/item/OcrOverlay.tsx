@@ -189,7 +189,7 @@ export function OcrOverlay({
 
   // 모든 라인 추출 (블록 → 라인)
   const allLines = useMemo(() => {
-    const lines: Array<{ line: OcrLine; blockIndex: number; lineIndexInBlock: number; lineIndex: string }> = [];
+    const lines: { line: OcrLine; blockIndex: number; lineIndexInBlock: number; lineIndex: string }[] = [];
     blocks.forEach((block, blockIndex) => {
       block.lines.forEach((line, lineIndexInBlock) => {
         lines.push({
@@ -346,7 +346,7 @@ export function OcrOverlay({
 
               {/* 모드 선택 버튼 */}
               <View className="gap-3">
-                {(Object.entries(MODE_CONFIG) as Array<[SelectionMode, typeof MODE_CONFIG[SelectionMode]]>).map(
+                {(Object.entries(MODE_CONFIG) as [SelectionMode, typeof MODE_CONFIG[SelectionMode]][]).map(
                   ([mode, config]) => (
                     <TouchableOpacity
                       key={mode}

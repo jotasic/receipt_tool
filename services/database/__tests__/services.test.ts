@@ -5,7 +5,6 @@
  */
 
 import {
-  initDatabase,
   resetDatabase,
   createReceipt,
   getReceipts,

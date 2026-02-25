@@ -157,7 +157,7 @@ export function MonthlyReportScreen({ year, month }: Props) {
     } finally {
       setIsExporting(false);
     }
-  }, [year, month]);
+  }, [year, month, currentSpace?.id]);
 
   const loadMonthlyData = useCallback(async () => {
     if (!year || !month) return;

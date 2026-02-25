@@ -34,7 +34,7 @@ interface ItemsFilterSheetProps {
   tags: Tag[];
 }
 
-const DATE_FILTER_OPTIONS: Array<{ type: DateFilterType; label: string }> = [
+const DATE_FILTER_OPTIONS: { type: DateFilterType; label: string }[] = [
   { type: 'all', label: '전체 기간' },
   { type: 'this_month', label: '이번 달' },
   { type: 'last_month', label: '지난 달' },

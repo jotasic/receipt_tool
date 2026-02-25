@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
-import { Pressable } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator , Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getActiveUsagePurposes } from '@/services/database/usagePurposeService';
 import type { UsagePurpose } from '@/types/usagePurpose';

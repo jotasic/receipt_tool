@@ -33,7 +33,6 @@ import {
   createUsagePurpose,
   updateUsagePurpose,
   deleteUsagePurpose,
-  toggleUsagePurposeActive,
 } from '@/services/database/usagePurposeService';
 import { isDefaultUsagePurpose } from '@/types/usagePurpose';
 import type { UsagePurpose } from '@/types/usagePurpose';
@@ -256,16 +255,6 @@ export default function UsagePurposeManagementScreen() {
     }
   };
 
-  // Toggle active status
-  const handleToggleActive = async (purpose: UsagePurposeWithCount) => {
-    try {
-      await toggleUsagePurposeActive(purpose.id);
-      await loadUsagePurposes();
-    } catch (error) {
-      console.error('Failed to toggle usage purpose:', error);
-      Alert.alert('오류', '사용처 상태를 변경할 수 없습니다.');
-    }
-  };
 
   // Render usage purpose item
   const renderPurposeItem = (purpose: UsagePurposeWithCount) => {

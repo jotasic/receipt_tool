@@ -4,8 +4,6 @@
  * Type definitions for monthly settlement export functionality
  */
 
-import type { Item } from '@/types/item';
-
 /**
  * Export configuration
  */

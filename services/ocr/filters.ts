@@ -54,7 +54,7 @@ export function isNotSingleChar(line: OcrLine): boolean {
  *
  * To add new filters in the future, add them to this array.
  */
-const ACTIVE_FILTERS: Array<(line: OcrLine) => boolean> = [
+const ACTIVE_FILTERS: ((line: OcrLine) => boolean)[] = [
   isNotVerticalText,
   isNotTooSmall,
   isNotSingleChar,

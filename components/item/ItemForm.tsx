@@ -19,6 +19,39 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSpaceStore } from '@/store/spaceStore';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { DEFAULT_CLASSIFICATION_IDS } from '@/services/database/migrations/spaceFeature';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
+import { Input, BottomSheet, FullScreenModal, DatePickerInput } from '@/components/common';
+import { ClassificationSelector } from './ClassificationSelector';
+import { UsagePurposeSelector } from './UsagePurposeSelector';
+import { TagSelector } from './TagSelector';
+import { CustomFieldInput } from './CustomFieldInput';
+import { OcrOverlay, type SelectedItem } from './OcrOverlay';
+import {
+  extractReceiptData,
+  extractTextDetailed,
+  OcrErrorType,
+  ocrLogger,
+  getCurrentProvider,
+} from '@/services/ocr';
+import { getCustomFields } from '@/services/database/customFieldService';
+import type { OcrError, OcrBlock } from '@/services/ocr';
+import type { CreateItemInput } from '@/types/item';
+import type { ItemClassification, UsagePurpose } from '@/types/shared';
+import { colors } from '@/design-system/tokens/colors';
+import type { Tag } from '@/types/tag';
+import type { CustomField } from '@/types';
 // 날짜 유효성 검사 (YYYY-MM-DD 형식 + 실제 존재하는 날짜)
 function isValidDateFormat(dateStr: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
@@ -59,39 +92,6 @@ function formatAmountDisplay(raw: string): string {
   const num = parseInt(raw, 10);
   return isNaN(num) ? '' : num.toLocaleString('ko-KR');
 }
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
-import { Input, BottomSheet, FullScreenModal, DatePickerInput } from '@/components/common';
-import { ClassificationSelector } from './ClassificationSelector';
-import { UsagePurposeSelector } from './UsagePurposeSelector';
-import { TagSelector } from './TagSelector';
-import { CustomFieldInput } from './CustomFieldInput';
-import { OcrOverlay, type SelectedItem } from './OcrOverlay';
-import {
-  extractReceiptData,
-  extractTextDetailed,
-  OcrErrorType,
-  ocrLogger,
-  getCurrentProvider,
-} from '@/services/ocr';
-import { getCustomFields } from '@/services/database/customFieldService';
-import type { OcrError, OcrBlock } from '@/services/ocr';
-import type { CreateItemInput } from '@/types/item';
-import type { ItemClassification, UsagePurpose } from '@/types/shared';
-import { colors } from '@/design-system/tokens/colors';
-import type { Tag } from '@/types/tag';
-import type { CustomField } from '@/types';
 
 interface ItemFormProps {
   /** Initial form data for edit mode (optional) */
@@ -118,6 +118,8 @@ export function ItemForm({
 }: ItemFormProps) {
   const modalTitle = initialData ? '항목 수정' : '항목 추가';
   const { currentSpace } = useSpaceStore();
+  // initialData?.title은 마운트 시 1회만 캡처 (이후 변경 무시가 의도적임)
+  const initialTitleRef = useRef(initialData?.title);
 
   // Theme colors for icons and indicators
   const surfaceColor = useThemeColor(colors.light.surface, colors.dark.surface);
@@ -287,18 +289,18 @@ export function ItemForm({
     } finally {
       setIsOcrLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
   /**
    * Show user-friendly OCR error alert
    */
   const handleOcrErrorAlert = useCallback((error: OcrError) => {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: 'default' | 'cancel' | 'destructive';
-    }> = [];
+    }[] = [];
 
     if (error.retryable && imageUri) {
       buttons.push({
@@ -345,9 +347,9 @@ export function ItemForm({
     loadCustomFields();
   }, [loadCustomFields]);
 
-  // Run OCR when initialImageUri is provided
+  // Run OCR when initialImageUri is provided (마운트 시 초기 title 없으면 자동 실행)
   useEffect(() => {
-    if (initialImageUri && !initialData?.title) {
+    if (initialImageUri && !initialTitleRef.current) {
       runOCR(initialImageUri);
     }
   }, [initialImageUri, runOCR]);

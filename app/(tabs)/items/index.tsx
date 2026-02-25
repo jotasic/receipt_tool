@@ -239,7 +239,7 @@ export default function ItemsScreen() {
   };
 
   // 필터 칩 데이터: '전체' + 분류 목록
-  const filterOptions = useMemo<Array<{ id: FilterType; name: string; icon: string }>>(() => {
+  const filterOptions = useMemo<{ id: FilterType; name: string; icon: string }[]>(() => {
     return [
       { id: 'all', name: '전체', icon: 'apps' },
       ...classifications.map((c) => ({

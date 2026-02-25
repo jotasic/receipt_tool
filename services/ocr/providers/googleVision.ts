@@ -14,32 +14,32 @@ import { ocrLogger } from '../logger';
 const VISION_API_URL = 'https://vision.googleapis.com/v1/images:annotate';
 
 interface VisionApiResponse {
-  responses: Array<{
-    textAnnotations?: Array<{
+  responses: {
+    textAnnotations?: {
       description: string;
       boundingPoly?: {
-        vertices: Array<{ x: number; y: number }>;
+        vertices: { x: number; y: number }[];
       };
-    }>;
+    }[];
     fullTextAnnotation?: {
       text: string;
-      pages: Array<{
-        blocks: Array<{
-          paragraphs: Array<{
-            words: Array<{
-              symbols: Array<{
+      pages: {
+        blocks: {
+          paragraphs: {
+            words: {
+              symbols: {
                 text: string;
-              }>;
-            }>;
-          }>;
-        }>;
-      }>;
+              }[];
+            }[];
+          }[];
+        }[];
+      }[];
     };
     error?: {
       code: number;
       message: string;
     };
-  }>;
+  }[];
 }
 
 /**

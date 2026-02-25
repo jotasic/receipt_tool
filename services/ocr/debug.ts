@@ -33,11 +33,11 @@ export interface OcrDebugInfo {
   /** 에러 로그 개수 */
   errorLogCount: number;
   /** 최근 에러 목록 */
-  recentErrors: Array<{
+  recentErrors: {
     timestamp: string;
     type: string;
     message: string;
-  }>;
+  }[];
   /** 시스템 정보 */
   systemInfo: {
     platform: string;
@@ -89,10 +89,6 @@ export interface OcrStatistics {
 export function getOcrStatistics(): OcrStatistics {
   const allLogs = ocrLogger.getRecentLogs(100);
   const errorLogs = ocrLogger.getErrorLogs();
-
-  const attempts = allLogs.filter(log =>
-    log.message.includes('추출 시작') || log.message.includes('추출 완료')
-  );
 
   const successLogs = allLogs.filter(log => log.message.includes('추출 완료'));
   const successCount = successLogs.length;

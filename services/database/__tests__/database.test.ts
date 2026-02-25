@@ -8,7 +8,6 @@
 import {
   initDatabase,
   getDatabaseInstance,
-  resetDatabase,
   DEFAULT_CATEGORIES,
 } from '../index';
 import type { ReceiptRow, CategoryRow } from '../index';

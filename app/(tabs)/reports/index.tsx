@@ -127,7 +127,7 @@ export default function ReportsScreen() {
           const items = await getMonthlyItems(year, month, currentSpace?.id);
           const summary = calculateMonthlySummary(items);
           return { year, month, summary, isLoading: false };
-        } catch (error) {
+        } catch {
           Alert.alert('오류', '데이터를 불러오지 못했습니다.');
           return {
             year,

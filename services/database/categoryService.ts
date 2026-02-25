@@ -170,11 +170,11 @@ export async function deleteCategory(id: string): Promise<void> {
  * @returns Promise<Array> - Array of categories with receipt counts and total amounts
  */
 export async function getCategoryStatistics(): Promise<
-  Array<{
+  {
     category: Category;
     receiptCount: number;
     totalAmount: number;
-  }>
+  }[]
 > {
   const db = await getDatabase();
 

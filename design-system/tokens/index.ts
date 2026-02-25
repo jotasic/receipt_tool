@@ -5,13 +5,13 @@
  * Tokens are based on values from constants/items.ts and constants/theme.ts.
  */
 
-export * from './colors';
-export * from './spacing';
-export * from './typography';
-
 import { colors } from './colors';
 import { spacing, borderRadius } from './spacing';
 import { fontSize, fontWeight, lineHeight, letterSpacing } from './typography';
+
+export * from './colors';
+export * from './spacing';
+export * from './typography';
 
 /**
  * Complete design tokens object

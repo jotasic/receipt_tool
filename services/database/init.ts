@@ -143,7 +143,7 @@ async function _initDatabase(
     try {
       await db.execAsync(INDEXES.documents_created);
       await db.execAsync(INDEXES.documents_type);
-    } catch (error) {
+    } catch {
       console.log('[Init] Skipping document indexes (columns may not exist in legacy DB)');
     }
 

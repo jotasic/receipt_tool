@@ -1,9 +1,8 @@
-import { View, Text, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator , Appearance } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
-import { Appearance } from 'react-native';
 import { Header } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useSettingsStore } from '@/store/settingsStore';

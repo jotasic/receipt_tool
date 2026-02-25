@@ -123,7 +123,7 @@ export async function updateDocument(
   const now = new Date().toISOString();
 
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: (string | number | null)[] = [];
 
   if (updates.title !== undefined) {
     fields.push('title = ?');

@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Appearance, View, ActivityIndicator, Text } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { initDatabase } from '@/services/database';
 import type { MigrationProgress } from '@/services/database/migrations/runner';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -29,7 +30,9 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const overlayBgColor = useThemeColor('#ffffff', '#111827');
+  const overlayIndicatorColor = useThemeColor('#2563EB', '#60A5FA');
+  const overlayTextColor = useThemeColor('#6b7280', '#9CA3AF');
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
@@ -108,9 +111,9 @@ export default function RootLayout() {
     <>
       <RootLayoutNav />
       {!isReady && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: colorScheme === 'dark' ? '#111827' : '#ffffff' }}>
-          <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#60A5FA' : '#2563EB'} />
-          <Text style={{ marginTop: 12, fontSize: 14, color: colorScheme === 'dark' ? '#9CA3AF' : '#6b7280' }}>
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: overlayBgColor }}>
+          <ActivityIndicator size="large" color={overlayIndicatorColor} />
+          <Text style={{ marginTop: 12, fontSize: 14, color: overlayTextColor }}>
             {migrationMessage ?? '로딩 중...'}
           </Text>
         </View>

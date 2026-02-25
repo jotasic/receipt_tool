@@ -5,7 +5,7 @@
  * Supports dark mode and smooth animations.
  */
 
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, LayoutChangeEvent } from 'react-native';
 import { useRef, useEffect, useState } from 'react';
 
 interface SegmentedControlProps {
@@ -21,13 +21,13 @@ export function SegmentedControl({ values, selectedIndex, onChange }: SegmentedC
   useEffect(() => {
     Animated.spring(slideAnim, {
       toValue: selectedIndex,
-      useNativeDriver: false,
+      useNativeDriver: true,
       tension: 80,
       friction: 10,
     }).start();
   }, [selectedIndex, slideAnim]);
 
-  const handleLayout = (event: any) => {
+  const handleLayout = (event: LayoutChangeEvent) => {
     const { width } = event.nativeEvent.layout;
     setSegmentWidth(width / values.length);
   };

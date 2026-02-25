@@ -6,7 +6,6 @@ import {
   Image,
   Alert,
   ActivityIndicator,
-  useColorScheme,
   Pressable,
 } from 'react-native';
 import { router, useLocalSearchParams, Stack, useNavigation } from 'expo-router';
@@ -35,13 +34,13 @@ export default function ItemDetailScreen() {
   const [showImageModal, setShowImageModal] = useState(false);
   const updateItemInStore = useItemStore((state) => state.updateItem);
   const deleteItemFromStore = useItemStore((state) => state.deleteItem);
-  const colorScheme = useColorScheme();
   const navigation = useNavigation();
   const [showMoveSheet, setShowMoveSheet] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const { spaces, currentSpace } = useSpaceStore();
 
   const loadingColor = useThemeColor('#2563EB', '#60A5FA');
+  const iconSecondaryColor = useThemeColor('#6B7280', '#9CA3AF');
 
   // Hide tab bar when this screen is focused.
   // Walk up the navigator tree to find the Tabs navigator, which is the
@@ -398,7 +397,7 @@ export default function ItemDetailScreen() {
             {item.amount !== undefined && (
               <View className="mb-3">
                 <View className="flex-row items-center mb-1">
-                  <Ionicons name="cash-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+                  <Ionicons name="cash-outline" size={18} color={iconSecondaryColor} />
                   <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-2">
                     금액
                   </Text>
@@ -413,7 +412,7 @@ export default function ItemDetailScreen() {
             {item.storeName && (
               <View className="mb-3">
                 <View className="flex-row items-center mb-1">
-                  <Ionicons name="storefront-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+                  <Ionicons name="storefront-outline" size={18} color={iconSecondaryColor} />
                   <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-2">
                     사용처
                   </Text>
@@ -427,7 +426,7 @@ export default function ItemDetailScreen() {
             {/* Date */}
             <View>
               <View className="flex-row items-center mb-1">
-                <Ionicons name="calendar-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+                <Ionicons name="calendar-outline" size={18} color={iconSecondaryColor} />
                 <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-2">
                   일자
                 </Text>
@@ -442,7 +441,7 @@ export default function ItemDetailScreen() {
           {item.memo && (
             <View className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <View className="flex-row items-center mb-2">
-                <Ionicons name="document-text-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+                <Ionicons name="document-text-outline" size={18} color={iconSecondaryColor} />
                 <Text className="text-base font-semibold text-gray-700 dark:text-gray-300 ml-2">
                   메모
                 </Text>
@@ -456,7 +455,7 @@ export default function ItemDetailScreen() {
           {/* Metadata */}
           <View className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <View className="flex-row items-center mb-3">
-              <Ionicons name="time-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+              <Ionicons name="time-outline" size={18} color={iconSecondaryColor} />
               <Text className="text-sm text-gray-600 dark:text-gray-400 ml-2">
                 생성일: {formatDateTime(item.createdAt)}
               </Text>
@@ -464,7 +463,7 @@ export default function ItemDetailScreen() {
 
             {item.createdAt !== item.updatedAt && (
               <View className="flex-row items-center">
-                <Ionicons name="sync-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+                <Ionicons name="sync-outline" size={18} color={iconSecondaryColor} />
                 <Text className="text-sm text-gray-600 dark:text-gray-400 ml-2">
                   수정일: {formatDateTime(item.updatedAt)}
                 </Text>

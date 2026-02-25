@@ -47,15 +47,7 @@ export default function ClassificationsScreen() {
   const emptyIconColor = useThemeColor('#9CA3AF', '#6B7280');
   const loadingColor = useThemeColor('#3B82F6', '#60A5FA');
 
-  useFocusEffect(
-    useCallback(() => {
-      if (currentSpace) {
-        loadClassifications(currentSpace.id);
-      }
-    }, [currentSpace])
-  );
-
-  const loadClassifications = async (spaceId: string) => {
+  const loadClassifications = useCallback(async (spaceId: string) => {
     setIsLoading(true);
     try {
       const list = await getClassificationsBySpace(spaceId);
@@ -65,7 +57,15 @@ export default function ClassificationsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (currentSpace) {
+        loadClassifications(currentSpace.id);
+      }
+    }, [currentSpace, loadClassifications])
+  );
 
   const handleAddClassification = () => {
     setEditModal({ visible: true, mode: 'add', text: '' });
@@ -155,6 +155,7 @@ export default function ClassificationsScreen() {
       );
     } catch (error) {
       console.error('Failed to check classification usage:', error);
+      Alert.alert('오류', '사용 여부 확인에 실패했습니다.');
     }
   };
 

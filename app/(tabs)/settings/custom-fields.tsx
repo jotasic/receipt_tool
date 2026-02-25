@@ -84,14 +84,7 @@ export default function CustomFieldsScreen() {
   const dangerColor = useThemeColor('#EF4444', '#F87171');
   const placeholderColor = useThemeColor('#9CA3AF', '#6B7280');
 
-  // Load custom fields when screen is focused
-  useFocusEffect(
-    useCallback(() => {
-      loadCustomFields();
-    }, [])
-  );
-
-  const loadCustomFields = async () => {
+  const loadCustomFields = useCallback(async () => {
     setIsLoading(true);
     try {
       const loadedFields = await getCustomFields();
@@ -111,7 +104,14 @@ export default function CustomFieldsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  // Load custom fields when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      loadCustomFields();
+    }, [loadCustomFields])
+  );
 
   // Filter and search fields
   const filteredFields = fields.filter((field) => {
@@ -336,13 +336,10 @@ export default function CustomFieldsScreen() {
       const currentField = fields[currentIndex];
       const swapField = fields[newIndex];
 
-      await updateCustomField(currentField.id, {
-        displayOrder: swapField.displayOrder,
-      });
-
-      await updateCustomField(swapField.id, {
-        displayOrder: currentField.displayOrder,
-      });
+      await Promise.all([
+        updateCustomField(currentField.id, { displayOrder: swapField.displayOrder }),
+        updateCustomField(swapField.id, { displayOrder: currentField.displayOrder }),
+      ]);
 
       // Reload to get updated order
       await loadCustomFields();

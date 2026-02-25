@@ -181,13 +181,17 @@ export function MonthlyReportScreen({ year, month }: Props) {
     loadMonthlyData();
   }, [loadMonthlyData]);
 
+  const renderItem = useCallback(({ item }: { item: Item }) => (
+    <ItemCard item={item} />
+  ), []);
+
   return (
     <>
       <FlatList
         className="flex-1 bg-white dark:bg-gray-900"
         data={items}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <ItemCard item={item} />}
+        renderItem={renderItem}
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
         ListHeaderComponent={
           <>

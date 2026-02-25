@@ -6,6 +6,8 @@
 
 import { getDatabase } from './getDatabase';
 
+type SqlParam = string | number | null | boolean;
+
 /**
  * Execute a database operation within a transaction
  *
@@ -66,9 +68,9 @@ export async function getTableRowCount(tableName: string): Promise<number> {
  * @param params - Query parameters
  * @returns Promise<any[]> - Query results
  */
-export async function executeRawQuery<T = any>(
+export async function executeRawQuery<T = unknown>(
   query: string,
-  params: any[] = []
+  params: SqlParam[] = []
 ): Promise<T[]> {
   const db = await getDatabase();
   return await db.getAllAsync<T>(query, params);
@@ -155,9 +157,9 @@ export async function checkDatabaseIntegrity(): Promise<boolean> {
 /**
  * Get foreign key violations
  *
- * @returns Promise<any[]> - Array of foreign key violations
+ * @returns Promise<unknown[]> - Array of foreign key violations
  */
-export async function checkForeignKeys(): Promise<any[]> {
+export async function checkForeignKeys(): Promise<unknown[]> {
   const db = await getDatabase();
   return await db.getAllAsync('PRAGMA foreign_key_check');
 }
@@ -211,10 +213,10 @@ export function sanitizeLikeQuery(input: string): string {
  * @returns object - Query string and parameters
  */
 export function buildWhereClause(
-  filters: Record<string, any>
-): { where: string; params: any[] } {
+  filters: Record<string, SqlParam>
+): { where: string; params: SqlParam[] } {
   const conditions: string[] = [];
-  const params: any[] = [];
+  const params: SqlParam[] = [];
 
   for (const [key, value] of Object.entries(filters)) {
     if (value !== undefined && value !== null) {

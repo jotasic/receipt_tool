@@ -126,6 +126,9 @@ export function ItemForm({
   const warningColor = useThemeColor(colors.warning, '#FCD34D');
   const errorColor = useThemeColor(colors.error, '#F87171');
   const orangeColor = useThemeColor('#EA580C', '#FB923C');
+  const ocrBadgeBlueColor = useThemeColor('#DBEAFE', '#1E3A5F');
+  const ocrBadgeGreenColor = useThemeColor('#D1FAE5', '#14532D');
+  const ocrBadgeYellowColor = useThemeColor('#FEF3C7', '#451A03');
 
   // classificationId (DB 기반 Classification ID)
   const [classificationId, setClassificationId] = useState<string | undefined>(
@@ -212,6 +215,7 @@ export function ItemForm({
       }
     } catch (error) {
       console.error('Failed to load custom fields:', error);
+      Alert.alert('오류', '커스텀 필드를 불러오지 못했습니다.');
     }
   };
 
@@ -914,10 +918,10 @@ export function ItemForm({
                   style={{
                     backgroundColor:
                       item.mode === 'storeName'
-                        ? '#DBEAFE'
+                        ? ocrBadgeBlueColor
                         : item.mode === 'amount'
-                        ? '#D1FAE5'
-                        : '#FEF3C7',
+                        ? ocrBadgeGreenColor
+                        : ocrBadgeYellowColor,
                   }}
                 >
                   <Text

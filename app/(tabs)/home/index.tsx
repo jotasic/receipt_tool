@@ -25,6 +25,15 @@ export default function HomeScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [classifications, setClassifications] = useState<Classification[]>([]);
 
+  const loadClassifications = useCallback(async (spaceId: string) => {
+    try {
+      const list = await getActiveClassificationsBySpace(spaceId);
+      setClassifications(list);
+    } catch (error) {
+      console.error('Failed to load classifications:', error);
+    }
+  }, []);
+
   // 포커스마다 항목 + 분류 재로드
   useFocusEffect(
     useCallback(() => {
@@ -32,17 +41,8 @@ export default function HomeScreen() {
       if (currentSpace) {
         loadClassifications(currentSpace.id);
       }
-    }, [loadItemsIfStale, currentSpace])
+    }, [loadItemsIfStale, currentSpace, loadClassifications])
   );
-
-  const loadClassifications = async (spaceId: string) => {
-    try {
-      const list = await getActiveClassificationsBySpace(spaceId);
-      setClassifications(list);
-    } catch (error) {
-      console.error('Failed to load classifications:', error);
-    }
-  };
 
   const handleCreateItem = async (data: CreateItemInput) => {
     try {

@@ -9,7 +9,7 @@
  * - Remove tag functionality
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -71,14 +71,7 @@ export function TagSelector({
   const [newTagColor, setNewTagColor] = useState(TAG_COLORS[0]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Load all tags when modal opens
-  useEffect(() => {
-    if (showModal) {
-      loadTags();
-    }
-  }, [showModal, spaceId]);
-
-  const loadTags = async () => {
+  const loadTags = useCallback(async () => {
     setIsLoading(true);
     try {
       const tags = await getTags(spaceId);
@@ -89,7 +82,14 @@ export function TagSelector({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [spaceId]);
+
+  // Load all tags when modal opens
+  useEffect(() => {
+    if (showModal) {
+      loadTags();
+    }
+  }, [showModal, loadTags]);
 
   // Add tag to selection
   const handleAddTag = (tag: Tag) => {

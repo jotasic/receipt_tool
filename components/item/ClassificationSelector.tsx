@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getActiveClassificationsBySpace } from '@/services/database/classificationService';
@@ -27,14 +27,8 @@ export function ClassificationSelector({
   const bgColor = useThemeColor(colors.light.surface, colors.dark.surface);
   const primaryColor = useThemeColor(colors.primary, '#60A5FA');
 
-  useEffect(() => {
+  const loadClassifications = useCallback(async () => {
     if (!spaceId) return;
-    loadClassifications();
-  // spaceId가 변경될 때마다 분류 목록 재로드
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spaceId]);
-
-  const loadClassifications = async () => {
     setIsLoading(true);
     try {
       const list = await getActiveClassificationsBySpace(spaceId);
@@ -48,7 +42,12 @@ export function ClassificationSelector({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [spaceId, value, onChange]);
+
+  // spaceId가 변경될 때마다 분류 목록 재로드
+  useEffect(() => {
+    loadClassifications();
+  }, [loadClassifications]);
 
   if (isLoading) {
     return (

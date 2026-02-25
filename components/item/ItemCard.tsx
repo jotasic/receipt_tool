@@ -14,6 +14,20 @@ interface ItemCardProps {
   showDate?: boolean;
 }
 
+// Format date for display (YYYY.MM.DD)
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}.${month}.${day}`;
+}
+
+// Format amount with currency symbol
+function formatAmount(amount: number): string {
+  return `₩${amount.toLocaleString('ko-KR')}`;
+}
+
 export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate = true }: ItemCardProps) {
   const classificationConfig = getClassificationConfig(item.classification);
   const defaultColor = useThemeColor(colors.light.text.secondary, colors.dark.text.secondary);
@@ -39,20 +53,6 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate =
       router.push(`/(tabs)/home/item/${item.id}`);
     }
   }, [onPress, item, segments]);
-
-  // Format date for display (YYYY.MM.DD)
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}.${month}.${day}`;
-  };
-
-  // Format amount with currency symbol
-  const formatAmount = (amount: number) => {
-    return `₩${amount.toLocaleString('ko-KR')}`;
-  };
 
   // Determine if we should show amount (hide for proof documents without amount)
   const shouldShowAmount = item.amount !== undefined && item.amount !== null;

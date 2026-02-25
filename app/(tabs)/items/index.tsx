@@ -51,6 +51,15 @@ export default function ItemsScreen() {
   // URL 파라미터
   const params = useLocalSearchParams<{ classificationId?: string }>();
 
+  const loadClassifications = useCallback(async (spaceId: string) => {
+    try {
+      const list = await getActiveClassificationsBySpace(spaceId);
+      setClassifications(list);
+    } catch (error) {
+      console.error('Failed to load classifications:', error);
+    }
+  }, []);
+
   // 포커스마다 항목 + 분류 재로드
   useFocusEffect(
     useCallback(() => {
@@ -58,7 +67,7 @@ export default function ItemsScreen() {
       if (currentSpace) {
         loadClassifications(currentSpace.id);
       }
-    }, [loadItemsIfStale, currentSpace])
+    }, [loadItemsIfStale, currentSpace, loadClassifications])
   );
 
   const loadAllTags = useCallback(async () => {
@@ -87,15 +96,6 @@ export default function ItemsScreen() {
   useEffect(() => {
     setSelectedFilter('all');
   }, [currentSpace?.id]);
-
-  const loadClassifications = async (spaceId: string) => {
-    try {
-      const list = await getActiveClassificationsBySpace(spaceId);
-      setClassifications(list);
-    } catch (error) {
-      console.error('Failed to load classifications:', error);
-    }
-  };
 
   // 필터링된 항목 목록
   const filteredItems = useMemo(() => {

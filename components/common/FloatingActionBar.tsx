@@ -57,7 +57,7 @@ export function FloatingActionBar({ actions, bottomInset = 0 }: FloatingActionBa
 
         return (
           <TouchableOpacity
-            key={index}
+            key={`${action.icon}-${index}`}
             onPress={action.onPress}
             disabled={action.disabled || action.loading}
             className={`w-16 h-16 rounded-full items-center justify-center ${styles.bg}`}

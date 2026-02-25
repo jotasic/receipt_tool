@@ -208,7 +208,7 @@ export async function updateReport(
 
   // Build dynamic UPDATE query based on provided fields
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: (string | number | null)[] = [];
 
   if (updates.title !== undefined) {
     fields.push('title = ?');

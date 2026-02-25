@@ -21,7 +21,6 @@ import {
   ActivityIndicator,
   TextInput,
   Switch,
-  useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
@@ -49,9 +48,6 @@ interface UsagePurposeWithCount extends UsagePurpose {
 export default function UsagePurposeManagementScreen() {
   const insets = useSafeAreaInsets();
   const { currentSpace } = useSpaceStore();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
   const [purposes, setPurposes] = useState<UsagePurposeWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -67,6 +63,8 @@ export default function UsagePurposeManagementScreen() {
   const [purposeActive, setPurposeActive] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  const switchTrackOffColor = useThemeColor('#D1D5DB', '#374151');
+  const switchThumbOffColor = useThemeColor('#F3F4F6', '#6B7280');
   const editIconColor = useThemeColor('#3B82F6', '#60A5FA');
   const deleteIconColor = useThemeColor('#EF4444', '#F87171');
   const deleteIconDisabledColor = useThemeColor('#D1D5DB', '#4B5563');
@@ -435,8 +433,8 @@ export default function UsagePurposeManagementScreen() {
               <Switch
                 value={purposeActive}
                 onValueChange={setPurposeActive}
-                trackColor={{ false: isDark ? '#374151' : '#D1D5DB', true: '#3B82F6' }}
-                thumbColor={purposeActive ? '#FFFFFF' : (isDark ? '#6B7280' : '#F3F4F6')}
+                trackColor={{ false: switchTrackOffColor, true: '#3B82F6' }}
+                thumbColor={purposeActive ? '#FFFFFF' : switchThumbOffColor}
               />
             </View>
           )}
@@ -498,6 +496,8 @@ export default function UsagePurposeManagementScreen() {
     );
   }
 
+  const inactiveCount = purposes.filter((p) => !p.isActive).length;
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -558,8 +558,7 @@ export default function UsagePurposeManagementScreen() {
           <View className="px-4 py-2 bg-gray-50 dark:bg-gray-900">
             <Text className="text-sm text-gray-600 dark:text-gray-400">
               총 {filteredPurposes.length}개의 사용처
-              {purposes.filter((p) => !p.isActive).length > 0 &&
-                ` (비활성 ${purposes.filter((p) => !p.isActive).length}개)`}
+              {inactiveCount > 0 && ` (비활성 ${inactiveCount}개)`}
             </Text>
           </View>
 

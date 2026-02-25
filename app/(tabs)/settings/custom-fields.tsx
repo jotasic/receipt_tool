@@ -22,7 +22,6 @@ import {
   ActivityIndicator,
   TextInput,
   Switch,
-  useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
@@ -59,8 +58,6 @@ const FILTER_OPTIONS: { value: string; label: string }[] = [
 
 export default function CustomFieldsScreen() {
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
   const [fields, setFields] = useState<CustomFieldWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,6 +74,8 @@ export default function CustomFieldsScreen() {
   const [optionsText, setOptionsText] = useState('');
   const [showTypePicker, setShowTypePicker] = useState(false);
 
+  const switchTrackOffColor = useThemeColor('#D1D5DB', '#374151');
+  const switchThumbOffColor = useThemeColor('#F3F4F6', '#6B7280');
   const primaryColor = useThemeColor('#3B82F6', '#60A5FA');
   const purpleColor = useThemeColor('#8B5CF6', '#A78BFA');
   const grayIconColor = useThemeColor('#6B7280', '#9CA3AF');
@@ -525,8 +524,8 @@ export default function CustomFieldsScreen() {
             <Switch
               value={isRequired}
               onValueChange={setIsRequired}
-              trackColor={{ false: isDark ? '#374151' : '#D1D5DB', true: '#3B82F6' }}
-              thumbColor={isRequired ? '#FFFFFF' : (isDark ? '#6B7280' : '#F3F4F6')}
+              trackColor={{ false: switchTrackOffColor, true: '#3B82F6' }}
+              thumbColor={isRequired ? '#FFFFFF' : switchThumbOffColor}
             />
           </View>
 

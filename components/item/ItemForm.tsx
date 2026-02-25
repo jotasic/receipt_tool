@@ -204,7 +204,7 @@ export function ItemForm({
   /**
    * Load custom fields for items
    */
-  const loadCustomFields = async () => {
+  const loadCustomFields = useCallback(async () => {
     try {
       const fields = await getCustomFields();
       setCustomFields(fields);
@@ -217,7 +217,9 @@ export function ItemForm({
       console.error('Failed to load custom fields:', error);
       Alert.alert('오류', '커스텀 필드를 불러오지 못했습니다.');
     }
-  };
+  // initialCustomValues는 참조 안정성이 없으므로 마운트 시 1회만 실행
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Run OCR on the provided image
@@ -341,8 +343,7 @@ export function ItemForm({
   // Load custom fields on mount
   useEffect(() => {
     loadCustomFields();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadCustomFields]);
 
   // Run OCR when initialImageUri is provided
   useEffect(() => {

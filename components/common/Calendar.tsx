@@ -7,8 +7,8 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useMemo } from 'react';
-import { useColorScheme } from '@/components/useColorScheme';
 import { colors } from '@/design-system/tokens/colors';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 
 interface CalendarProps {
   selectedDate?: string;  // YYYY-MM-DD format
@@ -31,7 +31,7 @@ function formatDate(year: number, month: number, day: number): string {
 }
 
 export function Calendar({ selectedDate, onDateSelect, markedDates = {} }: CalendarProps) {
-  const colorScheme = useColorScheme();
+  const markerDotColor = useThemeColor(colors.primary, '#60A5FA');
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(
     selectedDate ? parseInt(selectedDate.split('-')[0]) : today.getFullYear()
@@ -148,14 +148,11 @@ export function Calendar({ selectedDate, onDateSelect, markedDates = {} }: Calen
           const marker = getMarkerData(day);
           const dayOfWeek = (getFirstDayOfMonth(currentYear, currentMonth) + day - 1) % 7;
           const selected = isSelected(day);
-          const isDarkMode = colorScheme === 'dark';
 
           // Dot indicator color based on selection and dark mode
           const dotColor = selected
             ? colors.light.surface // White dot on selected (blue background)
-            : isDarkMode
-            ? '#60A5FA' // Lighter blue for dark mode
-            : colors.primary; // Default blue for light mode
+            : markerDotColor; // Theme-aware blue: light=#3B82F6, dark=#60A5FA
 
           return (
             <TouchableOpacity

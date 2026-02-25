@@ -66,7 +66,7 @@ export async function getTableRowCount(tableName: string): Promise<number> {
  *
  * @param query - SQL query string
  * @param params - Query parameters
- * @returns Promise<any[]> - Query results
+ * @returns Promise<T[]> - Query results
  */
 export async function executeRawQuery<T = unknown>(
   query: string,

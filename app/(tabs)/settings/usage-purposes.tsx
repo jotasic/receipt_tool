@@ -64,7 +64,9 @@ export default function UsagePurposeManagementScreen() {
   const [isSaving, setIsSaving] = useState(false);
 
   const switchTrackOffColor = useThemeColor('#D1D5DB', '#374151');
+  const switchTrackOnColor = useThemeColor('#3B82F6', '#3B82F6');
   const switchThumbOffColor = useThemeColor('#F3F4F6', '#6B7280');
+  const switchThumbOnColor = useThemeColor('#FFFFFF', '#FFFFFF');
   const editIconColor = useThemeColor('#3B82F6', '#60A5FA');
   const deleteIconColor = useThemeColor('#EF4444', '#F87171');
   const deleteIconDisabledColor = useThemeColor('#D1D5DB', '#4B5563');
@@ -433,8 +435,8 @@ export default function UsagePurposeManagementScreen() {
               <Switch
                 value={purposeActive}
                 onValueChange={setPurposeActive}
-                trackColor={{ false: switchTrackOffColor, true: '#3B82F6' }}
-                thumbColor={purposeActive ? '#FFFFFF' : switchThumbOffColor}
+                trackColor={{ false: switchTrackOffColor, true: switchTrackOnColor }}
+                thumbColor={purposeActive ? switchThumbOnColor : switchThumbOffColor}
               />
             </View>
           )}

@@ -75,7 +75,9 @@ export default function CustomFieldsScreen() {
   const [showTypePicker, setShowTypePicker] = useState(false);
 
   const switchTrackOffColor = useThemeColor('#D1D5DB', '#374151');
+  const switchTrackOnColor = useThemeColor('#3B82F6', '#3B82F6');
   const switchThumbOffColor = useThemeColor('#F3F4F6', '#6B7280');
+  const switchThumbOnColor = useThemeColor('#FFFFFF', '#FFFFFF');
   const primaryColor = useThemeColor('#3B82F6', '#60A5FA');
   const purpleColor = useThemeColor('#8B5CF6', '#A78BFA');
   const grayIconColor = useThemeColor('#6B7280', '#9CA3AF');
@@ -524,8 +526,8 @@ export default function CustomFieldsScreen() {
             <Switch
               value={isRequired}
               onValueChange={setIsRequired}
-              trackColor={{ false: switchTrackOffColor, true: '#3B82F6' }}
-              thumbColor={isRequired ? '#FFFFFF' : switchThumbOffColor}
+              trackColor={{ false: switchTrackOffColor, true: switchTrackOnColor }}
+              thumbColor={isRequired ? switchThumbOnColor : switchThumbOffColor}
             />
           </View>
 

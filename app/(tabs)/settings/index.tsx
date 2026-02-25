@@ -41,7 +41,9 @@ function SettingItem({
   const redIconColor = useThemeColor('#EF4444', '#F87171');
   const arrowColor = useThemeColor('#9CA3AF', '#6B7280');
   const switchTrackOffColor = useThemeColor('#D1D5DB', '#374151');
+  const switchTrackOnColor = useThemeColor('#3B82F6', '#3B82F6');
   const switchThumbOffColor = useThemeColor('#F3F4F6', '#6B7280');
+  const switchThumbOnColor = useThemeColor('#FFFFFF', '#FFFFFF');
 
   const handlePress = () => {
     if (!disabled && !hasToggle && onPress) {
@@ -84,8 +86,8 @@ function SettingItem({
         <Switch
           value={toggleValue}
           onValueChange={onToggleChange}
-          trackColor={{ false: switchTrackOffColor, true: '#3B82F6' }}
-          thumbColor={toggleValue ? '#FFFFFF' : switchThumbOffColor}
+          trackColor={{ false: switchTrackOffColor, true: switchTrackOnColor }}
+          thumbColor={toggleValue ? switchThumbOnColor : switchThumbOffColor}
           disabled={disabled}
         />
       )}

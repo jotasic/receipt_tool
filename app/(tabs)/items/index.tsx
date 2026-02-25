@@ -250,6 +250,17 @@ export default function ItemsScreen() {
     ];
   }, [classifications]);
 
+  const renderFilterChip = useCallback(
+    ({ item }: { item: { id: FilterType; name: string; icon: string } }) => (
+      <SelectableChip
+        label={item.name}
+        isSelected={selectedFilter === item.id}
+        onPress={() => setSelectedFilter(item.id)}
+      />
+    ),
+    [selectedFilter]
+  );
+
   const renderHeader = useCallback(() => (
     <View className="mb-2">
       {/* 분류 필터 칩 + 고급 필터 버튼 */}
@@ -261,13 +272,7 @@ export default function ItemsScreen() {
           contentContainerStyle={{ gap: 6 }}
           keyExtractor={(item) => item.id}
           style={{ flex: 1 }}
-          renderItem={({ item }) => (
-            <SelectableChip
-              label={item.name}
-              isSelected={selectedFilter === item.id}
-              onPress={() => setSelectedFilter(item.id)}
-            />
-          )}
+          renderItem={renderFilterChip}
         />
         <Pressable
           onPress={() => setShowFilterSheet(true)}
@@ -342,7 +347,7 @@ export default function ItemsScreen() {
       )}
     </View>
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [stats, selectedFilter, hasAdvancedFilters, dateFilter, selectedTags, tags, iconColor, filterOptions]);
+  ), [stats, hasAdvancedFilters, dateFilter, selectedTags, tags, iconColor, filterOptions, renderFilterChip]);
 
   const renderEmptyState = useCallback(() => {
     const hasActiveFilters =

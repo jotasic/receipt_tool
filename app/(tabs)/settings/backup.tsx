@@ -4,11 +4,11 @@
  * Provides UI for backing up and restoring app data
  */
 
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import { Stack } from 'expo-router';
-import { Header } from '@/components/common';
+import { Header, Button } from '@/components/common';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import {
   createBackup,
@@ -34,48 +34,6 @@ function Card({ children, className = '' }: CardProps) {
   );
 }
 
-interface ButtonProps {
-  title: string;
-  onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'danger';
-  loading?: boolean;
-  disabled?: boolean;
-  icon?: keyof typeof Ionicons.glyphMap;
-}
-
-function Button({ title, onPress, variant = 'primary', loading = false, disabled = false, icon }: ButtonProps) {
-  const getBackgroundColor = () => {
-    if (disabled) return 'bg-gray-300 dark:bg-gray-600';
-    switch (variant) {
-      case 'primary':
-        return 'bg-blue-500';
-      case 'secondary':
-        return 'bg-gray-500';
-      case 'danger':
-        return 'bg-red-500';
-      default:
-        return 'bg-blue-500';
-    }
-  };
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={disabled || loading}
-      className={`${getBackgroundColor()} rounded-lg py-3 px-4 flex-row items-center justify-center`}
-      activeOpacity={0.7}
-    >
-      {loading ? (
-        <ActivityIndicator size="small" color="white" />
-      ) : (
-        <>
-          {icon && <Ionicons name={icon} size={20} color="white" style={{ marginRight: 8 }} />}
-          <Text className="text-white font-semibold text-center">{title}</Text>
-        </>
-      )}
-    </TouchableOpacity>
-  );
-}
 
 export default function BackupScreen() {
   const [isLoading, setIsLoading] = useState(false);
@@ -267,7 +225,7 @@ export default function BackupScreen() {
               onPress={handleCreateBackup}
               loading={isLoading}
               disabled={isLoading}
-              icon="cloud-upload-outline"
+              icon={<Ionicons name="cloud-upload-outline" size={20} color="white" />}
             />
           </Card>
 
@@ -288,10 +246,10 @@ export default function BackupScreen() {
             <Button
               title="백업 파일에서 복원"
               onPress={handleRestore}
-              variant="danger"
+              variant="secondary"
               loading={isLoading}
               disabled={isLoading}
-              icon="cloud-download-outline"
+              icon={<Ionicons name="cloud-download-outline" size={20} color="white" />}
             />
           </Card>
 

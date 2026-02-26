@@ -20,17 +20,29 @@ const DRAWER_WIDTH = SCREEN_WIDTH * 0.8;
 
 function SpaceInitial({ space }: { space: Space }) {
   const initial = space.name.charAt(0).toUpperCase();
+  const bgColor = space.color ? `${space.color}20` : '#E5E7EB';
+  const iconColor = space.color ?? '#6B7280';
 
   if (space.icon) {
     return (
-      <View className="w-10 h-10 rounded-full items-center justify-center bg-blue-100 dark:bg-blue-900">
-        <Text className="text-2xl">{space.icon}</Text>
+      <View
+        className="w-10 h-10 rounded-full items-center justify-center"
+        style={{ backgroundColor: bgColor }}
+      >
+        <Ionicons
+          name={space.icon as React.ComponentProps<typeof Ionicons>['name']}
+          size={22}
+          color={iconColor}
+        />
       </View>
     );
   }
 
   return (
-    <View className="w-10 h-10 rounded-full items-center justify-center bg-blue-500">
+    <View
+      className="w-10 h-10 rounded-full items-center justify-center"
+      style={{ backgroundColor: space.color ?? '#6B7280' }}
+    >
       <Text className="text-white text-lg font-bold">{initial}</Text>
     </View>
   );
@@ -38,17 +50,29 @@ function SpaceInitial({ space }: { space: Space }) {
 
 function SpaceInitialSmall({ space }: { space: Space }) {
   const initial = space.name.charAt(0).toUpperCase();
+  const bgColor = space.color ? `${space.color}20` : '#E5E7EB';
+  const iconColor = space.color ?? '#6B7280';
 
   if (space.icon) {
     return (
-      <View className="w-9 h-9 rounded-full items-center justify-center bg-gray-100 dark:bg-gray-700">
-        <Text className="text-xl">{space.icon}</Text>
+      <View
+        className="w-9 h-9 rounded-full items-center justify-center"
+        style={{ backgroundColor: bgColor }}
+      >
+        <Ionicons
+          name={space.icon as React.ComponentProps<typeof Ionicons>['name']}
+          size={18}
+          color={iconColor}
+        />
       </View>
     );
   }
 
   return (
-    <View className="w-9 h-9 rounded-full items-center justify-center bg-gray-400 dark:bg-gray-600">
+    <View
+      className="w-9 h-9 rounded-full items-center justify-center"
+      style={{ backgroundColor: space.color ?? '#9CA3AF' }}
+    >
       <Text className="text-white text-sm font-bold">{initial}</Text>
     </View>
   );

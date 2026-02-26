@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Header, FullScreenModal, FloatingActionBar } from '@/components/common';
+import { Header, FullScreenModal, FloatingActionBar, IconPicker, ColorPicker, COLORS } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useSpaceStore } from '@/store/spaceStore';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
@@ -29,6 +29,8 @@ interface EditModal {
   mode: 'add' | 'edit';
   space?: Space;
   text: string;
+  icon: string | null;
+  color: string;
 }
 
 /**
@@ -47,8 +49,11 @@ export default function SpacesManagementScreen() {
     visible: false,
     mode: 'add',
     text: '',
+    icon: null,
+    color: COLORS[3].value,
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [showIconPicker, setShowIconPicker] = useState(false);
 
   const insets = useSafeAreaInsets();
   const placeholderColor = useThemeColor('#9CA3AF', '#6B7280');
@@ -74,11 +79,11 @@ export default function SpacesManagementScreen() {
   };
 
   const handleAddSpace = () => {
-    setEditModal({ visible: true, mode: 'add', text: '' });
+    setEditModal({ visible: true, mode: 'add', text: '', icon: null, color: COLORS[3].value });
   };
 
   const handleEditSpace = (space: Space) => {
-    setEditModal({ visible: true, mode: 'edit', space, text: space.name });
+    setEditModal({ visible: true, mode: 'edit', space, text: space.name, icon: space.icon ?? null, color: space.color ?? COLORS[3].value });
   };
 
   const handleModalConfirm = async () => {
@@ -88,16 +93,16 @@ export default function SpacesManagementScreen() {
     setIsSaving(true);
     try {
       if (editModal.mode === 'add') {
-        await createSpace({ name });
+        await createSpace({ name, icon: editModal.icon ?? undefined, color: editModal.color });
         await loadSpaces();
         await refreshSpaces();
-        setEditModal({ visible: false, mode: 'add', text: '' });
+        setEditModal({ visible: false, mode: 'add', text: '', icon: null, color: COLORS[3].value });
         Alert.alert('성공', '공간이 추가되었습니다.');
       } else if (editModal.mode === 'edit' && editModal.space) {
-        await updateSpace(editModal.space.id, { name });
+        await updateSpace(editModal.space.id, { name, icon: editModal.icon ?? undefined, color: editModal.color });
         await loadSpaces();
         await refreshSpaces();
-        setEditModal({ visible: false, mode: 'add', text: '' });
+        setEditModal({ visible: false, mode: 'add', text: '', icon: null, color: COLORS[3].value });
         Alert.alert('성공', '공간 이름이 수정되었습니다.');
       }
     } catch (error) {
@@ -111,7 +116,7 @@ export default function SpacesManagementScreen() {
   };
 
   const handleModalCancel = () => {
-    setEditModal({ visible: false, mode: 'add', text: '' });
+    setEditModal({ visible: false, mode: 'add', text: '', icon: null, color: COLORS[3].value });
   };
 
   const handleDeleteSpace = async (space: Space) => {
@@ -257,12 +262,29 @@ export default function SpacesManagementScreen() {
           loading: isSaving,
         }}
       >
-        <View className="p-4">
+        <View className="p-4 gap-4">
+          {/* 미리보기 */}
+          <View className="items-center py-2">
+            <View
+              className="w-16 h-16 rounded-full items-center justify-center"
+              style={{ backgroundColor: `${editModal.color}20` }}
+            >
+              {editModal.icon ? (
+                <Ionicons
+                  name={editModal.icon as React.ComponentProps<typeof Ionicons>['name']}
+                  size={32}
+                  color={editModal.color}
+                />
+              ) : (
+                <Ionicons name="layers-outline" size={32} color={editModal.color} />
+              )}
+            </View>
+          </View>
+
+          {/* 이름 입력 */}
           <TextInput
             value={editModal.text}
-            onChangeText={(text) =>
-              setEditModal((prev) => ({ ...prev, text }))
-            }
+            onChangeText={(text) => setEditModal((prev) => ({ ...prev, text }))}
             placeholder={modalPlaceholder}
             placeholderTextColor={placeholderColor}
             autoFocus
@@ -270,8 +292,43 @@ export default function SpacesManagementScreen() {
             onSubmitEditing={handleModalConfirm}
             className="rounded-xl px-4 py-3 text-base bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
           />
+
+          {/* 아이콘 선택 버튼 */}
+          <Pressable
+            onPress={() => setShowIconPicker(true)}
+            className="flex-row items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl"
+            accessibilityRole="button"
+          >
+            <Text className="text-base text-gray-700 dark:text-gray-300">아이콘</Text>
+            <View className="flex-row items-center gap-2">
+              {editModal.icon ? (
+                <Ionicons
+                  name={editModal.icon as React.ComponentProps<typeof Ionicons>['name']}
+                  size={20}
+                  color={editModal.color}
+                />
+              ) : (
+                <Text className="text-sm text-gray-400 dark:text-gray-500">선택 안 함</Text>
+              )}
+              <Ionicons name="chevron-forward" size={16} color={placeholderColor} />
+            </View>
+          </Pressable>
+
+          {/* 색상 선택 */}
+          <ColorPicker
+            selectedColor={editModal.color}
+            onColorSelect={(color) => setEditModal((prev) => ({ ...prev, color }))}
+            label="색상"
+          />
         </View>
       </FullScreenModal>
+
+      <IconPicker
+        visible={showIconPicker}
+        selectedIcon={editModal.icon}
+        onIconSelect={(icon) => setEditModal((prev) => ({ ...prev, icon }))}
+        onClose={() => setShowIconPicker(false)}
+      />
 
       <FloatingActionBar
         bottomInset={insets.bottom}

@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ItemCard, ItemForm, ItemsFilterSheet } from '@/components/item';
 import type { DateFilter, FilterState } from '@/components/item';
 import { SelectableChip, Header } from '@/components/common';
+import type { ClassificationDisplayData } from '@/components/common';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { useSpaceStore } from '@/store/spaceStore';
@@ -381,9 +382,20 @@ export default function ItemsScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilter, selectedTags, dateFilter, clearFilters]);
 
+  const classificationMap = useMemo(() => {
+    const map: Record<string, ClassificationDisplayData> = {};
+    classifications.forEach((c) => {
+      map[c.id] = { name: c.name, icon: c.icon, color: c.color };
+    });
+    return map;
+  }, [classifications]);
+
   const renderItem = useCallback(({ item }: { item: Item }) => (
-    <ItemCard item={item} />
-  ), []);
+    <ItemCard
+      item={item}
+      classificationData={item.classificationId ? classificationMap[item.classificationId] : undefined}
+    />
+  ), [classificationMap]);
 
   if (isLoading && !isRefreshing) {
     return (

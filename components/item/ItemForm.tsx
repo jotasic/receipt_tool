@@ -189,16 +189,27 @@ export function ItemForm({
     classification === 'personal_card' || classification === 'corporate_card';
 
   /**
-   * Handle classification ID change and sync the classification enum accordingly
+   * Handle classification ID change and sync the classification enum accordingly.
+   *
+   * The legacy `classification` enum is used for field visibility (showAmount, showStoreName)
+   * and is stored on the item for backward-compatibility.
+   *
+   * Mapping rules:
+   *   - personalCard  → 'personal_card'   (amount + storeName visible)
+   *   - corporateCard → 'corporate_card'  (amount + storeName visible)
+   *   - proofDocument → 'proof_document'  (only title/date visible)
+   *   - custom        → 'corporate_card'  fallback (all fields visible, same as corporateCard)
    */
   const handleClassificationChange = (id: string) => {
     setClassificationId(id);
     if (id === DEFAULT_CLASSIFICATION_IDS.personalCard) {
       setClassification('personal_card');
+    } else if (id === DEFAULT_CLASSIFICATION_IDS.corporateCard) {
+      setClassification('corporate_card');
     } else if (id === DEFAULT_CLASSIFICATION_IDS.proofDocument) {
       setClassification('proof_document');
     } else {
-      // 커스텀 분류 또는 법인카드 → corporate_card 기본값
+      // 커스텀 분류 → 'corporate_card' fallback (amount + storeName 모두 표시)
       setClassification('corporate_card');
     }
   };

@@ -6,16 +6,18 @@
  * - Month mode: Monthly grid view with item previews
  */
 
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Header, SegmentedControl } from '@/components/common';
+import type { ClassificationDisplayData } from '@/components/common';
 import { AgendaCalendar } from '@/components/calendar/AgendaCalendar';
 import { MonthViewCalendar, type MonthViewCalendarRef } from '@/components/calendar/MonthViewCalendar';
 import { TabScreenContent } from '@/design-system/layouts';
 import { useItemStore } from '@/store/itemStore';
 import { useSpaceStore } from '@/store/spaceStore';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { getActiveClassificationsBySpace } from '@/services/database/classificationService';
 
 type ViewMode = 'agenda' | 'month';
 
@@ -32,6 +34,7 @@ export default function CalendarScreen() {
   const monthCalendarRef = useRef<MonthViewCalendarRef>(null);
   const { items, loadItemsIfStale, error } = useItemStore();
   const { currentSpace } = useSpaceStore();
+  const [classificationMap, setClassificationMap] = useState<Record<string, ClassificationDisplayData>>({});
   const todayButtonColor = useThemeColor('#2563EB', '#60A5FA');
   const errorTextColor = useThemeColor('#EF4444', '#F87171');
 
@@ -42,6 +45,15 @@ export default function CalendarScreen() {
       loadItemsIfStale(currentSpace?.id ?? null);
     }, [loadItemsIfStale, currentSpace?.id])
   );
+
+  useEffect(() => {
+    if (!currentSpace) return;
+    getActiveClassificationsBySpace(currentSpace.id).then((list) => {
+      const map: Record<string, ClassificationDisplayData> = {};
+      list.forEach((c) => { map[c.id] = { name: c.name, icon: c.icon, color: c.color }; });
+      setClassificationMap(map);
+    }).catch(console.error);
+  }, [currentSpace?.id]);
 
   // Create markers for dates with items (agenda mode)
   const markedDates = useMemo(() => {
@@ -126,6 +138,7 @@ export default function CalendarScreen() {
             onDateSelect={setSelectedDate}
             markedDates={markedDates}
             items={items}
+            classificationMap={classificationMap}
           />
         )}
       </TabScreenContent>

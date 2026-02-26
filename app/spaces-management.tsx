@@ -201,8 +201,14 @@ export default function SpacesManagementScreen() {
                                 : '#E5E7EB',
                             }}
                           >
-                            {space.icon ? (
-                              <Text className="text-xl">{space.icon}</Text>
+                            {space.icon && /^[a-z0-9-]+$/.test(space.icon) ? (
+                              <Ionicons
+                                name={space.icon as React.ComponentProps<typeof Ionicons>['name']}
+                                size={20}
+                                color={space.color ?? '#6B7280'}
+                              />
+                            ) : space.icon ? (
+                              <Text style={{ fontSize: 18 }}>{space.icon}</Text>
                             ) : (
                               <Ionicons
                                 name="layers-outline"

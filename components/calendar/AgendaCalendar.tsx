@@ -4,6 +4,7 @@ import { CalendarProvider, ExpandableCalendar, AgendaList, LocaleConfig } from '
 import { Ionicons } from '@expo/vector-icons';
 import { getCalendarTheme, koreanLocaleConfig } from '@/constants/calendarTheme';
 import { ItemCard } from '@/components/item/ItemCard';
+import type { ClassificationDisplayData } from '@/components/common';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { colors } from '@/design-system/tokens/colors';
 import { getCalendarDateRange } from '@/constants/calendarRange';
@@ -19,9 +20,10 @@ interface AgendaCalendarProps {
   onDateSelect: (date: string) => void;
   markedDates: { [date: string]: { marked: boolean } };
   items: Item[];  // 전체 items
+  classificationMap?: Record<string, ClassificationDisplayData>;
 }
 
-export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items }: AgendaCalendarProps) {
+export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items, classificationMap }: AgendaCalendarProps) {
   const colorScheme = useColorScheme();
   const theme = getCalendarTheme(colorScheme || 'light');
   const iconColor = useThemeColor(colors.light.text.muted, colors.dark.text.muted);
@@ -80,8 +82,14 @@ export function AgendaCalendar({ selectedDate, onDateSelect, markedDates, items 
 
   // Render item
   const renderItem = useCallback(({ item }: { item: Item }) => {
-    return <ItemCard item={item} showDate={false} />;
-  }, []);
+    return (
+      <ItemCard
+        item={item}
+        showDate={false}
+        classificationData={item.classificationId && classificationMap ? classificationMap[item.classificationId] : undefined}
+      />
+    );
+  }, [classificationMap]);
 
   // Render empty entire list (when no data at all)
   const renderEmptyData = () => {

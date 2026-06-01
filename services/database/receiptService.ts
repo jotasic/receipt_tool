@@ -191,7 +191,7 @@ export async function updateReceipt(
 
   // Build dynamic UPDATE query based on provided fields
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: (string | number | null)[] = [];
 
   if (updates.title !== undefined) {
     fields.push('title = ?');
@@ -401,7 +401,7 @@ export async function updateReceiptItem(
   const db = await getDatabase();
 
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: (string | number | null)[] = [];
 
   if (updates.name !== undefined) {
     fields.push('name = ?');

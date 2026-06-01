@@ -63,15 +63,21 @@ export async function getAllUsagePurposes(): Promise<UsagePurpose[]> {
  * Returns only usage purposes where is_active = 1, ordered by display_order.
  * This is the main method for populating UI dropdowns and selection lists.
  *
+ * @param spaceId - Optional space ID to filter by; omit for all active purposes
  * @returns Promise<UsagePurpose[]> - Array of active usage purposes
  * @throws Error with [Database] prefix if database operation fails
  */
-export async function getActiveUsagePurposes(): Promise<UsagePurpose[]> {
+export async function getActiveUsagePurposes(spaceId?: string): Promise<UsagePurpose[]> {
   try {
     const db = await getDatabase();
-    const rows = await db.getAllAsync<UsagePurposeRow>(
-      'SELECT * FROM usage_purposes WHERE is_active = 1 ORDER BY display_order ASC, name ASC'
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<UsagePurposeRow>(
+          'SELECT * FROM usage_purposes WHERE is_active = 1 AND space_id = ? ORDER BY display_order ASC, name ASC',
+          [spaceId]
+        )
+      : await db.getAllAsync<UsagePurposeRow>(
+          'SELECT * FROM usage_purposes WHERE is_active = 1 ORDER BY display_order ASC, name ASC'
+        );
 
     return rows.map(rowToUsagePurpose);
   } catch (error) {
@@ -133,35 +139,45 @@ export async function createUsagePurpose(
 
     // Validate required fields
     if (!input.name || input.name.trim().length === 0) {
-      throw new Error('Usage purpose name is required');
+      throw new Error('사용처 이름을 입력해주세요');
     }
 
-    // Check for duplicate name
-    const existing = await db.getFirstAsync<UsagePurposeRow>(
-      'SELECT * FROM usage_purposes WHERE name = ?',
-      [input.name.trim()]
-    );
+    // Check for duplicate name within the same space
+    const existing = input.spaceId
+      ? await db.getFirstAsync<UsagePurposeRow>(
+          'SELECT * FROM usage_purposes WHERE name = ? AND space_id = ?',
+          [input.name.trim(), input.spaceId]
+        )
+      : await db.getFirstAsync<UsagePurposeRow>(
+          'SELECT * FROM usage_purposes WHERE name = ? AND space_id IS NULL',
+          [input.name.trim()]
+        );
 
     if (existing) {
-      throw new Error(`Usage purpose with name "${input.name}" already exists`);
+      throw new Error(`'${input.name}' 사용처가 이미 존재합니다`);
     }
 
     // Generate ID if not provided
     const id = input.id || generateUniqueId();
 
-    // Auto-assign display_order if not provided
+    // Auto-assign display_order if not provided (scoped to the same space)
     let displayOrder = input.displayOrder;
     if (displayOrder === undefined) {
+      const orderQuery = input.spaceId
+        ? 'SELECT MAX(display_order) as max_order FROM usage_purposes WHERE space_id = ?'
+        : 'SELECT MAX(display_order) as max_order FROM usage_purposes WHERE space_id IS NULL';
+      const orderParams = input.spaceId ? [input.spaceId] : [];
       const maxOrderRow = await db.getFirstAsync<{ max_order: number | null }>(
-        'SELECT MAX(display_order) as max_order FROM usage_purposes'
+        orderQuery,
+        orderParams
       );
       displayOrder = (maxOrderRow?.max_order ?? 0) + 1;
     }
 
     // Insert the new usage purpose
     await db.runAsync(
-      `INSERT INTO usage_purposes (id, name, name_en, icon, color, is_active, display_order)
-       VALUES (?, ?, ?, ?, ?, 1, ?)`,
+      `INSERT INTO usage_purposes (id, name, name_en, icon, color, is_active, display_order, space_id)
+       VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
       [
         id,
         input.name.trim(),
@@ -169,6 +185,7 @@ export async function createUsagePurpose(
         input.icon ?? null,
         input.color ?? null,
         displayOrder,
+        input.spaceId ?? null,
       ]
     );
 
@@ -222,24 +239,29 @@ export async function updateUsagePurpose(
     );
 
     if (!existing) {
-      throw new Error(`Usage purpose with ID "${id}" not found`);
+      throw new Error(`ID "${id}"에 해당하는 사용처를 찾을 수 없습니다`);
     }
 
-    // If updating name, check for duplicates (excluding current record)
+    // If updating name, check for duplicates within the same space (excluding current record)
     if (updates.name && updates.name.trim().length > 0) {
-      const duplicate = await db.getFirstAsync<UsagePurposeRow>(
-        'SELECT * FROM usage_purposes WHERE name = ? AND id != ?',
-        [updates.name.trim(), id]
-      );
+      const duplicate = existing.space_id
+        ? await db.getFirstAsync<UsagePurposeRow>(
+            'SELECT * FROM usage_purposes WHERE name = ? AND space_id = ? AND id != ?',
+            [updates.name.trim(), existing.space_id, id]
+          )
+        : await db.getFirstAsync<UsagePurposeRow>(
+            'SELECT * FROM usage_purposes WHERE name = ? AND space_id IS NULL AND id != ?',
+            [updates.name.trim(), id]
+          );
 
       if (duplicate) {
-        throw new Error(`Usage purpose with name "${updates.name}" already exists`);
+        throw new Error(`'${updates.name}' 사용처가 이미 존재합니다`);
       }
     }
 
     // Build dynamic UPDATE query
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: (string | number | null)[] = [];
 
     if (updates.name !== undefined && updates.name.trim().length > 0) {
       fields.push('name = ?');
@@ -281,7 +303,7 @@ export async function updateUsagePurpose(
     );
 
     if (!updated) {
-      throw new Error('Failed to retrieve updated usage purpose');
+      throw new Error('수정된 사용처를 불러오는 데 실패했습니다');
     }
 
     return rowToUsagePurpose(updated);
@@ -314,7 +336,7 @@ export async function toggleUsagePurposeActive(id: string): Promise<UsagePurpose
     );
 
     if (!current) {
-      throw new Error(`Usage purpose with ID "${id}" not found`);
+      throw new Error(`ID "${id}"에 해당하는 사용처를 찾을 수 없습니다`);
     }
 
     // Toggle the status
@@ -329,7 +351,7 @@ export async function toggleUsagePurposeActive(id: string): Promise<UsagePurpose
     );
 
     if (!updated) {
-      throw new Error('Failed to retrieve updated usage purpose');
+      throw new Error('수정된 사용처를 불러오는 데 실패했습니다');
     }
 
     return rowToUsagePurpose(updated);
@@ -356,16 +378,18 @@ export async function reorderUsagePurposes(orderedIds: string[]): Promise<void> 
   try {
     const db = await getDatabase();
 
-    // Update each usage purpose with its new display_order
-    for (let i = 0; i < orderedIds.length; i++) {
-      const id = orderedIds[i];
-      const displayOrder = i + 1;
+    // Update each usage purpose with its new display_order inside a transaction
+    await db.withTransactionAsync(async () => {
+      for (let i = 0; i < orderedIds.length; i++) {
+        const id = orderedIds[i];
+        const displayOrder = i + 1;
 
-      await db.runAsync('UPDATE usage_purposes SET display_order = ? WHERE id = ?', [
-        displayOrder,
-        id,
-      ]);
-    }
+        await db.runAsync('UPDATE usage_purposes SET display_order = ? WHERE id = ?', [
+          displayOrder,
+          id,
+        ]);
+      }
+    });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
     throw new Error(`[Database] Failed to reorder usage purposes: ${errorMessage}`);
@@ -397,7 +421,7 @@ export async function deleteUsagePurpose(id: string): Promise<void> {
     // Prevent deleting default usage purposes
     if (isDefaultUsagePurpose(id)) {
       throw new Error(
-        `Cannot delete default usage purpose "${id}". You can deactivate it instead.`
+        `기본 사용처 "${id}"는 삭제할 수 없습니다. 비활성화만 가능합니다.`
       );
     }
 
@@ -405,7 +429,7 @@ export async function deleteUsagePurpose(id: string): Promise<void> {
     const inUse = await isUsagePurposeInUse(id);
     if (inUse) {
       throw new Error(
-        'Cannot delete usage purpose that is in use by items. Please reassign or delete those items first.'
+        '항목에서 사용 중인 사용처는 삭제할 수 없습니다. 해당 항목을 먼저 수정하거나 삭제해주세요.'
       );
     }
 
@@ -427,6 +451,7 @@ export async function deleteUsagePurpose(id: string): Promise<void> {
  * Queries the items table to see if any records reference this usage purpose.
  *
  * @param id - Usage purpose ID
+ * @param spaceId - Optional space ID to scope the check; omit for all spaces
  * @returns Promise<boolean> - true if in use, false otherwise
  * @throws Error with [Database] prefix if database operation fails
  *
@@ -436,14 +461,16 @@ export async function deleteUsagePurpose(id: string): Promise<void> {
  *   console.log('This purpose is being used by items');
  * }
  */
-export async function isUsagePurposeInUse(id: string): Promise<boolean> {
+export async function isUsagePurposeInUse(id: string, spaceId?: string): Promise<boolean> {
   try {
     const db = await getDatabase();
 
-    const result = await db.getFirstAsync<{ count: number }>(
-      'SELECT COUNT(*) as count FROM items WHERE usage_purpose = ?',
-      [id]
-    );
+    const query = spaceId
+      ? 'SELECT COUNT(*) as count FROM items WHERE usage_purpose = ? AND space_id = ?'
+      : 'SELECT COUNT(*) as count FROM items WHERE usage_purpose = ?';
+    const params = spaceId ? [id, spaceId] : [id];
+
+    const result = await db.getFirstAsync<{ count: number }>(query, params);
 
     return (result?.count ?? 0) > 0;
   } catch (error) {
@@ -458,17 +485,20 @@ export async function isUsagePurposeInUse(id: string): Promise<boolean> {
  * Returns the number of items using this usage purpose.
  *
  * @param id - Usage purpose ID
+ * @param spaceId - Optional space ID to scope the count; omit for all spaces
  * @returns Promise<number> - Number of items using this purpose
  * @throws Error with [Database] prefix if database operation fails
  */
-export async function getUsagePurposeUsageCount(id: string): Promise<number> {
+export async function getUsagePurposeUsageCount(id: string, spaceId?: string): Promise<number> {
   try {
     const db = await getDatabase();
 
-    const result = await db.getFirstAsync<{ count: number }>(
-      'SELECT COUNT(*) as count FROM items WHERE usage_purpose = ?',
-      [id]
-    );
+    const query = spaceId
+      ? 'SELECT COUNT(*) as count FROM items WHERE usage_purpose = ? AND space_id = ?'
+      : 'SELECT COUNT(*) as count FROM items WHERE usage_purpose = ?';
+    const params = spaceId ? [id, spaceId] : [id];
+
+    const result = await db.getFirstAsync<{ count: number }>(query, params);
 
     return result?.count ?? 0;
   } catch (error) {
@@ -484,24 +514,33 @@ export async function getUsagePurposeUsageCount(id: string): Promise<number> {
  *
  * Returns an array of usage purposes with their usage counts.
  *
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Array<UsagePurpose & { usageCount: number }>>
  * @throws Error with [Database] prefix if database operation fails
  */
-export async function getUsagePurposeStatistics(): Promise<
-  Array<UsagePurpose & { usageCount: number }>
-> {
+export async function getUsagePurposeStatistics(
+  spaceId?: string
+): Promise<(UsagePurpose & { usageCount: number })[]> {
   try {
     const db = await getDatabase();
 
-    const rows = await db.getAllAsync<
-      UsagePurposeRow & { usage_count: number }
-    >(
-      `SELECT up.*, COUNT(i.id) as usage_count
-       FROM usage_purposes up
-       LEFT JOIN items i ON up.id = i.usage_purpose
-       GROUP BY up.id
-       ORDER BY up.display_order ASC, up.name ASC`
-    );
+    const rows = spaceId
+      ? await db.getAllAsync<UsagePurposeRow & { usage_count: number }>(
+          `SELECT up.*, COUNT(i.id) as usage_count
+           FROM usage_purposes up
+           LEFT JOIN items i ON up.id = i.usage_purpose
+           WHERE up.space_id = ?
+           GROUP BY up.id
+           ORDER BY up.display_order ASC, up.name ASC`,
+          [spaceId]
+        )
+      : await db.getAllAsync<UsagePurposeRow & { usage_count: number }>(
+          `SELECT up.*, COUNT(i.id) as usage_count
+           FROM usage_purposes up
+           LEFT JOIN items i ON up.id = i.usage_purpose
+           GROUP BY up.id
+           ORDER BY up.display_order ASC, up.name ASC`
+        );
 
     return rows.map((row) => ({
       ...rowToUsagePurpose(row),

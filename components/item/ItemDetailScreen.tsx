@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,35 +6,68 @@ import {
   Image,
   Alert,
   ActivityIndicator,
-  useColorScheme,
   Pressable,
 } from 'react-native';
 import { router, useLocalSearchParams, Stack, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ClassificationBadge, UsagePurposeBadge, TagBadge, FloatingActionBar, Header, ImageZoomModal } from '@/components/common';
-import { ItemForm } from '@/components/item';
+import { ItemForm, SpaceMoveSheet } from '@/components/item';
 import { useItemStore } from '@/store/itemStore';
-import { getItemById, updateItem, deleteItem } from '@/services/database/itemService';
+import { useSpaceStore } from '@/store/spaceStore';
+import { getItemById, updateItem, deleteItem, moveItemToSpace } from '@/services/database/itemService';
 import { getTagsForItem, setTagsForItem } from '@/services/database/tagService';
 import { getItemCustomValues, setItemCustomValues } from '@/services/database/customFieldService';
 import { getClassificationConfig } from '@/constants/items';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import type { Item, CreateItemInput } from '@/types/item';
+import type { Space } from '@/types/space';
 
 const ITEMS_IMAGES_DIR = FileSystem.documentDirectory + 'items/';
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('ko-KR', {
+    style: 'currency',
+    currency: 'KRW',
+  }).format(amount);
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+function formatDateTime(dateTimeString: string): string {
+  const date = new Date(dateTimeString);
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 
 export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [item, setItem] = useState<Item | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const updateItemInStore = useItemStore((state) => state.updateItem);
   const deleteItemFromStore = useItemStore((state) => state.deleteItem);
-  const colorScheme = useColorScheme();
   const navigation = useNavigation();
+  const [showMoveSheet, setShowMoveSheet] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
+  const { spaces, currentSpace } = useSpaceStore();
+
+  const loadingColor = useThemeColor('#2563EB', '#60A5FA');
+  const iconSecondaryColor = useThemeColor('#6B7280', '#9CA3AF');
 
   // Hide tab bar when this screen is focused.
   // Walk up the navigator tree to find the Tabs navigator, which is the
@@ -65,11 +98,7 @@ export default function ItemDetailScreen() {
     };
   }, [navigation]);
 
-  useEffect(() => {
-    loadItem();
-  }, [id]);
-
-  const loadItem = async () => {
+  const loadItem = useCallback(async () => {
     if (!id) {
       router.back();
       return;
@@ -77,7 +106,11 @@ export default function ItemDetailScreen() {
 
     try {
       setIsLoading(true);
-      const fetchedItem = await getItemById(id);
+      const [fetchedItem, tags, customValues] = await Promise.all([
+        getItemById(id),
+        getTagsForItem(id),
+        getItemCustomValues(id),
+      ]);
 
       if (!fetchedItem) {
         Alert.alert('오류', '항목을 찾을 수 없습니다.', [
@@ -85,12 +118,6 @@ export default function ItemDetailScreen() {
         ]);
         return;
       }
-
-      // Load tags for the item
-      const tags = await getTagsForItem(id);
-
-      // Load custom values for the item
-      const customValues = await getItemCustomValues(id);
 
       setItem({ ...fetchedItem, tags, customValues });
     } catch (error) {
@@ -101,7 +128,11 @@ export default function ItemDetailScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadItem();
+  }, [loadItem]);
 
   const handleDelete = () => {
     if (!id || !item) return;
@@ -156,13 +187,30 @@ export default function ItemDetailScreen() {
     setShowEditModal(true);
   };
 
+  const handleMoveToSpace = async (targetSpace: Space) => {
+    if (!id || !item) return;
+    setIsMoving(true);
+    try {
+      await moveItemToSpace(id, targetSpace.id);
+      deleteItemFromStore(id);
+      setShowMoveSheet(false);
+      Alert.alert('이동 완료', `'${targetSpace.name}' 워크스페이스로 이동되었습니다.`, [
+        { text: '확인', onPress: () => router.back() },
+      ]);
+    } catch (error) {
+      console.error('Item move error:', error);
+      Alert.alert('오류', '항목 이동에 실패했습니다.');
+    } finally {
+      setIsMoving(false);
+    }
+  };
+
   const handleUpdateItem = async (data: CreateItemInput) => {
     if (!id || !item) {
       Alert.alert('오류', '항목 정보를 찾을 수 없습니다.');
       return;
     }
 
-    setIsSubmitting(true);
     const oldImagePath = item.filePath;
     const imageChanged = data.filePath !== oldImagePath;
     let newImagePath: string | null = null;
@@ -243,36 +291,7 @@ export default function ItemDetailScreen() {
       }
 
       Alert.alert('오류', '항목 수정에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ko-KR', {
-      style: 'currency',
-      currency: 'KRW',
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const formatDateTime = (dateTimeString: string) => {
-    const date = new Date(dateTimeString);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   };
 
   if (isLoading) {
@@ -281,7 +300,7 @@ export default function ItemDetailScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <Header title="항목 상세" showBack />
         <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color={loadingColor} />
           <Text className="mt-4 text-gray-500 dark:text-gray-400">항목 불러오는 중...</Text>
         </View>
       </>
@@ -378,7 +397,7 @@ export default function ItemDetailScreen() {
             {item.amount !== undefined && (
               <View className="mb-3">
                 <View className="flex-row items-center mb-1">
-                  <Ionicons name="cash-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+                  <Ionicons name="cash-outline" size={18} color={iconSecondaryColor} />
                   <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-2">
                     금액
                   </Text>
@@ -393,7 +412,7 @@ export default function ItemDetailScreen() {
             {item.storeName && (
               <View className="mb-3">
                 <View className="flex-row items-center mb-1">
-                  <Ionicons name="storefront-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+                  <Ionicons name="storefront-outline" size={18} color={iconSecondaryColor} />
                   <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-2">
                     사용처
                   </Text>
@@ -407,7 +426,7 @@ export default function ItemDetailScreen() {
             {/* Date */}
             <View>
               <View className="flex-row items-center mb-1">
-                <Ionicons name="calendar-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+                <Ionicons name="calendar-outline" size={18} color={iconSecondaryColor} />
                 <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-2">
                   일자
                 </Text>
@@ -422,7 +441,7 @@ export default function ItemDetailScreen() {
           {item.memo && (
             <View className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <View className="flex-row items-center mb-2">
-                <Ionicons name="document-text-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+                <Ionicons name="document-text-outline" size={18} color={iconSecondaryColor} />
                 <Text className="text-base font-semibold text-gray-700 dark:text-gray-300 ml-2">
                   메모
                 </Text>
@@ -436,7 +455,7 @@ export default function ItemDetailScreen() {
           {/* Metadata */}
           <View className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <View className="flex-row items-center mb-3">
-              <Ionicons name="time-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+              <Ionicons name="time-outline" size={18} color={iconSecondaryColor} />
               <Text className="text-sm text-gray-600 dark:text-gray-400 ml-2">
                 생성일: {formatDateTime(item.createdAt)}
               </Text>
@@ -444,7 +463,7 @@ export default function ItemDetailScreen() {
 
             {item.createdAt !== item.updatedAt && (
               <View className="flex-row items-center">
-                <Ionicons name="sync-outline" size={18} color={colorScheme === 'dark' ? '#9CA3AF' : '#6B7280'} />
+                <Ionicons name="sync-outline" size={18} color={iconSecondaryColor} />
                 <Text className="text-sm text-gray-600 dark:text-gray-400 ml-2">
                   수정일: {formatDateTime(item.updatedAt)}
                 </Text>
@@ -461,14 +480,20 @@ export default function ItemDetailScreen() {
             {
               icon: 'trash-outline',
               onPress: handleDelete,
-              disabled: isDeleting,
+              disabled: isDeleting || isMoving,
               loading: isDeleting,
               variant: 'danger',
             },
+            ...(spaces.length >= 2 ? [{
+              icon: 'swap-horizontal-outline' as const,
+              onPress: () => setShowMoveSheet(true),
+              disabled: isDeleting || isMoving,
+              variant: 'default' as const,
+            }] : []),
             {
               icon: 'create-outline',
               onPress: handleEdit,
-              disabled: isDeleting,
+              disabled: isDeleting || isMoving,
               variant: 'primary',
             },
           ]}
@@ -488,12 +513,12 @@ export default function ItemDetailScreen() {
             fileType: item.fileType,
             ocrText: item.ocrText,
             memo: item.memo,
-            tagObjects: item.tags,
-            customValues: item.customValues?.reduce((acc, cv) => {
-              acc[cv.fieldId] = cv.value;
-              return acc;
-            }, {} as Record<string, string | null>),
-          } as any}
+          }}
+          initialTags={item.tags}
+          initialCustomValues={item.customValues?.reduce((acc, cv) => {
+            acc[cv.fieldId] = cv.value;
+            return acc;
+          }, {} as Record<string, string | null>)}
           onSubmit={handleUpdateItem}
           onCancel={() => setShowEditModal(false)}
         />
@@ -506,6 +531,15 @@ export default function ItemDetailScreen() {
           onClose={() => setShowImageModal(false)}
         />
       )}
+
+      <SpaceMoveSheet
+        visible={showMoveSheet}
+        onClose={() => setShowMoveSheet(false)}
+        onMove={handleMoveToSpace}
+        currentSpaceId={currentSpace?.id ?? item?.spaceId}
+        spaces={spaces}
+        isMoving={isMoving}
+      />
     </>
   );
 }

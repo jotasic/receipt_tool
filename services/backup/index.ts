@@ -38,18 +38,26 @@ export async function exportDatabaseToJSON(): Promise<string> {
   return JSON.stringify(data, null, 2);
 }
 
+// Type guard for BackupData
+function isBackupData(value: unknown): value is BackupData {
+  if (typeof value !== 'object' || value === null) return false;
+  const obj = value as Record<string, unknown>;
+  if (typeof obj.version !== 'string') return false;
+  if (typeof obj.tables !== 'object' || obj.tables === null) return false;
+  return true;
+}
+
 /**
  * Import database data from JSON
  * WARNING: This will CLEAR existing data
  */
 export async function importDatabaseFromJSON(jsonString: string): Promise<void> {
   const db = await getDatabase();
-  const data = JSON.parse(jsonString) as BackupData;
-
-  // Validate version
-  if (!data.version || !data.tables) {
+  const parsed: unknown = JSON.parse(jsonString);
+  if (!isBackupData(parsed)) {
     throw new Error('Invalid backup file format');
   }
+  const data = parsed;
 
   // Clear existing data (in reverse order of dependencies)
   await db.runAsync('DELETE FROM item_custom_values');

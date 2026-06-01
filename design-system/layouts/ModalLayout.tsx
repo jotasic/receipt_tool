@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Header } from '@/components/common/Header';
 import type { ReactNode } from 'react';
 
-interface ModalButton {
+interface ModalButtonProps {
   /** 버튼 레이블 */
   label: string;
   /** 버튼 클릭 핸들러 */
@@ -20,7 +20,7 @@ interface ModalLayoutProps {
   /** 닫기 핸들러 (기본값: 뒤로가기) */
   onClose?: () => void;
   /** 하단 버튼 배열 */
-  bottomButtons?: ModalButton[];
+  bottomButtons?: ModalButtonProps[];
   /** 화면 컨텐츠 */
   children: ReactNode;
   /** 스크롤 가능 여부 (기본값: true) */
@@ -116,7 +116,7 @@ function ModalButton({
   onPress,
   variant = 'primary',
   disabled = false,
-}: ModalButton) {
+}: ModalButtonProps) {
   const getButtonStyle = () => {
     if (disabled) {
       return 'bg-gray-300 dark:bg-gray-700';

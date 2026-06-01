@@ -117,6 +117,13 @@ async function _initDatabase(
     await db.execAsync(SCHEMA.report_items);
     console.log('Created report_items table');
 
+    // Space feature tables (created here for new installations)
+    await db.execAsync(SCHEMA.spaces);
+    console.log('Created spaces table');
+
+    await db.execAsync(SCHEMA.classifications);
+    console.log('Created classifications table');
+
     // Migration tracking table
     await db.execAsync(SCHEMA.db_migrations);
     console.log('Created db_migrations table');
@@ -136,7 +143,7 @@ async function _initDatabase(
     try {
       await db.execAsync(INDEXES.documents_created);
       await db.execAsync(INDEXES.documents_type);
-    } catch (error) {
+    } catch {
       console.log('[Init] Skipping document indexes (columns may not exist in legacy DB)');
     }
 
@@ -168,6 +175,11 @@ async function _initDatabase(
     await db.execAsync(INDEXES.items_date);
     await db.execAsync(INDEXES.report_items_report);
     await db.execAsync(INDEXES.report_items_item);
+
+    // Space feature indexes
+    await db.execAsync(INDEXES.spaces_display_order);
+    await db.execAsync(INDEXES.classifications_space);
+    await db.execAsync(INDEXES.classifications_display_order);
 
     console.log('Created all indexes');
 
@@ -286,6 +298,10 @@ export async function resetDatabase(): Promise<SQLite.SQLiteDatabase> {
     // Unified model tables
     await db.execAsync('DROP TABLE IF EXISTS items');
     await db.execAsync('DROP TABLE IF EXISTS usage_purposes');
+
+    // Space feature tables (classifications before spaces due to FK)
+    await db.execAsync('DROP TABLE IF EXISTS classifications');
+    await db.execAsync('DROP TABLE IF EXISTS spaces');
 
     // Core tables
     await db.execAsync('DROP TABLE IF EXISTS receipts');

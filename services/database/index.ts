@@ -66,6 +66,8 @@ export type {
   ItemRow,
   ReportItemRow,
   UsagePurposeRow,
+  SpaceRow,
+  ClassificationRow,
 } from './types';
 
 // Receipt service operations
@@ -152,16 +154,6 @@ export {
   updateTag,
   deleteTag,
   searchTags,
-  addTagToReceipt,
-  removeTagFromReceipt,
-  getTagsForReceipt,
-  getReceiptsByTag,
-  setTagsForReceipt,
-  addTagToDocument,
-  removeTagFromDocument,
-  getTagsForDocument,
-  getDocumentsByTag,
-  setTagsForDocument,
 } from './tagService';
 
 // Custom field service operations
@@ -197,7 +189,33 @@ export {
   getItemsRequiringSubmission,
   getExpenseItems,
   getProofDocuments,
+  // Phase 2: Space feature additions
+  getItemsByClassificationId,
+  getItemsBySpace,
 } from './itemService';
+
+// Space service operations (Phase 2)
+export {
+  getAllSpaces,
+  getSpaceById,
+  createSpace,
+  updateSpace,
+  deleteSpace,
+  reorderSpaces,
+  isSpaceInUse,
+} from './spaceService';
+
+// Classification service operations (Phase 2)
+export {
+  getClassificationsBySpace,
+  getActiveClassificationsBySpace,
+  getClassificationById,
+  createClassification,
+  updateClassification,
+  deleteClassification,
+  reorderClassifications,
+  isClassificationInUse,
+} from './classificationService';
 
 // Usage purpose service operations
 export {

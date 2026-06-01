@@ -114,7 +114,7 @@ export async function updateCategory(
   const db = await getDatabase();
 
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: (string | number | null)[] = [];
 
   if (updates.name !== undefined) {
     fields.push('name = ?');
@@ -170,11 +170,11 @@ export async function deleteCategory(id: string): Promise<void> {
  * @returns Promise<Array> - Array of categories with receipt counts and total amounts
  */
 export async function getCategoryStatistics(): Promise<
-  Array<{
+  {
     category: Category;
     receiptCount: number;
     totalAmount: number;
-  }>
+  }[]
 > {
   const db = await getDatabase();
 
@@ -221,7 +221,7 @@ export async function categoryNameExists(
   const db = await getDatabase();
 
   let query = 'SELECT COUNT(*) as count FROM categories WHERE name = ?';
-  const params: any[] = [name];
+  const params: (string | number | null)[] = [name];
 
   if (excludeId) {
     query += ' AND id != ?';

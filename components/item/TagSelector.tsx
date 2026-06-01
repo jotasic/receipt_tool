@@ -9,7 +9,7 @@
  * - Remove tag functionality
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,8 @@ interface TagSelectorProps {
   onTagsChange: (tags: Tag[]) => void;
   /** Optional label */
   label?: string;
+  /** Space ID to scope tags */
+  spaceId?: string;
 }
 
 // Predefined color palette (using design tokens)
@@ -52,10 +54,14 @@ export function TagSelector({
   selectedTags,
   onTagsChange,
   label = '태그',
+  spaceId,
 }: TagSelectorProps) {
   const addIconColor = useThemeColor(colors.light.text.secondary, colors.dark.text.muted);
   const borderColorForCheckmark = useThemeColor(colors.light.text.primary, colors.dark.text.primary);
   const emptyStateIconColor = useThemeColor(colors.light.text.muted, colors.dark.text.secondary);
+  const checkIconColor = useThemeColor(colors.light.surface, colors.dark.surface);
+  const primaryColor = useThemeColor(colors.primary, '#60A5FA');
+  const secondaryColor = useThemeColor(colors.secondary, '#9CA3AF');
 
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -65,17 +71,10 @@ export function TagSelector({
   const [newTagColor, setNewTagColor] = useState(TAG_COLORS[0]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Load all tags when modal opens
-  useEffect(() => {
-    if (showModal) {
-      loadTags();
-    }
-  }, [showModal]);
-
-  const loadTags = async () => {
+  const loadTags = useCallback(async () => {
     setIsLoading(true);
     try {
-      const tags = await getTags();
+      const tags = await getTags(spaceId);
       setAllTags(tags);
     } catch (error) {
       console.error('Failed to load tags:', error);
@@ -83,7 +82,14 @@ export function TagSelector({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [spaceId]);
+
+  // Load all tags when modal opens
+  useEffect(() => {
+    if (showModal) {
+      loadTags();
+    }
+  }, [showModal, loadTags]);
 
   // Add tag to selection
   const handleAddTag = (tag: Tag) => {
@@ -121,6 +127,7 @@ export function TagSelector({
       const newTag = await createTag({
         name: newTagName.trim(),
         color: newTagColor,
+        spaceId,
       });
 
       // Add to all tags
@@ -236,7 +243,7 @@ export function TagSelector({
                       activeOpacity={0.7}
                     >
                       {newTagColor === color && (
-                        <Ionicons name="checkmark" size={20} color={colors.light.surface} />
+                        <Ionicons name="checkmark" size={20} color={checkIconColor} />
                       )}
                     </TouchableOpacity>
                   ))}
@@ -273,7 +280,7 @@ export function TagSelector({
                   title="새 태그 만들기"
                   onPress={() => setIsCreatingTag(true)}
                   variant="outline"
-                  icon={<Ionicons name="add" size={18} color={colors.primary} />}
+                  icon={<Ionicons name="add" size={18} color={primaryColor} />}
                 />
               </View>
             )}
@@ -281,7 +288,7 @@ export function TagSelector({
             {/* Search bar */}
             <View className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
               <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">
-                <Ionicons name="search" size={20} color={colors.secondary} />
+                <Ionicons name="search" size={20} color={secondaryColor} />
                 <Input
                   placeholder="태그 검색"
                   value={searchQuery}
@@ -294,7 +301,7 @@ export function TagSelector({
             {/* Tags list */}
             {isLoading && !isCreatingTag ? (
               <View className="flex-1 items-center justify-center">
-                <ActivityIndicator size="large" color={colors.primary} />
+                <ActivityIndicator size="large" color={primaryColor} />
                 <Text className="mt-2 text-gray-600 dark:text-gray-300">로딩 중...</Text>
               </View>
             ) : availableTags.length === 0 ? (
@@ -332,7 +339,7 @@ export function TagSelector({
                       <Ionicons
                         name="add-circle-outline"
                         size={24}
-                        color={colors.primary}
+                        color={primaryColor}
                       />
                     </TouchableOpacity>
                   ))}

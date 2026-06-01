@@ -14,6 +14,7 @@ export interface Tag {
 export interface CreateTagInput {
   name: string;
   color?: string;
+  spaceId?: string;
 }
 
 export interface UpdateTagInput {

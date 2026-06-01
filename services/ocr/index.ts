@@ -7,7 +7,6 @@ import {
   createImageAccessError,
   createParsingError,
 } from './errorHandler';
-import { OcrErrorType } from './types';
 import {
   getAvailableProvider,
   mockExtractText,

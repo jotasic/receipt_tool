@@ -8,6 +8,7 @@ export { ColorPicker, COLORS } from './ColorPicker';
 export { Header } from './Header';
 export { BottomSheet } from './BottomSheet';
 export { ClassificationBadge } from './ClassificationBadge';
+export type { ClassificationDisplayData } from './ClassificationBadge';
 export { UsagePurposeBadge } from './UsagePurposeBadge';
 export { TagBadge } from './TagBadge';
 export { SelectableChip } from './SelectableChip';

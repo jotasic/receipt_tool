@@ -10,7 +10,7 @@
  * - Search tags
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -21,18 +21,19 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { Header, Input, Button, FullScreenModal, FloatingActionBar } from '@/components/common';
+import { Header, Input, FullScreenModal, FloatingActionBar } from '@/components/common';
 import {
-  getTags,
+  getTagsWithItemCount,
   createTag,
   updateTag,
   deleteTag,
-  getItemsByTag,
 } from '@/services/database/tagService';
 import type { Tag } from '@/types/tag';
+import { useSpaceStore } from '@/store/spaceStore';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Predefined color palette
 const TAG_COLORS = [
@@ -48,10 +49,14 @@ const TAG_COLORS = [
   '#06B6D4', // cyan
 ];
 
+type TagWithCount = Tag & { itemCount: number };
+
 export default function TagManagementScreen() {
-  const router = useRouter();
-  const [tags, setTags] = useState<Tag[]>([]);
+  const insets = useSafeAreaInsets();
+  const { currentSpace } = useSpaceStore();
+  const [tags, setTags] = useState<TagWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -59,37 +64,34 @@ export default function TagManagementScreen() {
   const [tagName, setTagName] = useState('');
   const [tagColor, setTagColor] = useState(TAG_COLORS[0]);
   const [isSaving, setIsSaving] = useState(false);
-  const [tagUsageCounts, setTagUsageCounts] = useState<Record<string, number>>(
-    {}
-  );
 
-  // Load tags when screen is focused
-  useFocusEffect(
-    useCallback(() => {
-      loadTags();
-    }, [])
-  );
+  const editIconColor = useThemeColor('#3B82F6', '#60A5FA');
+  const deleteIconColor = useThemeColor('#EF4444', '#F87171');
+  const searchIconColor = useThemeColor('#6B7280', '#9CA3AF');
+  const indicatorColor = useThemeColor('#3B82F6', '#60A5FA');
+  const emptyIconColor = useThemeColor('#D1D5DB', '#4B5563');
+  const colorPickerBorderColor = useThemeColor('#111827', '#F9FAFB');
+  const checkmarkColor = useThemeColor('#FFFFFF', '#111827');
 
-  const loadTags = async () => {
+  const loadTags = useCallback(async () => {
     setIsLoading(true);
     try {
-      const loadedTags = await getTags();
+      const loadedTags = await getTagsWithItemCount(currentSpace?.id);
       setTags(loadedTags);
-
-      // Load usage counts for each tag
-      const counts: Record<string, number> = {};
-      for (const tag of loadedTags) {
-        const items = await getItemsByTag(tag.id);
-        counts[tag.id] = items.length;
-      }
-      setTagUsageCounts(counts);
     } catch (error) {
       console.error('Failed to load tags:', error);
       Alert.alert('오류', '태그를 불러올 수 없습니다.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentSpace?.id]);
+
+  // Load tags when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      loadTags();
+    }, [loadTags])
+  );
 
   // Filter tags by search query
   const filteredTags = tags.filter((tag) =>
@@ -104,7 +106,7 @@ export default function TagManagementScreen() {
   };
 
   // Open edit modal
-  const handleOpenEditModal = (tag: Tag) => {
+  const handleOpenEditModal = (tag: TagWithCount) => {
     setEditingTag(tag);
     setTagName(tag.name);
     setTagColor(tag.color);
@@ -133,10 +135,10 @@ export default function TagManagementScreen() {
       const newTag = await createTag({
         name: tagName.trim(),
         color: tagColor,
+        spaceId: currentSpace?.id,
       });
 
-      setTags([...tags, newTag]);
-      setTagUsageCounts({ ...tagUsageCounts, [newTag.id]: 0 });
+      setTags([...tags, { ...newTag, itemCount: 0 }]);
       setShowCreateModal(false);
       Alert.alert('성공', '태그가 생성되었습니다.');
     } catch (error) {
@@ -195,8 +197,8 @@ export default function TagManagementScreen() {
   };
 
   // Delete tag
-  const handleDeleteTag = (tag: Tag) => {
-    const usageCount = tagUsageCounts[tag.id] || 0;
+  const handleDeleteTag = (tag: TagWithCount) => {
+    const usageCount = tag.itemCount;
 
     Alert.alert(
       '태그 삭제',
@@ -214,27 +216,22 @@ export default function TagManagementScreen() {
     );
   };
 
-  const confirmDeleteTag = async (tag: Tag) => {
-    setIsLoading(true);
+  const confirmDeleteTag = async (tag: TagWithCount) => {
+    setIsDeleting(true);
     try {
       await deleteTag(tag.id);
       setTags(tags.filter((t) => t.id !== tag.id));
-      const newCounts = { ...tagUsageCounts };
-      delete newCounts[tag.id];
-      setTagUsageCounts(newCounts);
       Alert.alert('성공', '태그가 삭제되었습니다.');
     } catch (error) {
       console.error('Failed to delete tag:', error);
       Alert.alert('오류', '태그를 삭제할 수 없습니다.');
     } finally {
-      setIsLoading(false);
+      setIsDeleting(false);
     }
   };
 
   // Render tag item
-  const renderTagItem = (tag: Tag) => {
-    const usageCount = tagUsageCounts[tag.id] || 0;
-
+  const renderTagItem = (tag: TagWithCount) => {
     return (
       <View
         key={tag.id}
@@ -254,7 +251,7 @@ export default function TagManagementScreen() {
             {tag.name}
           </Text>
           <Text className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            {usageCount}개 항목에서 사용 중
+            {tag.itemCount}개 항목에서 사용 중
           </Text>
         </View>
 
@@ -263,8 +260,9 @@ export default function TagManagementScreen() {
           onPress={() => handleOpenEditModal(tag)}
           className="w-9 h-9 items-center justify-center mr-2"
           activeOpacity={0.7}
+          disabled={isDeleting}
         >
-          <Ionicons name="create-outline" size={22} color="#3B82F6" />
+          <Ionicons name="create-outline" size={22} color={editIconColor} />
         </TouchableOpacity>
 
         {/* Delete button */}
@@ -272,8 +270,9 @@ export default function TagManagementScreen() {
           onPress={() => handleDeleteTag(tag)}
           className="w-9 h-9 items-center justify-center"
           activeOpacity={0.7}
+          disabled={isDeleting}
         >
-          <Ionicons name="trash-outline" size={22} color="#EF4444" />
+          <Ionicons name="trash-outline" size={22} color={deleteIconColor} />
         </TouchableOpacity>
       </View>
     );
@@ -319,12 +318,12 @@ export default function TagManagementScreen() {
               style={{
                 backgroundColor: color,
                 borderWidth: tagColor === color ? 3 : 0,
-                borderColor: '#111827',
+                borderColor: colorPickerBorderColor,
               }}
               activeOpacity={0.7}
             >
               {tagColor === color && (
-                <Ionicons name="checkmark" size={24} color="#FFFFFF" />
+                <Ionicons name="checkmark" size={24} color={checkmarkColor} />
               )}
             </TouchableOpacity>
           ))}
@@ -359,32 +358,42 @@ export default function TagManagementScreen() {
         {/* Search bar */}
         <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <View className="flex-row items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
-          <Ionicons name="search" size={20} color="#6B7280" />
+          <Ionicons name="search" size={20} color={searchIconColor} />
           <TextInput
             className="flex-1 ml-2 text-base text-gray-900 dark:text-gray-100"
             placeholder="태그 검색"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={searchIconColor}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="none"
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#6B7280" />
+              <Ionicons name="close-circle" size={20} color={searchIconColor} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
       {/* Tags list */}
-      {isLoading ? (
+      {!currentSpace ? (
+        <View className="flex-1 items-center justify-center p-6">
+          <Ionicons name="pricetags-outline" size={64} color={emptyIconColor} />
+          <Text className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+            공간을 선택해주세요
+          </Text>
+          <Text className="mt-2 text-gray-500 dark:text-gray-400 text-center">
+            태그는 공간별로 관리됩니다{'\n'}드로어에서 공간을 먼저 선택해주세요
+          </Text>
+        </View>
+      ) : isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#3B82F6" />
-          <Text className="mt-2 text-gray-600">로딩 중...</Text>
+          <ActivityIndicator size="large" color={indicatorColor} />
+          <Text className="mt-2 text-gray-600 dark:text-gray-400">로딩 중...</Text>
         </View>
       ) : filteredTags.length === 0 ? (
         <View className="flex-1 items-center justify-center p-6">
-          <Ionicons name="pricetags-outline" size={64} color="#D1D5DB" />
+          <Ionicons name="pricetags-outline" size={64} color={emptyIconColor} />
           <Text className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
             {searchQuery ? '검색 결과가 없습니다' : '태그가 없습니다'}
           </Text>
@@ -437,6 +446,7 @@ export default function TagManagementScreen() {
       </View>
 
       <FloatingActionBar
+        bottomInset={insets.bottom}
         actions={[
           {
             icon: 'add',

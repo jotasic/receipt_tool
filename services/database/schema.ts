@@ -98,9 +98,11 @@ export const SCHEMA = {
   tags: `
     CREATE TABLE IF NOT EXISTS tags (
       id TEXT PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
       color TEXT DEFAULT '#6B7280',
-      created_at TEXT NOT NULL
+      created_at TEXT NOT NULL,
+      space_id TEXT REFERENCES spaces(id),
+      UNIQUE(name, space_id)
     )
   `,
 
@@ -211,12 +213,14 @@ export const SCHEMA = {
   usage_purposes: `
     CREATE TABLE IF NOT EXISTS usage_purposes (
       id TEXT PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
       name_en TEXT,
       icon TEXT,
       color TEXT,
       is_active INTEGER DEFAULT 1,
-      display_order INTEGER DEFAULT 0
+      display_order INTEGER DEFAULT 0,
+      space_id TEXT REFERENCES spaces(id),
+      UNIQUE(name, space_id)
     )
   `,
 
@@ -235,6 +239,30 @@ export const SCHEMA = {
       version INTEGER PRIMARY KEY,
       name TEXT NOT NULL,
       applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `,
+
+  spaces: `
+    CREATE TABLE IF NOT EXISTS spaces (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      icon TEXT,
+      color TEXT,
+      display_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `,
+
+  classifications: `
+    CREATE TABLE IF NOT EXISTS classifications (
+      id TEXT PRIMARY KEY,
+      space_id TEXT NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      icon TEXT,
+      color TEXT,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      display_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `,
 };
@@ -388,6 +416,12 @@ export const INDEXES = {
     CREATE INDEX IF NOT EXISTS idx_report_items_item
     ON report_items(item_id)
   `,
+
+  spaces_display_order: `CREATE INDEX IF NOT EXISTS idx_spaces_display_order ON spaces(display_order)`,
+
+  classifications_space: `CREATE INDEX IF NOT EXISTS idx_classifications_space_id ON classifications(space_id)`,
+
+  classifications_display_order: `CREATE INDEX IF NOT EXISTS idx_classifications_display_order ON classifications(space_id, display_order)`,
 };
 
 /**
@@ -443,9 +477,30 @@ export interface UsagePurposeRow {
   color: string | null;
   is_active: number;
   display_order: number;
+  space_id: string | null;
 }
 
 export interface ReportItemRow {
   report_id: string;
   item_id: string;
+}
+
+export interface SpaceRow {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+  display_order: number;
+  created_at: string;
+}
+
+export interface ClassificationRow {
+  id: string;
+  space_id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+  is_active: number;
+  display_order: number;
+  created_at: string;
 }

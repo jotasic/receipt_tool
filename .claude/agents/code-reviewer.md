@@ -97,6 +97,16 @@ In addition to rule-based checks, verify:
 - [ ] Loading state handling
 - [ ] Error state handling
 
+### Data Source Consistency (Cross-file)
+
+When new service functions or DB tables are added, always verify:
+
+- [ ] **Single source of truth**: No duplicate data sources (constants vs DB)
+  - e.g. If a selector reads from a `CONSTANTS` array but the management screen writes to DB → ❌
+- [ ] **New service functions are actually called**: No dead code (defined but never used)
+- [ ] **Filter params are passed at call sites**: e.g. `getTags(spaceId?)` exists but called as `getTags()` everywhere → ❌
+- [ ] **No duplicate components**: Same UI/feature not reimplemented in multiple places
+
 ---
 
 ## Output Format

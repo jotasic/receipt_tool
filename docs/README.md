@@ -38,6 +38,7 @@
 | [getting-started.md](./guides/getting-started.md) | 시작 가이드 |
 | [development-workflow.md](./guides/development-workflow.md) | 개발 워크플로우 (CLAUDE.md 기반) |
 | [database.md](./guides/database.md) | 데이터베이스 사용법 |
+| [testing.md](./guides/testing.md) | 테스트 정책 및 실행 가이드 |
 | [ocr.md](./guides/ocr.md) | OCR 시스템 사용법 |
 | [design-system.md](./guides/design-system.md) | 디자인 시스템 사용 가이드 |
 | [layout-policy.md](./guides/layout-policy.md) | 레이아웃 및 모달 정책 |
@@ -70,6 +71,7 @@
     ├── getting-started.md
     ├── development-workflow.md
     ├── database.md
+    ├── testing.md
     ├── ocr.md
     ├── design-system.md
     └── layout-policy.md

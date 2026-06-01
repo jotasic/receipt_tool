@@ -7,16 +7,45 @@ import { getClassificationConfig } from '@/constants/items';
 import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { colors } from '@/design-system/tokens/colors';
 import { ClassificationBadge, UsagePurposeBadge } from '@/components/common';
+import type { ClassificationDisplayData } from '@/components/common';
 
 interface ItemCardProps {
   item: Item;
+  /** Optional resolved display data for custom (DB-backed) classifications.
+   *  When provided, takes precedence over the legacy classification lookup.
+   *  Should be fetched by the parent component and passed down to avoid
+   *  async calls inside a list-rendered component. */
+  classificationData?: ClassificationDisplayData;
   onPress?: (item: Item) => void;
   showDate?: boolean;
 }
 
-export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate = true }: ItemCardProps) {
-  const classificationConfig = getClassificationConfig(item.classification);
+// Format date for display (YYYY.MM.DD)
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}.${month}.${day}`;
+}
+
+// Format amount with currency symbol
+function formatAmount(amount: number): string {
+  return `₩${amount.toLocaleString('ko-KR')}`;
+}
+
+export const ItemCard = React.memo(function ItemCard({ item, classificationData, onPress, showDate = true }: ItemCardProps) {
+  const legacyConfig = getClassificationConfig(item.classification);
   const defaultColor = useThemeColor(colors.light.text.secondary, colors.dark.text.secondary);
+
+  // Resolve icon and color: prefer classificationData prop (custom DB classification),
+  // then fall back to legacy config, then fall back to defaults.
+  const resolvedIcon = (
+    classificationData?.icon !== undefined ? classificationData.icon : legacyConfig?.icon
+  ) ?? 'document';
+  const resolvedColor = (
+    classificationData?.color !== undefined ? classificationData.color : legacyConfig?.color
+  ) ?? defaultColor;
   const segments = useSegments();
 
   const handlePress = useCallback(() => {
@@ -39,20 +68,6 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate =
       router.push(`/(tabs)/home/item/${item.id}`);
     }
   }, [onPress, item, segments]);
-
-  // Format date for display (YYYY.MM.DD)
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}.${month}.${day}`;
-  };
-
-  // Format amount with currency symbol
-  const formatAmount = (amount: number) => {
-    return `₩${amount.toLocaleString('ko-KR')}`;
-  };
 
   // Determine if we should show amount (hide for proof documents without amount)
   const shouldShowAmount = item.amount !== undefined && item.amount !== null;
@@ -80,12 +95,12 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate =
         {/* Classification Icon */}
         <View
           className="w-10 h-10 rounded-full items-center justify-center mr-3"
-          style={{ backgroundColor: `${classificationConfig?.color || defaultColor}15` }}
+          style={{ backgroundColor: `${resolvedColor}15` }}
         >
           <Ionicons
-            name={(classificationConfig?.icon || 'document') as React.ComponentProps<typeof Ionicons>['name']}
+            name={resolvedIcon as React.ComponentProps<typeof Ionicons>['name']}
             size={20}
-            color={classificationConfig?.color || defaultColor}
+            color={resolvedColor}
           />
         </View>
 
@@ -106,7 +121,11 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress, showDate =
 
       {/* Middle Row: Classification Badge, Usage Purpose Badge */}
       <View className="flex-row items-center mt-2 ml-13">
-        <ClassificationBadge classification={item.classification} showIcon={false} />
+        <ClassificationBadge
+          classification={item.classification}
+          classificationData={classificationData}
+          showIcon={false}
+        />
         <Text className="text-gray-400 mx-2 text-xs">•</Text>
         <UsagePurposeBadge usagePurpose={item.usagePurpose} />
       </View>

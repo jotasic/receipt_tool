@@ -69,6 +69,22 @@ export interface Item {
   /** Usage purpose/category - for reporting and organization */
   usagePurpose: UsagePurpose;
 
+  // ============================================
+  // Space & Classification (Phase 2)
+  // ============================================
+
+  /**
+   * Space FK - top-level grouping (e.g. 회사, 개인)
+   * Optional for backward compatibility with pre-Phase2 records
+   */
+  spaceId?: string;
+
+  /**
+   * Classification FK - replaces legacy classification enum over time.
+   * Optional for backward compatibility; legacy 'classification' field is kept.
+   */
+  classificationId?: string;
+
   /**
    * Tags associated with this item
    * Optional - loaded when needed via JOIN query
@@ -242,7 +258,7 @@ export interface CreateItemInput extends Omit<Item, 'id' | 'createdAt' | 'update
  *   memo: '회의 중 간식 구매',
  * };
  */
-export interface UpdateItemInput extends Partial<Omit<Item, 'id' | 'createdAt' | 'updatedAt'>> {}
+export type UpdateItemInput = Partial<Omit<Item, 'id' | 'createdAt' | 'updatedAt'>>;
 
 // ============================================
 // Type Guards

@@ -4,7 +4,7 @@
  * A reusable modal for selecting Ionicons
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/design-system/tokens/colors';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { FullScreenModal } from './FullScreenModal';
 
 // Common icons for usage purposes and tags
@@ -116,6 +117,12 @@ export function IconPicker({
 }: IconPickerProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
+  const searchIconColor = useThemeColor('#9CA3AF', '#6B7280');
+  const unselectedIconColor = useThemeColor('#D1D5DB', '#4B5563');
+  const unselectedBorderColor = useThemeColor(colors.light.border, '#374151');
+  const unselectedBgColor = useThemeColor(colors.light.background, '#1F2937');
+  const primaryColor = useThemeColor(colors.primary, '#60A5FA');
+
   // Filter icons by search query
   const filteredIcons = searchQuery.trim()
     ? COMMON_ICONS.filter((icon) =>
@@ -139,18 +146,18 @@ export function IconPicker({
         {/* Search bar */}
         <View className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <View className="flex-row items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
-            <Ionicons name="search" size={20} color={colors.secondary} />
+            <Ionicons name="search" size={20} color={searchIconColor} />
             <TextInput
               className="flex-1 ml-2 text-base text-gray-900 dark:text-gray-100"
               placeholder="아이콘 검색"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={searchIconColor}
               value={searchQuery}
               onChangeText={setSearchQuery}
               autoCapitalize="none"
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={20} color={colors.secondary} />
+                <Ionicons name="close-circle" size={20} color={searchIconColor} />
               </TouchableOpacity>
             )}
           </View>
@@ -166,16 +173,16 @@ export function IconPicker({
                 className="w-16 h-16 items-center justify-center rounded-lg border-2"
                 style={{
                   borderColor:
-                    selectedIcon === icon ? colors.primary : colors.light.border,
+                    selectedIcon === icon ? primaryColor : unselectedBorderColor,
                   backgroundColor:
-                    selectedIcon === icon ? '#EFF6FF' : colors.light.background,
+                    selectedIcon === icon ? '#EFF6FF' : unselectedBgColor,
                 }}
                 activeOpacity={0.7}
               >
                 <Ionicons
-                  name={icon as any}
+                  name={icon as React.ComponentProps<typeof Ionicons>['name']}
                   size={28}
-                  color={selectedIcon === icon ? colors.primary : colors.light.text.secondary}
+                  color={selectedIcon === icon ? primaryColor : unselectedIconColor}
                 />
               </TouchableOpacity>
             ))}
@@ -183,7 +190,7 @@ export function IconPicker({
 
           {filteredIcons.length === 0 && (
             <View className="items-center justify-center py-12">
-              <Ionicons name="search" size={48} color="#D1D5DB" />
+              <Ionicons name="search" size={48} color={unselectedIconColor} />
               <Text className="mt-4 text-gray-500 dark:text-gray-400">
                 검색 결과가 없습니다
               </Text>
@@ -197,7 +204,7 @@ export function IconPicker({
             <Text className="text-sm text-gray-600 dark:text-gray-400 mb-2">선택된 아이콘</Text>
             <View className="flex-row items-center">
               <View className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-lg items-center justify-center mr-3">
-                <Ionicons name={selectedIcon as any} size={24} color={colors.primary} />
+                <Ionicons name={selectedIcon as React.ComponentProps<typeof Ionicons>['name']} size={24} color={primaryColor} />
               </View>
               <Text className="text-base text-gray-900 dark:text-gray-100">{selectedIcon}</Text>
             </View>

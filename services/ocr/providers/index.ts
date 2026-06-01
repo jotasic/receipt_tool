@@ -7,10 +7,10 @@
  * 3. Mock - 개발/테스트용
  */
 
+import { isGoogleVisionAvailable } from './googleVision';
+
 export * from './mock';
 export * from './googleVision';
-
-import { isGoogleVisionAvailable } from './googleVision';
 
 export type OcrProvider = 'mlkit' | 'googleVision' | 'mock';
 

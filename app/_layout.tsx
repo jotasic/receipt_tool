@@ -10,9 +10,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Appearance, View, ActivityIndicator, Text } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
 import { initDatabase } from '@/services/database';
 import type { MigrationProgress } from '@/services/database/migrations/runner';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useSpaceStore } from '@/store/spaceStore';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -28,7 +30,9 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const overlayBgColor = useThemeColor('#ffffff', '#111827');
+  const overlayIndicatorColor = useThemeColor('#2563EB', '#60A5FA');
+  const overlayTextColor = useThemeColor('#6b7280', '#9CA3AF');
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
@@ -37,6 +41,7 @@ export default function RootLayout() {
   const [dbError, setDbError] = useState<Error | null>(null);
   const [migrationMessage, setMigrationMessage] = useState<string | null>(null);
   const { theme, loadSettings, isLoaded: settingsLoaded } = useSettingsStore();
+  const { loadSpaces, isLoaded: spacesLoaded } = useSpaceStore();
 
   // DB 초기화 - 콜백을 통해 마이그레이션 진행 상황을 상태로 연결
   useEffect(() => {
@@ -64,6 +69,13 @@ export default function RootLayout() {
     loadSettings();
   }, [loadSettings]);
 
+  // Load spaces after DB is initialized
+  useEffect(() => {
+    if (dbInitialized) {
+      loadSpaces();
+    }
+  }, [dbInitialized, loadSpaces]);
+
   // Apply theme preference
   useEffect(() => {
     if (settingsLoaded && theme && theme !== 'system') {
@@ -83,15 +95,15 @@ export default function RootLayout() {
   }, [dbError]);
 
   useEffect(() => {
-    if (loaded && dbInitialized && settingsLoaded) {
+    if (loaded && dbInitialized && settingsLoaded && spacesLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [loaded, dbInitialized, settingsLoaded]);
+  }, [loaded, dbInitialized, settingsLoaded, spacesLoaded]);
 
   // 폰트 미로드 시 null (스플래시 스크린이 덮음)
   if (!loaded) return null;
 
-  const isReady = dbInitialized && settingsLoaded;
+  const isReady = dbInitialized && settingsLoaded && spacesLoaded;
 
   // RootLayoutNav를 즉시 렌더링하여 내비게이션 초기화 시작
   // 로딩 오버레이로 덮어 사용자에게는 로딩 화면 표시
@@ -99,9 +111,9 @@ export default function RootLayout() {
     <>
       <RootLayoutNav />
       {!isReady && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: colorScheme === 'dark' ? '#111827' : '#ffffff' }}>
-          <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#60A5FA' : '#2563EB'} />
-          <Text style={{ marginTop: 12, fontSize: 14, color: colorScheme === 'dark' ? '#9CA3AF' : '#6b7280' }}>
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: overlayBgColor }}>
+          <ActivityIndicator size="large" color={overlayIndicatorColor} />
+          <Text style={{ marginTop: 12, fontSize: 14, color: overlayTextColor }}>
             {migrationMessage ?? '로딩 중...'}
           </Text>
         </View>
@@ -122,6 +134,8 @@ function RootLayoutNav() {
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          {/* 공간 관리 - SpaceDrawer에서 진입. 뒤로가면 원래 탭으로 복귀 */}
+          <Stack.Screen name="spaces-management" options={{ headerShown: false }} />
         </Stack>
       </ThemeProvider>
     </SafeAreaProvider>

@@ -1,10 +1,11 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs, usePathname } from 'expo-router';
+import { Tabs, usePathname, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+import { SpaceDrawer } from '@/components/space/SpaceDrawer';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -33,7 +34,9 @@ export default function TabLayout() {
     pathname.includes('/settings/tags') ||
     pathname.includes('/settings/backup') ||
     pathname.includes('/settings/custom-fields') ||
-    pathname.includes('/settings/usage-purposes');
+    pathname.includes('/settings/usage-purposes') ||
+    pathname.includes('/settings/spaces') ||
+    pathname.includes('/settings/classifications');
 
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1 bg-white dark:bg-gray-900">
@@ -93,6 +96,13 @@ export default function TabLayout() {
         />
         <Tabs.Screen
           name="settings"
+          listeners={() => ({
+            tabPress: (e) => {
+              // 항상 settings 루트(index)로 이동 - 이전 스택 상태(공간 관리 등) 제거
+              e.preventDefault();
+              router.navigate('/(tabs)/settings');
+            },
+          })}
           options={{
             title: '설정',
             tabBarIcon: ({ color, focused }) => (
@@ -101,6 +111,8 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
+      {/* 공간 드로어 - 전역으로 한 번만 렌더링 */}
+      <SpaceDrawer />
     </SafeAreaView>
   );
 }

@@ -17,6 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | [/docs/guides/development-workflow.md](/docs/guides/development-workflow.md) | 개발 워크플로우 상세 가이드 (필독) |
 | [/docs/guides/getting-started.md](/docs/guides/getting-started.md) | 개발 환경 설정 및 시작 가이드 |
 | [/docs/guides/database.md](/docs/guides/database.md) | 데이터베이스 가이드 |
+| [/docs/guides/testing.md](/docs/guides/testing.md) | 테스트 정책 및 실행 가이드 |
 | [/docs/guides/ocr.md](/docs/guides/ocr.md) | OCR 시스템 가이드 |
 | [/docs/guides/design-system.md](/docs/guides/design-system.md) | 디자인 시스템 사용 가이드 |
 | [/docs/guides/layout-policy.md](/docs/guides/layout-policy.md) | 레이아웃 및 모달 정책 |

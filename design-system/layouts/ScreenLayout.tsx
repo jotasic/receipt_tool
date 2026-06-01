@@ -1,4 +1,4 @@
-import { View, ScrollView, useColorScheme } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { SafeAreaView, Edge } from 'react-native-safe-area-context';
 import { Header } from '@/components/common/Header';
 import type { ReactNode } from 'react';
@@ -62,8 +62,6 @@ export function ScreenLayout({
   scrollable = true,
   edges = ['top', 'left', 'right', 'bottom'],
 }: ScreenLayoutProps) {
-  const colorScheme = useColorScheme();
-
   const Container = scrollable ? ScrollView : View;
   const containerProps = scrollable
     ? {

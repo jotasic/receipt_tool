@@ -15,7 +15,43 @@
  * - Loading states
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSpaceStore } from '@/store/spaceStore';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { DEFAULT_CLASSIFICATION_IDS } from '@/services/database/migrations/spaceFeature';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
+import { Input, BottomSheet, FullScreenModal, DatePickerInput } from '@/components/common';
+import { ClassificationSelector } from './ClassificationSelector';
+import { UsagePurposeSelector } from './UsagePurposeSelector';
+import { TagSelector } from './TagSelector';
+import { CustomFieldInput } from './CustomFieldInput';
+import { OcrOverlay, type SelectedItem } from './OcrOverlay';
+import {
+  extractReceiptData,
+  extractTextDetailed,
+  OcrErrorType,
+  ocrLogger,
+  getCurrentProvider,
+} from '@/services/ocr';
+import { getCustomFields } from '@/services/database/customFieldService';
+import type { OcrError, OcrBlock } from '@/services/ocr';
+import type { CreateItemInput } from '@/types/item';
+import type { ItemClassification, UsagePurpose } from '@/types/shared';
+import { colors } from '@/design-system/tokens/colors';
+import type { Tag } from '@/types/tag';
+import type { CustomField } from '@/types';
 // 날짜 유효성 검사 (YYYY-MM-DD 형식 + 실제 존재하는 날짜)
 function isValidDateFormat(dateStr: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
@@ -56,43 +92,14 @@ function formatAmountDisplay(raw: string): string {
   const num = parseInt(raw, 10);
   return isNaN(num) ? '' : num.toLocaleString('ko-KR');
 }
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
-import { Input, Button, BottomSheet, FullScreenModal, DatePickerInput } from '@/components/common';
-import { ClassificationSelector } from './ClassificationSelector';
-import { UsagePurposeSelector } from './UsagePurposeSelector';
-import { TagSelector } from './TagSelector';
-import { CustomFieldInput } from './CustomFieldInput';
-import { OcrOverlay, type SelectedItem } from './OcrOverlay';
-import {
-  extractReceiptData,
-  extractTextDetailed,
-  OcrErrorType,
-  ocrLogger,
-  getCurrentProvider,
-} from '@/services/ocr';
-import { getCustomFields } from '@/services/database/customFieldService';
-import type { OcrError, OcrBlock } from '@/services/ocr';
-import type { CreateItemInput } from '@/types/item';
-import type { ItemClassification, UsagePurpose } from '@/types/shared';
-import { colors } from '@/design-system/tokens/colors';
-import type { Tag } from '@/types/tag';
-import type { CustomField } from '@/types';
 
 interface ItemFormProps {
   /** Initial form data for edit mode (optional) */
   initialData?: Partial<CreateItemInput>;
+  /** Pre-populated tags for edit mode (Tag objects, not IDs) */
+  initialTags?: Tag[];
+  /** Pre-populated custom field values for edit mode */
+  initialCustomValues?: Record<string, string | null>;
   /** Pre-captured image URI for OCR processing */
   imageUri?: string;
   /** Callback when form is submitted successfully */
@@ -103,17 +110,38 @@ interface ItemFormProps {
 
 export function ItemForm({
   initialData,
+  initialTags,
+  initialCustomValues,
   imageUri: initialImageUri,
   onSubmit,
   onCancel,
 }: ItemFormProps) {
   const modalTitle = initialData ? '항목 수정' : '항목 추가';
+  const { currentSpace } = useSpaceStore();
+  // initialData?.title은 마운트 시 1회만 캡처 (이후 변경 무시가 의도적임)
+  const initialTitleRef = useRef(initialData?.title);
+
+  // Theme colors for icons and indicators
+  const surfaceColor = useThemeColor(colors.light.surface, colors.dark.surface);
+  const primaryColor = useThemeColor(colors.primary, '#60A5FA');
+  const successColor = useThemeColor(colors.success, '#34D399');
+  const warningColor = useThemeColor(colors.warning, '#FCD34D');
+  const errorColor = useThemeColor(colors.error, '#F87171');
+  const orangeColor = useThemeColor('#EA580C', '#FB923C');
+  const ocrBadgeBlueColor = useThemeColor('#DBEAFE', '#1E3A5F');
+  const ocrBadgeGreenColor = useThemeColor('#D1FAE5', '#14532D');
+  const ocrBadgeYellowColor = useThemeColor('#FEF3C7', '#451A03');
+
+  // classificationId (DB 기반 Classification ID)
+  const [classificationId, setClassificationId] = useState<string | undefined>(
+    initialData?.classificationId
+  );
   // Form state
   const [classification, setClassification] = useState<ItemClassification>(
     initialData?.classification || 'corporate_card'
   );
   const [usagePurpose, setUsagePurpose] = useState<UsagePurpose>(
-    initialData?.usagePurpose || 'meal'
+    initialData?.usagePurpose ?? ''
   );
   const [imageUri, setImageUri] = useState<string | null>(
     initialImageUri || initialData?.filePath || null
@@ -128,9 +156,7 @@ export function ItemForm({
   );
   const [memo, setMemo] = useState(initialData?.memo || '');
   const [ocrText, setOcrText] = useState(initialData?.ocrText || '');
-  const [selectedTags, setSelectedTags] = useState<Tag[]>(
-    (initialData as any)?.tagObjects || []
-  );
+  const [selectedTags, setSelectedTags] = useState<Tag[]>(initialTags ?? []);
 
   // Custom fields state
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
@@ -154,56 +180,64 @@ export function ItemForm({
   // BottomSheet state
   const [showImagePicker, setShowImagePicker] = useState(false);
 
+  // handleOcrErrorAlert를 runOCR에서 순환 참조 없이 호출하기 위한 ref
+  const handleOcrErrorAlertRef = useRef<(error: OcrError) => void>(() => {});
+
   // Dynamic field visibility based on classification
   const showAmount = classification !== 'proof_document';
   const showStoreName =
     classification === 'personal_card' || classification === 'corporate_card';
 
-  // Load custom fields on mount
-  useEffect(() => {
-    loadCustomFields();
-  }, []);
-
-  // Run OCR when initialImageUri is provided
-  useEffect(() => {
-    if (initialImageUri && !initialData?.title) {
-      runOCR(initialImageUri);
-    }
-  }, [initialImageUri]);
-
   /**
-   * Load custom fields for items
+   * Handle classification ID change and sync the classification enum accordingly.
+   *
+   * The legacy `classification` enum is used for field visibility (showAmount, showStoreName)
+   * and is stored on the item for backward-compatibility.
+   *
+   * Mapping rules:
+   *   - personalCard  → 'personal_card'   (amount + storeName visible)
+   *   - corporateCard → 'corporate_card'  (amount + storeName visible)
+   *   - proofDocument → 'proof_document'  (only title/date visible)
+   *   - custom        → 'corporate_card'  fallback (all fields visible, same as corporateCard)
    */
-  const loadCustomFields = async () => {
-    try {
-      const fields = await getCustomFields();
-      setCustomFields(fields);
-
-      // Initialize custom values from initialData if editing
-      if ((initialData as any)?.customValues) {
-        const values: Record<string, string | null> = {};
-        const customValueArray = (initialData as any).customValues;
-
-        // Handle both array format (CustomFieldValue[]) and object format
-        if (Array.isArray(customValueArray)) {
-          customValueArray.forEach((cv: any) => {
-            values[cv.fieldId] = cv.value;
-          });
-        } else if (typeof customValueArray === 'object') {
-          Object.assign(values, customValueArray);
-        }
-
-        setCustomValues(values);
-      }
-    } catch (error) {
-      console.error('Failed to load custom fields:', error);
+  const handleClassificationChange = (id: string) => {
+    setClassificationId(id);
+    if (id === DEFAULT_CLASSIFICATION_IDS.personalCard) {
+      setClassification('personal_card');
+    } else if (id === DEFAULT_CLASSIFICATION_IDS.corporateCard) {
+      setClassification('corporate_card');
+    } else if (id === DEFAULT_CLASSIFICATION_IDS.proofDocument) {
+      setClassification('proof_document');
+    } else {
+      // 커스텀 분류 → 'corporate_card' fallback (amount + storeName 모두 표시)
+      setClassification('corporate_card');
     }
   };
 
   /**
+   * Load custom fields for items
+   */
+  const loadCustomFields = useCallback(async () => {
+    try {
+      const fields = await getCustomFields();
+      setCustomFields(fields);
+
+      // Initialize custom values from initialCustomValues prop if editing
+      if (initialCustomValues) {
+        setCustomValues(initialCustomValues);
+      }
+    } catch (error) {
+      console.error('Failed to load custom fields:', error);
+      Alert.alert('오류', '커스텀 필드를 불러오지 못했습니다.');
+    }
+  // initialCustomValues는 참조 안정성이 없으므로 마운트 시 1회만 실행
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /**
    * Run OCR on the provided image
    */
-  const runOCR = async (uri: string) => {
+  const runOCR = useCallback(async (uri: string) => {
     setIsOcrLoading(true);
     setOcrError(null);
 
@@ -234,7 +268,7 @@ export function ItemForm({
       // Apply OCR results to form
       if (result.storeName) {
         setStoreName(result.storeName);
-        if (!title) setTitle(result.storeName);
+        setTitle((prev) => prev || result.storeName!);
       }
       if (result.amount) setAmount(result.amount.toString());
       if (result.date) setDate(result.date);
@@ -255,7 +289,7 @@ export function ItemForm({
       if (error && typeof error === 'object' && 'type' in error) {
         const ocrErr = error as OcrError;
         setOcrError(ocrErr);
-        handleOcrErrorAlert(ocrErr);
+        handleOcrErrorAlertRef.current(ocrErr);
       } else {
         Alert.alert(
           'OCR 오류',
@@ -266,17 +300,18 @@ export function ItemForm({
     } finally {
       setIsOcrLoading(false);
     }
-  };
+   
+  }, []);
 
   /**
    * Show user-friendly OCR error alert
    */
-  const handleOcrErrorAlert = (error: OcrError) => {
-    const buttons: Array<{
+  const handleOcrErrorAlert = useCallback((error: OcrError) => {
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: 'default' | 'cancel' | 'destructive';
-    }> = [];
+    }[] = [];
 
     if (error.retryable && imageUri) {
       buttons.push({
@@ -313,7 +348,22 @@ export function ItemForm({
       recoverable: error.recoverable,
       retryable: error.retryable,
     });
-  };
+  }, [imageUri, runOCR]);
+
+  // handleOcrErrorAlertRef를 항상 최신 함수로 유지
+  handleOcrErrorAlertRef.current = handleOcrErrorAlert;
+
+  // Load custom fields on mount
+  useEffect(() => {
+    loadCustomFields();
+  }, [loadCustomFields]);
+
+  // Run OCR when initialImageUri is provided (마운트 시 초기 title 없으면 자동 실행)
+  useEffect(() => {
+    if (initialImageUri && !initialTitleRef.current) {
+      runOCR(initialImageUri);
+    }
+  }, [initialImageUri, runOCR]);
 
   // OCR overlay item selection handler
   const handleSelectItem = (item: SelectedItem) => {
@@ -469,6 +519,11 @@ export function ItemForm({
 
   // Handle form submission
   const handleSubmit = async () => {
+    if (!currentSpace) {
+      Alert.alert('오류', '공간을 먼저 선택해주세요.');
+      return;
+    }
+
     if (!validate()) {
       return;
     }
@@ -484,6 +539,8 @@ export function ItemForm({
         fileType: imageUri ? 'image/jpeg' : undefined,
         memo: memo.trim() || undefined,
         ocrText: ocrText || undefined,
+        spaceId: currentSpace?.id,
+        classificationId: classificationId,
       };
 
       // Add amount for expense items
@@ -549,10 +606,17 @@ export function ItemForm({
           <Text className="text-gray-700 dark:text-gray-200 text-base font-medium mb-3">
             분류 (필수)
           </Text>
-          <ClassificationSelector
-            selectedClassification={classification}
-            onSelect={setClassification}
-          />
+          {currentSpace ? (
+            <ClassificationSelector
+              spaceId={currentSpace.id}
+              value={classificationId}
+              onChange={handleClassificationChange}
+            />
+          ) : (
+            <Text className="text-gray-500 dark:text-gray-400 text-sm py-2">
+              공간을 먼저 선택해주세요
+            </Text>
+          )}
         </View>
 
         {/* Usage Purpose Selector */}
@@ -563,6 +627,7 @@ export function ItemForm({
           <UsagePurposeSelector
             selectedPurpose={usagePurpose}
             onSelect={setUsagePurpose}
+            spaceId={currentSpace?.id}
           />
         </View>
 
@@ -598,13 +663,13 @@ export function ItemForm({
                 }}
                 accessibilityLabel="이미지 삭제"
               >
-                <Ionicons name="close" size={20} color="{colors.light.surface}" />
+                <Ionicons name="close" size={20} color={surfaceColor} />
               </TouchableOpacity>
 
               {/* OCR Loading indicator */}
               {isOcrLoading && (
                 <View className="absolute inset-0 bg-black/50 rounded-lg items-center justify-center">
-                  <ActivityIndicator size="large" color="{colors.light.surface}" />
+                  <ActivityIndicator size="large" color={surfaceColor} />
                   <Text className="text-white mt-2 font-medium">OCR 분석 중...</Text>
                 </View>
               )}
@@ -616,7 +681,7 @@ export function ItemForm({
                   className="mt-2 flex-row items-center justify-center py-2 bg-blue-50 border border-blue-200 rounded-lg"
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="scan-outline" size={18} color="{colors.primary}" />
+                  <Ionicons name="scan-outline" size={18} color={primaryColor} />
                   <Text className="ml-2 text-blue-600 font-medium">
                     텍스트 영역에서 직접 선택
                   </Text>
@@ -631,10 +696,10 @@ export function ItemForm({
               activeOpacity={0.7}
             >
               {isLoadingImage ? (
-                <ActivityIndicator size="small" color="{colors.primary}" />
+                <ActivityIndicator size="small" color={primaryColor} />
               ) : (
                 <>
-                  <Ionicons name="camera-outline" size={32} color="{colors.primary}" />
+                  <Ionicons name="camera-outline" size={32} color={primaryColor} />
                   <Text className="text-blue-600 dark:text-blue-400 font-medium mt-2">
                     사진 등록
                   </Text>
@@ -648,7 +713,7 @@ export function ItemForm({
         {isMockMode && (
           <View className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <View className="flex-row items-center mb-2">
-              <Ionicons name="flask" size={20} color="{colors.warning}" />
+              <Ionicons name="flask" size={20} color={warningColor} />
               <Text className="ml-2 text-amber-700 font-semibold">테스트 모드</Text>
             </View>
             <Text className="text-amber-600 text-sm">
@@ -662,7 +727,7 @@ export function ItemForm({
         {ocrError ? (
           <View className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
             <View className="flex-row items-center mb-2">
-              <Ionicons name="alert-circle" size={20} color="{colors.error}" />
+              <Ionicons name="alert-circle" size={20} color={errorColor} />
               <Text className="ml-2 text-red-700 font-semibold">OCR 처리 실패</Text>
             </View>
             <Text className="text-red-600 text-sm">{ocrError.userMessage}</Text>
@@ -692,10 +757,10 @@ export function ItemForm({
                     size={20}
                     color={
                       confidence >= 0.7
-                        ? colors.success
+                        ? successColor
                         : confidence >= 0.4
-                        ? colors.warning
-                        : '#EA580C'
+                        ? warningColor
+                        : orangeColor
                     }
                   />
                   <Text
@@ -796,6 +861,7 @@ export function ItemForm({
             selectedTags={selectedTags}
             onTagsChange={setSelectedTags}
             label="태그 (선택)"
+            spaceId={currentSpace?.id}
           />
         </View>
 
@@ -866,10 +932,10 @@ export function ItemForm({
                   style={{
                     backgroundColor:
                       item.mode === 'storeName'
-                        ? '#DBEAFE'
+                        ? ocrBadgeBlueColor
                         : item.mode === 'amount'
-                        ? '#D1FAE5'
-                        : '#FEF3C7',
+                        ? ocrBadgeGreenColor
+                        : ocrBadgeYellowColor,
                   }}
                 >
                   <Text
@@ -877,10 +943,10 @@ export function ItemForm({
                     style={{
                       color:
                         item.mode === 'storeName'
-                          ? colors.primary
+                          ? primaryColor
                           : item.mode === 'amount'
-                          ? colors.success
-                          : colors.warning,
+                          ? successColor
+                          : warningColor,
                     }}
                   >
                     {item.mode === 'storeName'

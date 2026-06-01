@@ -19,9 +19,10 @@ export interface FloatingAction {
 
 interface FloatingActionBarProps {
   actions: FloatingAction[];
+  bottomInset?: number;
 }
 
-export function FloatingActionBar({ actions }: FloatingActionBarProps) {
+export function FloatingActionBar({ actions, bottomInset = 0 }: FloatingActionBarProps) {
   const defaultIconColor = useThemeColor('#374151', '#D1D5DB');
   const dangerIconColor = useThemeColor('#DC2626', '#F87171');
 
@@ -48,9 +49,7 @@ export function FloatingActionBar({ actions }: FloatingActionBarProps) {
   return (
     <View
       className="absolute right-4 flex-col-reverse gap-3"
-      style={{
-        bottom: 16,
-      }}
+      style={{ bottom: 16 + bottomInset }}
     >
       {actions.map((action, index) => {
         const styles = getVariantStyles(action.variant);
@@ -58,7 +57,7 @@ export function FloatingActionBar({ actions }: FloatingActionBarProps) {
 
         return (
           <TouchableOpacity
-            key={index}
+            key={`${action.icon}-${index}`}
             onPress={action.onPress}
             disabled={action.disabled || action.loading}
             className={`w-16 h-16 rounded-full items-center justify-center ${styles.bg}`}

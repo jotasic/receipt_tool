@@ -24,17 +24,17 @@ import {
   Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { Header, Input, Button, FullScreenModal, FloatingActionBar } from '@/components/common';
+import { Header, Input, FullScreenModal, FloatingActionBar } from '@/components/common';
+import { useThemeColor } from '@/design-system/hooks/useThemeColor';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   getCustomFields,
   createCustomField,
   updateCustomField,
   deleteCustomField,
   getCustomFieldUsageCount,
-  isCustomFieldInUse,
 } from '@/services/database/customFieldService';
 import type { CustomField, CustomFieldType } from '@/types/customField';
 
@@ -57,7 +57,7 @@ const FILTER_OPTIONS: { value: string; label: string }[] = [
 ];
 
 export default function CustomFieldsScreen() {
-  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [fields, setFields] = useState<CustomFieldWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,14 +74,18 @@ export default function CustomFieldsScreen() {
   const [optionsText, setOptionsText] = useState('');
   const [showTypePicker, setShowTypePicker] = useState(false);
 
-  // Load custom fields when screen is focused
-  useFocusEffect(
-    useCallback(() => {
-      loadCustomFields();
-    }, [])
-  );
+  const switchTrackOffColor = useThemeColor('#D1D5DB', '#374151');
+  const switchTrackOnColor = useThemeColor('#3B82F6', '#3B82F6');
+  const switchThumbOffColor = useThemeColor('#F3F4F6', '#6B7280');
+  const switchThumbOnColor = useThemeColor('#FFFFFF', '#FFFFFF');
+  const primaryColor = useThemeColor('#3B82F6', '#60A5FA');
+  const purpleColor = useThemeColor('#8B5CF6', '#A78BFA');
+  const grayIconColor = useThemeColor('#6B7280', '#9CA3AF');
+  const lightGrayColor = useThemeColor('#D1D5DB', '#4B5563');
+  const dangerColor = useThemeColor('#EF4444', '#F87171');
+  const placeholderColor = useThemeColor('#9CA3AF', '#6B7280');
 
-  const loadCustomFields = async () => {
+  const loadCustomFields = useCallback(async () => {
     setIsLoading(true);
     try {
       const loadedFields = await getCustomFields();
@@ -101,7 +105,14 @@ export default function CustomFieldsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  // Load custom fields when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      loadCustomFields();
+    }, [loadCustomFields])
+  );
 
   // Filter and search fields
   const filteredFields = fields.filter((field) => {
@@ -179,7 +190,7 @@ export default function CustomFieldsScreen() {
       // Get max display order
       const maxOrder = fields.reduce((max, f) => Math.max(max, f.displayOrder), -1);
 
-      const newField = await createCustomField({
+      await createCustomField({
         name: fieldName.trim(),
         fieldType,
         options,
@@ -326,13 +337,10 @@ export default function CustomFieldsScreen() {
       const currentField = fields[currentIndex];
       const swapField = fields[newIndex];
 
-      await updateCustomField(currentField.id, {
-        displayOrder: swapField.displayOrder,
-      });
-
-      await updateCustomField(swapField.id, {
-        displayOrder: currentField.displayOrder,
-      });
+      await Promise.all([
+        updateCustomField(currentField.id, { displayOrder: swapField.displayOrder }),
+        updateCustomField(swapField.id, { displayOrder: currentField.displayOrder }),
+      ]);
 
       // Reload to get updated order
       await loadCustomFields();
@@ -359,7 +367,7 @@ export default function CustomFieldsScreen() {
         <View className="flex-row items-start">
           {/* Field type icon */}
           <View className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-lg items-center justify-center mr-3">
-            <Ionicons name={typeInfo.icon} size={20} color="#8B5CF6" />
+            <Ionicons name={typeInfo.icon} size={20} color={purpleColor} />
           </View>
 
           {/* Field info */}
@@ -407,7 +415,7 @@ export default function CustomFieldsScreen() {
                 <Ionicons
                   name="chevron-up"
                   size={20}
-                  color={index === 0 ? '#D1D5DB' : '#6B7280'}
+                  color={index === 0 ? lightGrayColor : grayIconColor}
                 />
               </TouchableOpacity>
               <TouchableOpacity
@@ -419,7 +427,7 @@ export default function CustomFieldsScreen() {
                 <Ionicons
                   name="chevron-down"
                   size={20}
-                  color={index === fields.length - 1 ? '#D1D5DB' : '#6B7280'}
+                  color={index === fields.length - 1 ? lightGrayColor : grayIconColor}
                 />
               </TouchableOpacity>
             </View>
@@ -430,7 +438,7 @@ export default function CustomFieldsScreen() {
               className="w-9 h-9 items-center justify-center mr-2"
               activeOpacity={0.7}
             >
-              <Ionicons name="create-outline" size={22} color="#3B82F6" />
+              <Ionicons name="create-outline" size={22} color={primaryColor} />
             </TouchableOpacity>
 
             {/* Delete button */}
@@ -443,7 +451,7 @@ export default function CustomFieldsScreen() {
               <Ionicons
                 name="trash-outline"
                 size={22}
-                color={field.usageCount > 0 ? '#D1D5DB' : '#EF4444'}
+                color={field.usageCount > 0 ? lightGrayColor : dangerColor}
               />
             </TouchableOpacity>
           </View>
@@ -495,13 +503,13 @@ export default function CustomFieldsScreen() {
                 <Ionicons
                   name={getFieldTypeInfo(fieldType).icon}
                   size={20}
-                  color="#8B5CF6"
+                  color={purpleColor}
                 />
               </View>
               <Text className="flex-1 text-gray-700 dark:text-gray-300">
                 {getFieldTypeInfo(fieldType).label}
               </Text>
-              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+              <Ionicons name="chevron-forward" size={20} color={placeholderColor} />
             </TouchableOpacity>
           </View>
 
@@ -518,8 +526,8 @@ export default function CustomFieldsScreen() {
             <Switch
               value={isRequired}
               onValueChange={setIsRequired}
-              trackColor={{ false: '#D1D5DB', true: '#3B82F6' }}
-              thumbColor={isRequired ? '#FFFFFF' : '#F3F4F6'}
+              trackColor={{ false: switchTrackOffColor, true: switchTrackOnColor }}
+              thumbColor={isRequired ? switchThumbOnColor : switchThumbOffColor}
             />
           </View>
 
@@ -532,7 +540,7 @@ export default function CustomFieldsScreen() {
               <TextInput
                 className="p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100"
                 placeholder="옵션 1&#10;옵션 2&#10;옵션 3"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={placeholderColor}
                 value={optionsText}
                 onChangeText={setOptionsText}
                 multiline
@@ -552,7 +560,7 @@ export default function CustomFieldsScreen() {
           <View className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
             <View className="flex-row items-center">
               <View className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-lg items-center justify-center mr-3">
-                <Ionicons name={getFieldTypeInfo(fieldType).icon} size={20} color="#8B5CF6" />
+                <Ionicons name={getFieldTypeInfo(fieldType).icon} size={20} color={purpleColor} />
               </View>
               <View className="flex-1">
                 <View className="flex-row items-center gap-2">
@@ -595,13 +603,13 @@ export default function CustomFieldsScreen() {
                 activeOpacity={0.7}
               >
                 <View className="w-10 h-10 rounded-full items-center justify-center mr-3 bg-purple-50 dark:bg-purple-900/30">
-                  <Ionicons name={type.icon} size={20} color="#8B5CF6" />
+                  <Ionicons name={type.icon} size={20} color={purpleColor} />
                 </View>
                 <Text className="flex-1 text-base text-gray-900 dark:text-gray-100">
                   {type.label}
                 </Text>
                 {fieldType === type.value && (
-                  <Ionicons name="checkmark" size={24} color="#3B82F6" />
+                  <Ionicons name="checkmark" size={24} color={primaryColor} />
                 )}
               </TouchableOpacity>
             ))}
@@ -618,18 +626,18 @@ export default function CustomFieldsScreen() {
         {/* Search bar */}
         <View className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <View className="flex-row items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
-          <Ionicons name="search" size={20} color="#6B7280" />
+          <Ionicons name="search" size={20} color={grayIconColor} />
           <TextInput
             className="flex-1 ml-2 text-base text-gray-900 dark:text-gray-100"
             placeholder="필드 검색"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={placeholderColor}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="none"
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#6B7280" />
+              <Ionicons name="close-circle" size={20} color={grayIconColor} />
             </TouchableOpacity>
           )}
         </View>
@@ -668,12 +676,12 @@ export default function CustomFieldsScreen() {
       {/* Fields list */}
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#3B82F6" />
+          <ActivityIndicator size="large" color={primaryColor} />
           <Text className="mt-2 text-gray-600 dark:text-gray-400">로딩 중...</Text>
         </View>
       ) : filteredFields.length === 0 ? (
         <View className="flex-1 items-center justify-center p-6">
-          <Ionicons name="create-outline" size={64} color="#D1D5DB" />
+          <Ionicons name="create-outline" size={64} color={lightGrayColor} />
           <Text className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
             {searchQuery || selectedFilter !== 'all'
               ? '검색 결과가 없습니다'
@@ -726,6 +734,7 @@ export default function CustomFieldsScreen() {
       </View>
 
       <FloatingActionBar
+        bottomInset={insets.bottom}
         actions={[
           {
             icon: 'add',

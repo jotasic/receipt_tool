@@ -31,3 +31,11 @@ export {
   isUsagePurpose,
   isValidItem,
 } from './item';
+export type {
+  Space,
+  Classification,
+  CreateSpaceInput,
+  UpdateSpaceInput,
+  CreateClassificationInput,
+  UpdateClassificationInput,
+} from './space';

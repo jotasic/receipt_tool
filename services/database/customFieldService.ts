@@ -122,7 +122,7 @@ export async function updateCustomField(
   const db = await getDatabase();
 
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: (string | number | null)[] = [];
 
   if (updates.name !== undefined) {
     fields.push('name = ?');

@@ -5,7 +5,7 @@
  */
 
 import { getDatabase } from './getDatabase';
-import type { TagRow, ReceiptTagRow, DocumentTagRow } from './types';
+import type { TagRow } from './types';
 import type { Tag, CreateTagInput, UpdateTagInput } from '@/types';
 
 /**
@@ -43,8 +43,8 @@ export async function createTag(input: CreateTagInput): Promise<Tag> {
   const now = new Date().toISOString();
 
   await db.runAsync(
-    `INSERT INTO tags (id, name, color, created_at) VALUES (?, ?, ?, ?)`,
-    [id, input.name, input.color || '#6B7280', now]
+    `INSERT INTO tags (id, name, color, space_id, created_at) VALUES (?, ?, ?, ?, ?)`,
+    [id, input.name, input.color || '#6B7280', input.spaceId ?? null, now]
   );
 
   return {
@@ -56,15 +56,19 @@ export async function createTag(input: CreateTagInput): Promise<Tag> {
 }
 
 /**
- * Get all tags
+ * Get all tags, optionally filtered by space
  *
- * @returns Promise<Tag[]> - Array of all tags
+ * @param spaceId - Optional space ID to filter by; omit for all tags
+ * @returns Promise<Tag[]> - Array of tags ordered by name ascending
  */
-export async function getTags(): Promise<Tag[]> {
+export async function getTags(spaceId?: string): Promise<Tag[]> {
   const db = await getDatabase();
-  const rows = await db.getAllAsync<TagRow>(
-    'SELECT * FROM tags ORDER BY name ASC'
-  );
+  const rows = spaceId
+    ? await db.getAllAsync<TagRow>(
+        'SELECT * FROM tags WHERE space_id = ? ORDER BY name ASC',
+        [spaceId]
+      )
+    : await db.getAllAsync<TagRow>('SELECT * FROM tags ORDER BY name ASC');
 
   return rows.map(rowToTag);
 }
@@ -89,14 +93,20 @@ export async function getTagById(id: string): Promise<Tag | null> {
  * Get a tag by name
  *
  * @param name - Tag name
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Tag | null> - Tag object or null if not found
  */
-export async function getTagByName(name: string): Promise<Tag | null> {
+export async function getTagByName(name: string, spaceId?: string): Promise<Tag | null> {
   const db = await getDatabase();
-  const row = await db.getFirstAsync<TagRow>(
-    'SELECT * FROM tags WHERE name = ?',
-    [name]
-  );
+  const row = spaceId
+    ? await db.getFirstAsync<TagRow>(
+        'SELECT * FROM tags WHERE name = ? AND space_id = ?',
+        [name, spaceId]
+      )
+    : await db.getFirstAsync<TagRow>(
+        'SELECT * FROM tags WHERE name = ?',
+        [name]
+      );
 
   return row ? rowToTag(row) : null;
 }
@@ -112,7 +122,7 @@ export async function updateTag(id: string, updates: UpdateTagInput): Promise<vo
   const db = await getDatabase();
 
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: (string | number | null)[] = [];
 
   if (updates.name !== undefined) {
     fields.push('name = ?');
@@ -147,199 +157,23 @@ export async function deleteTag(id: string): Promise<void> {
  * Search tags by name
  *
  * @param query - Search query
+ * @param spaceId - Optional space ID to filter by; omit for all spaces
  * @returns Promise<Tag[]> - Array of matching tags
  */
-export async function searchTags(query: string): Promise<Tag[]> {
+export async function searchTags(query: string, spaceId?: string): Promise<Tag[]> {
   const db = await getDatabase();
   const searchPattern = `%${query}%`;
-  const rows = await db.getAllAsync<TagRow>(
-    'SELECT * FROM tags WHERE name LIKE ? ORDER BY name ASC',
-    [searchPattern]
-  );
+  const rows = spaceId
+    ? await db.getAllAsync<TagRow>(
+        'SELECT * FROM tags WHERE name LIKE ? AND space_id = ? ORDER BY name ASC',
+        [searchPattern, spaceId]
+      )
+    : await db.getAllAsync<TagRow>(
+        'SELECT * FROM tags WHERE name LIKE ? ORDER BY name ASC',
+        [searchPattern]
+      );
 
   return rows.map(rowToTag);
-}
-
-// ============================================================================
-// Receipt-Tag Association Operations
-// ============================================================================
-
-/**
- * Add a tag to a receipt
- *
- * @param receiptId - Receipt ID
- * @param tagId - Tag ID
- * @returns Promise<void>
- */
-export async function addTagToReceipt(receiptId: string, tagId: string): Promise<void> {
-  const db = await getDatabase();
-  await db.runAsync(
-    'INSERT OR IGNORE INTO receipt_tags (receipt_id, tag_id) VALUES (?, ?)',
-    [receiptId, tagId]
-  );
-}
-
-/**
- * Remove a tag from a receipt
- *
- * @param receiptId - Receipt ID
- * @param tagId - Tag ID
- * @returns Promise<void>
- */
-export async function removeTagFromReceipt(receiptId: string, tagId: string): Promise<void> {
-  const db = await getDatabase();
-  await db.runAsync(
-    'DELETE FROM receipt_tags WHERE receipt_id = ? AND tag_id = ?',
-    [receiptId, tagId]
-  );
-}
-
-/**
- * Get all tags for a receipt
- *
- * @param receiptId - Receipt ID
- * @returns Promise<Tag[]> - Array of tags
- */
-export async function getTagsForReceipt(receiptId: string): Promise<Tag[]> {
-  const db = await getDatabase();
-  const rows = await db.getAllAsync<TagRow>(
-    `SELECT t.* FROM tags t
-     INNER JOIN receipt_tags rt ON t.id = rt.tag_id
-     WHERE rt.receipt_id = ?
-     ORDER BY t.name ASC`,
-    [receiptId]
-  );
-
-  return rows.map(rowToTag);
-}
-
-/**
- * Get all receipts with a specific tag
- *
- * @param tagId - Tag ID
- * @returns Promise<string[]> - Array of receipt IDs
- */
-export async function getReceiptsByTag(tagId: string): Promise<string[]> {
-  const db = await getDatabase();
-  const rows = await db.getAllAsync<{ receipt_id: string }>(
-    'SELECT receipt_id FROM receipt_tags WHERE tag_id = ?',
-    [tagId]
-  );
-
-  return rows.map((row) => row.receipt_id);
-}
-
-/**
- * Set tags for a receipt (replaces existing tags)
- *
- * @param receiptId - Receipt ID
- * @param tagIds - Array of tag IDs
- * @returns Promise<void>
- */
-export async function setTagsForReceipt(receiptId: string, tagIds: string[]): Promise<void> {
-  const db = await getDatabase();
-
-  // Remove all existing tags
-  await db.runAsync('DELETE FROM receipt_tags WHERE receipt_id = ?', [receiptId]);
-
-  // Add new tags
-  for (const tagId of tagIds) {
-    await db.runAsync(
-      'INSERT INTO receipt_tags (receipt_id, tag_id) VALUES (?, ?)',
-      [receiptId, tagId]
-    );
-  }
-}
-
-// ============================================================================
-// Document-Tag Association Operations
-// ============================================================================
-
-/**
- * Add a tag to a document
- *
- * @param documentId - Document ID
- * @param tagId - Tag ID
- * @returns Promise<void>
- */
-export async function addTagToDocument(documentId: string, tagId: string): Promise<void> {
-  const db = await getDatabase();
-  await db.runAsync(
-    'INSERT OR IGNORE INTO document_tags (document_id, tag_id) VALUES (?, ?)',
-    [documentId, tagId]
-  );
-}
-
-/**
- * Remove a tag from a document
- *
- * @param documentId - Document ID
- * @param tagId - Tag ID
- * @returns Promise<void>
- */
-export async function removeTagFromDocument(documentId: string, tagId: string): Promise<void> {
-  const db = await getDatabase();
-  await db.runAsync(
-    'DELETE FROM document_tags WHERE document_id = ? AND tag_id = ?',
-    [documentId, tagId]
-  );
-}
-
-/**
- * Get all tags for a document
- *
- * @param documentId - Document ID
- * @returns Promise<Tag[]> - Array of tags
- */
-export async function getTagsForDocument(documentId: string): Promise<Tag[]> {
-  const db = await getDatabase();
-  const rows = await db.getAllAsync<TagRow>(
-    `SELECT t.* FROM tags t
-     INNER JOIN document_tags dt ON t.id = dt.tag_id
-     WHERE dt.document_id = ?
-     ORDER BY t.name ASC`,
-    [documentId]
-  );
-
-  return rows.map(rowToTag);
-}
-
-/**
- * Get all documents with a specific tag
- *
- * @param tagId - Tag ID
- * @returns Promise<string[]> - Array of document IDs
- */
-export async function getDocumentsByTag(tagId: string): Promise<string[]> {
-  const db = await getDatabase();
-  const rows = await db.getAllAsync<{ document_id: string }>(
-    'SELECT document_id FROM document_tags WHERE tag_id = ?',
-    [tagId]
-  );
-
-  return rows.map((row) => row.document_id);
-}
-
-/**
- * Set tags for a document (replaces existing tags)
- *
- * @param documentId - Document ID
- * @param tagIds - Array of tag IDs
- * @returns Promise<void>
- */
-export async function setTagsForDocument(documentId: string, tagIds: string[]): Promise<void> {
-  const db = await getDatabase();
-
-  // Remove all existing tags
-  await db.runAsync('DELETE FROM document_tags WHERE document_id = ?', [documentId]);
-
-  // Add new tags
-  for (const tagId of tagIds) {
-    await db.runAsync(
-      'INSERT INTO document_tags (document_id, tag_id) VALUES (?, ?)',
-      [documentId, tagId]
-    );
-  }
 }
 
 // ============================================================================
@@ -398,19 +232,54 @@ export async function getItemsByTag(tagId: string): Promise<string[]> {
 }
 
 /**
+ * Get all tags with item usage count (single aggregation query, no N+1)
+ *
+ * @param spaceId - Optional space ID to filter by
+ * @returns Promise<Array<Tag & { itemCount: number }>>
+ */
+export async function getTagsWithItemCount(
+  spaceId?: string
+): Promise<(Tag & { itemCount: number })[]> {
+  const db = await getDatabase();
+  const rows = spaceId
+    ? await db.getAllAsync<TagRow & { item_count: number }>(
+        `SELECT t.*, COUNT(it.item_id) as item_count
+         FROM tags t
+         LEFT JOIN item_tags it ON t.id = it.tag_id
+         WHERE t.space_id = ?
+         GROUP BY t.id
+         ORDER BY t.name ASC`,
+        [spaceId]
+      )
+    : await db.getAllAsync<TagRow & { item_count: number }>(
+        `SELECT t.*, COUNT(it.item_id) as item_count
+         FROM tags t
+         LEFT JOIN item_tags it ON t.id = it.tag_id
+         GROUP BY t.id
+         ORDER BY t.name ASC`
+      );
+
+  return rows.map((row) => ({
+    ...rowToTag(row),
+    itemCount: row.item_count,
+  }));
+}
+
+/**
  * Set tags for an item (replaces existing tags)
  */
 export async function setTagsForItem(itemId: string, tagIds: string[]): Promise<void> {
   const db = await getDatabase();
+  await db.withTransactionAsync(async () => {
+    // Remove all existing tags
+    await db.runAsync('DELETE FROM item_tags WHERE item_id = ?', [itemId]);
 
-  // Remove all existing tags
-  await db.runAsync('DELETE FROM item_tags WHERE item_id = ?', [itemId]);
-
-  // Add new tags
-  for (const tagId of tagIds) {
-    await db.runAsync(
-      'INSERT INTO item_tags (item_id, tag_id) VALUES (?, ?)',
-      [itemId, tagId]
-    );
-  }
+    // Add new tags
+    for (const tagId of tagIds) {
+      await db.runAsync(
+        'INSERT INTO item_tags (item_id, tag_id) VALUES (?, ?)',
+        [itemId, tagId]
+      );
+    }
+  });
 }
